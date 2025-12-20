@@ -164,3 +164,12 @@ export function constantTimeCompare(a: string, b: string): boolean {
         return false
     }
 }
+
+/**
+ * Generate a cryptographically secure invite token
+ *
+ * @returns {string} Token as hex string
+ */
+export function generateToken(): string {
+    return randomBytes(32).toString('hex')
+}

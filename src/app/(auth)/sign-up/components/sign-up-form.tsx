@@ -73,8 +73,9 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
   const [email, setEmail] = useState('')
   const [otpExpiresAt, setOtpExpiresAt] = useState<string>('')
 
-  // Get prefilled email from query parameter
+  // Get prefilled data from query parameters
   const prefilledEmail = searchParams?.get('email') || ''
+  const inviteToken = searchParams?.get('token') || ''
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -103,7 +104,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
       const response = await fetch('/api/auth/register/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, inviteToken }),
       })
 
       const result = await response.json()
@@ -119,12 +120,20 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
       setEmail(data.email)
       setOtpExpiresAt(result.expiresAt)
-      setStep('otp')
 
-      toast({
-        title: 'OTP Sent',
-        description: 'Check your email for the verification code',
-      })
+      if (result.sessionCreated) {
+        setStep('details')
+        toast({
+          title: 'Verified',
+          description: 'Invitation accepted. Please complete your account details.',
+        })
+      } else {
+        setStep('otp')
+        toast({
+          title: 'OTP Sent',
+          description: 'Check your email for the verification code',
+        })
+      }
     } catch (error) {
       console.error('Send OTP error:', error)
       toast({
@@ -144,7 +153,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
       // Auto-submit to send OTP
       onEmailSubmit({ email: prefilledEmail })
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefilledEmail])
 
   // Step 2: Verify OTP
@@ -199,6 +208,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
           email,
           name: data.name,
           password: data.password,
+          inviteToken,
         }),
       })
 

@@ -78,8 +78,12 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Check for valid REGISTER AuthSession
-        const authSession = await findActiveAuthSession(email, AuthIntent.REGISTER)
+        // Check for valid REGISTER or INVITED AuthSession
+        let authSession = await findActiveAuthSession(email, AuthIntent.REGISTER)
+
+        if (!authSession) {
+            authSession = await findActiveAuthSession(email, AuthIntent.INVITED)
+        }
 
         if (!authSession) {
             return errorResponse(

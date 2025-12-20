@@ -40,3 +40,18 @@ model AuthSession {
   @@index([email, intent])
   @@map("auth_sessions")
 }
+
+model Invite {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  token     String    @unique
+  invitedBy String
+  expiresAt DateTime
+  used      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+
+  @@index([email, expiresAt])
+  @@index([token])
+  @@map("invites")
+}

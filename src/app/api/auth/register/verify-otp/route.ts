@@ -70,8 +70,12 @@ export async function POST(request: NextRequest) {
             return errorResponse(error.message, 429)
         }
 
-        // Find valid OTP for email and REGISTER intent
-        const otpRecord = await findValidOtp(email, AuthIntent.REGISTER)
+        // Find valid OTP for email and REGISTER or INVITED intent
+        let otpRecord = await findValidOtp(email, AuthIntent.REGISTER)
+
+        if (!otpRecord) {
+            otpRecord = await findValidOtp(email, AuthIntent.INVITED)
+        }
 
         if (!otpRecord) {
             return errorResponse(
@@ -104,11 +108,11 @@ export async function POST(request: NextRequest) {
                 data: { used: true },
             })
 
-            // Delete existing REGISTER sessions for this email
+            // Delete existing sessions for this email (matching the OTP intent)
             await tx.authSession.deleteMany({
                 where: {
                     email,
-                    intent: AuthIntent.REGISTER,
+                    intent: otpRecord.intent,
                 },
             })
 
@@ -119,7 +123,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     id: generateSessionId(),
                     email,
-                    intent: AuthIntent.REGISTER,
+                    intent: otpRecord.intent,
                     expiresAt: sessionExpiresAt,
                 },
             })

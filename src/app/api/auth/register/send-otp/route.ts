@@ -31,6 +31,7 @@ import {
     successResponse,
 } from '@/lib/auth/request-utils'
 import { AuthIntent, SendOtpResponse } from '@/lib/auth/types'
+import { findValidInviteByToken, markInviteAsUsed } from '@/lib/auth/repositories/invite.repository'
 
 const OTP_EXPIRY_MINUTES = 10
 
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
             return errorResponse(validationError, 400)
         }
 
-        const { email: rawEmail } = body
+        const { email: rawEmail, inviteToken } = body
 
         // Sanitize and validate email
         const email = sanitizeEmail(rawEmail)
@@ -70,6 +71,42 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        let intent = AuthIntent.REGISTER
+
+        // Handle Invitation
+        if (inviteToken) {
+            const invite = await findValidInviteByToken(inviteToken)
+
+            if (!invite) {
+                return errorResponse('Invalid or expired invitation token', 400)
+            }
+
+            if (invite.email !== email) {
+                return errorResponse('Email does not match invitation', 400)
+            }
+
+            await markInviteAsUsed(invite.id)
+            intent = AuthIntent.INVITED
+
+            // Create AuthSession immediately (bypass OTP)
+            const { createAuthSessionAndInvalidateOld } = await import('@/lib/auth/repositories/auth-session.repository')
+            const sessionExpiresAt = new Date()
+            sessionExpiresAt.setMinutes(sessionExpiresAt.getMinutes() + 30) // 30 mins expiry
+
+            await createAuthSessionAndInvalidateOld({
+                email,
+                intent,
+                expiresAt: sessionExpiresAt,
+            })
+
+            const response: SendOtpResponse = {
+                success: true,
+                expiresAt: sessionExpiresAt.toISOString(),
+                sessionCreated: true,
+            }
+            return successResponse(response)
+        }
+
         // Generate 7-digit OTP
         const otp = generateOtp()
 
@@ -84,7 +121,7 @@ export async function POST(request: NextRequest) {
         await createOtpAndInvalidateOld({
             email,
             codeHash,
-            intent: AuthIntent.REGISTER,
+            intent,
             expiresAt,
         })
 
