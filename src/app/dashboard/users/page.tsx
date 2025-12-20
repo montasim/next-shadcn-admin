@@ -32,10 +32,20 @@ export default function Page() {
   const [currentRow, setCurrentRow] = useState<User | null>(null)
   const [open, setOpen] = useDialogState<UsersDialogType>(null)
 
+  const refreshUsers = async () => {
+    try {
+      const rawUsers = await getUsers()
+      const users = userListSchema.parse(rawUsers)
+      setUsers(users)
+    } catch (error) {
+      console.error('Error refreshing users:', error)
+    }
+  }
+
   const handleDelete = async (user: User) => {
     try {
       await deleteUser(user.id)
-      setUsers(users.filter(u => u.id !== user.id))
+      await refreshUsers()
       toast({
         title: 'The following user has been deleted:',
         description: (
@@ -69,6 +79,7 @@ export default function Page() {
         key='user-create'
         open={open === 'create'}
         onOpenChange={() => setOpen('create')}
+        onSuccess={refreshUsers}
       />
 
       <UsersInviteDialog
@@ -95,6 +106,7 @@ export default function Page() {
               }, 500)
             }}
             currentRow={currentRow}
+            onSuccess={refreshUsers}
           />
 
           <ConfirmDialog
