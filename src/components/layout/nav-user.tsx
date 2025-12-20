@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+
 import {
   BadgeCheck,
   Bell,
@@ -89,17 +91,23 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck className="mr-2 h-4 w-4" />
-                Account
+              <DropdownMenuItem asChild>
+                <Link href='/settings/account'>
+                  <BadgeCheck className="mr-2 h-4 w-4" />
+                  Account
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard className="mr-2 h-4 w-4" />
-                Billing
+              <DropdownMenuItem asChild>
+                <Link href='/settings/account'>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Billing
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
+              <DropdownMenuItem asChild>
+                <Link href='/settings/notifications'>
+                  <Bell className="mr-2 h-4 w-4" />
+                  Notifications
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

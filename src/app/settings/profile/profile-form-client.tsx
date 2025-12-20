@@ -101,7 +101,7 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
               </Select>
               <FormDescription>
                 You can manage verified email addresses in your{' '}
-                <Link href='/'>email settings</Link>.
+                <Link href='/public'>email settings</Link>.
               </FormDescription>
               <FormMessage />
             </FormItem>
