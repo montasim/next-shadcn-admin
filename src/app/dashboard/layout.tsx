@@ -6,6 +6,11 @@ import { SearchProvider } from '@/context/search-context'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { cn } from '@/lib/utils'
+import {Header} from "@/components/layout/header";
+import {Search} from "@/components/search";
+import {ThemeSwitch} from "@/components/theme-switch";
+import {ProfileDropdown} from "@/components/profile-dropdown";
+import {Main} from "@/components/ui/main";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,7 +43,16 @@ export default function DashboardLayout({
                   'group-data-[scroll-locked=1]/body:has-[main.fixed-main]:h-svh'
                 )}
               >
-                {children}
+                  <Header fixed>
+                      <Search />
+                      <div className='ml-auto flex items-center space-x-4'>
+                          <ThemeSwitch />
+                          <ProfileDropdown />
+                      </div>
+                  </Header>
+                  <Main fixed>
+                      {children}
+                  </Main>
               </div>
             </SearchProvider>
           </SidebarProvider>

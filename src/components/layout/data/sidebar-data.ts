@@ -56,23 +56,23 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Tasks',
-          url: '/tasks',
+          url: '/dashboard/tasks',
           icon: IconChecklist,
         },
         {
           title: 'Apps',
-          url: '/apps',
+          url: '/dashboard/apps',
           icon: IconPackages,
         },
         {
           title: 'Chats',
-          url: '/chats',
+          url: '/dashboard/chats',
           badge: '3',
           icon: IconMessages,
         },
         {
           title: 'Users',
-          url: '/users',
+          url: '/dashboard/users',
           icon: IconUsers,
         },
       ],

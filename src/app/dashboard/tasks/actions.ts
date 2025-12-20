@@ -22,7 +22,7 @@ export async function createTask(formData: FormData) {
   const validatedData = taskSchema.parse(rawData)
   tasks.push(validatedData)
   
-  revalidatePath('/tasks')
+  revalidatePath('/dashboard/tasks')
   return { message: 'Task created successfully' }
 }
 
@@ -43,7 +43,7 @@ export async function updateTask(taskId: string, formData: FormData) {
   }
 
   tasks[index] = validatedData
-  revalidatePath('/tasks')
+  revalidatePath('/dashboard/tasks')
   return { message: 'Task updated successfully' }
 }
 
@@ -55,7 +55,7 @@ export async function deleteTask(taskId: string) {
   }
 
   tasks.splice(index, 1)
-  revalidatePath('/tasks')
+  revalidatePath('/dashboard/tasks')
   return { message: 'Task deleted successfully' }
 }
 
