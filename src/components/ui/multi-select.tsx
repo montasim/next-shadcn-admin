@@ -19,6 +19,7 @@ interface MultiSelectProps {
   placeholder?: string
   emptyText?: string
   className?: string
+  maxVisible?: number
 }
 
 export function MultiSelect({
@@ -28,6 +29,7 @@ export function MultiSelect({
   placeholder = 'Select options...',
   emptyText = 'No options found.',
   className,
+  maxVisible = 3,
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false)
 
@@ -57,37 +59,44 @@ export function MultiSelect({
           role='combobox'
           aria-expanded={open}
           className={cn(
-            'w-full justify-between text-left font-normal',
+            'w-full justify-between text-left font-normal min-h-[42px]',
             !selected.length && 'text-muted-foreground',
             className
           )}
         >
-          <div className='flex flex-wrap gap-1'>
+          <div className='flex flex-wrap gap-1 overflow-hidden'>
             {selected.length > 0 ? (
-              selectedLabels.map((label, index) => (
-                <Badge
-                  key={selected[index]}
-                  variant='secondary'
-                  className='mr-1 mb-1'
-                >
-                  {label}
-                  <button
-                    className='ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleUnselect(selected[index])
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                    }}
-                    onClick={() => handleUnselect(selected[index])}
+              <>
+                {selectedLabels.slice(0, maxVisible).map((label, index) => (
+                  <Badge
+                    key={selected[index]}
+                    variant='secondary'
+                    className='mr-1 mb-1'
                   >
-                    <X className='h-3 w-3 text-muted-foreground hover:text-foreground' />
-                  </button>
-                </Badge>
-              ))
+                    {label}
+                    <button
+                      className='ml-1 ring-offset-background rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleUnselect(selected[index])
+                        }
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                      }}
+                      onClick={() => handleUnselect(selected[index])}
+                    >
+                      <X className='h-3 w-3 text-muted-foreground hover:text-foreground' />
+                    </button>
+                  </Badge>
+                ))}
+                {selectedLabels.length > maxVisible && (
+                  <Badge variant='secondary' className='mr-1 mb-1'>
+                    +{selectedLabels.length - maxVisible} more
+                  </Badge>
+                )}
+              </>
             ) : (
               <span>{placeholder}</span>
             )}

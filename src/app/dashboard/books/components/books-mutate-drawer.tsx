@@ -60,7 +60,7 @@ const formSchema = z.object({
   purchaseDate: z.string().optional(),
   authorIds: z.array(z.string()).min(1, 'At least one author is required.'),
   publicationIds: z.array(z.string()).min(1, 'At least one publication is required.'),
-  categoryIds: z.array(z.string()).optional(),
+  categoryIds: z.array(z.string()).min(1, 'At least one category is required.'),
 })
 
 type BookForm = z.infer<typeof formSchema>
@@ -424,6 +424,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                       onChange={field.onChange}
                       placeholder='Select authors'
                       emptyText='No authors found'
+                      maxVisible={2}
                     />
                   </FormControl>
                   <FormMessage />
@@ -447,6 +448,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                       onChange={field.onChange}
                       placeholder='Select publications'
                       emptyText='No publications found'
+                      maxVisible={2}
                     />
                   </FormControl>
                   <FormMessage />
@@ -459,7 +461,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
               name='categoryIds'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categories</FormLabel>
+                  <FormLabel>Categories <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <MultiSelect
                       options={categories.map(category => ({
@@ -470,6 +472,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                       onChange={field.onChange}
                       placeholder='Select categories'
                       emptyText='No categories found'
+                      maxVisible={3}
                     />
                   </FormControl>
                   <FormMessage />
