@@ -149,46 +149,44 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onFormSubmit)} className='space-y-6'>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <FormField
-            control={form.control}
-            name='name'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Book Name *</FormLabel>
-                <FormControl>
-                  <Input placeholder='Enter book name' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+              control={form.control}
+              name='name'
+              render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Book Name *</FormLabel>
+                      <FormControl>
+                          <Input placeholder='Enter book name' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                  </FormItem>
+              )}
           />
 
           <FormField
-            control={form.control}
-            name='type'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Book Type *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder='Select book type' />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {bookTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+              control={form.control}
+              name='type'
+              render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Book Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                              <SelectTrigger>
+                                  <SelectValue placeholder='Select book type' />
+                              </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                              {bookTypes.map((type) => (
+                                  <SelectItem key={type.value} value={type.value}>
+                                      {type.label}
+                                  </SelectItem>
+                              ))}
+                          </SelectContent>
+                      </Select>
+                      <FormMessage />
+                  </FormItem>
+              )}
           />
-        </div>
 
         <FormField
           control={form.control}
