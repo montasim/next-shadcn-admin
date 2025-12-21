@@ -20,18 +20,18 @@ model Admin {
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   // Account Settings
   dob          DateTime?
   language     String?
-  
+
   // Appearance Settings
   theme        String?   @default("light")
   font         String?   @default("inter")
-  
+
   // Display Settings
   displayItems Json?     @default("[\"recents\", \"home\", \"applications\", \"desktop\", \"downloads\", \"documents\"]")
-  
+
   // Notification Settings
   notificationType    String?   @default("all")
   mobileNotifications Boolean?  @default(false)
@@ -39,6 +39,12 @@ model Admin {
   socialEmails        Boolean?  @default(false)
   marketingEmails     Boolean?  @default(false)
   securityEmails      Boolean?  @default(true)
+
+  // LMS Relationships
+  authoredBooks    Author[]       @relation("AdminAuthors")
+  publishedBooks   Publication[]  @relation("AdminPublications")
+  categorizedBooks Category[]     @relation("AdminCategories")
+  books            Book[]         @relation("AdminBooks")
 
   @@map("admins")
 
@@ -83,4 +89,136 @@ model Invite {
   @@index([email, expiresAt])
   @@index([token])
   @@map("invites")
+}
+
+// Library Management System Models
+
+enum BookType {
+  HARD_COPY
+  EBOOK
+  AUDIO
+}
+
+model Author {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  image       String?
+
+  entryDate   DateTime @default(now())
+  entryById   String
+  entryBy     Admin    @relation("AdminAuthors", fields: [entryById], references: [id])
+
+  books       BookAuthor[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("authors")
+}
+
+model Publication {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  image       String?
+
+  entryDate   DateTime @default(now())
+  entryById   String
+  entryBy     Admin    @relation("AdminPublications", fields: [entryById], references: [id])
+
+  books       BookPublication[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("publications")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  image       String?
+
+  entryDate   DateTime @default(now())
+  entryById   String
+  entryBy     Admin    @relation("AdminCategories", fields: [entryById], references: [id])
+
+  books       BookCategory[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Book {
+  id               String   @id @default(uuid())
+  name             String
+  image            String?
+  type             BookType
+
+  buyingPrice      Float?
+  sellingPrice     Float?
+
+  numberOfCopies   Int?
+  purchaseDate     DateTime?
+  entryDate        DateTime @default(now())
+
+  entryById        String
+  entryBy          Admin   @relation("AdminBooks", fields: [entryById], references: [id])
+
+  authors          BookAuthor[]
+  publications     BookPublication[]
+  categories       BookCategory[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("books")
+}
+
+// Join Tables for Many-to-Many Relationships
+
+model BookAuthor {
+  id        String   @id @default(uuid())
+  bookId   String
+  authorId String
+
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  author   Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, authorId])
+  @@map("book_authors")
+}
+
+model BookPublication {
+  id           String   @id @default(uuid())
+  bookId        String
+  publicationId String
+
+  book          Book        @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  publication   Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, publicationId])
+  @@map("book_publications")
+}
+
+model BookCategory {
+  id         String   @id @default(uuid())
+  bookId     String
+  categoryId String
+
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookId, categoryId])
+  @@map("book_categories")
 }
