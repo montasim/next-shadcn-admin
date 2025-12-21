@@ -3,25 +3,25 @@ import { z } from 'zod'
 export const profileFormSchema = z.object({
   username: z
     .string()
-    .min(2, {
-      message: 'Username must be at least 2 characters.',
-    })
-    .max(30, {
-      message: 'Username must not be longer than 30 characters.',
+    .optional()
+    .refine((val) => !val || (val.length >= 2 && val.length <= 30), {
+      message: 'Username must be between 2 and 30 characters if provided.',
     }),
   email: z
     .string({
-      required_error: 'Please select an email to display.',
+      required_error: 'Email is required.',
     })
-    .email(),
-  bio: z.string().max(160).min(4),
+    .email({
+      message: 'Please enter a valid email address.',
+    }),
+  bio: z.string().max(160).optional(),
   urls: z
     .array(
       z.object({
         value: z.string().url({ message: 'Please enter a valid URL.' }),
       })
     )
-    .optional(),
+    .default([]),
 })
 
 export type ProfileFormValues = z.infer<typeof profileFormSchema>
