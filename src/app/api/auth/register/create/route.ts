@@ -142,8 +142,8 @@ export async function POST(request: NextRequest) {
         })
 
         // Create authenticated login session (auto-login)
-        const fullName = admin.lastName ? `${admin.firstName} ${admin.lastName}` : admin.firstName
-        await createLoginSession(admin.id, admin.email, fullName)
+        const loginName = admin.lastName ? `${admin.firstName} ${admin.lastName}` : admin.firstName
+        await createLoginSession(admin.id, admin.email, loginName)
 
         // Return success response
         const response: CreateAccountResponse = {

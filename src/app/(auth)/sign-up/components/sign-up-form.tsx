@@ -454,7 +454,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
     <div className={cn('grid gap-6', className)} {...props}>
       <Header />
       <Form {...detailsForm}>
-        <form onSubmit={detailsForm.handleSubmit(onDetailsSubmit)}>
+        <form onSubmit={detailsForm.handleSubmit(onDetailsSubmit)} key="details-form">
           <div className='grid gap-2'>
             <FormField
               control={detailsForm.control}
@@ -465,10 +465,8 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
                   <FormControl>
                     <Input
                       placeholder='John Doe'
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
+                      autoComplete='name'
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
