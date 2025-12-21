@@ -66,7 +66,15 @@ export function UsersMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
 
   const form = useForm<UsersForm>({
     resolver: zodResolver(formSchema),
-    defaultValues: currentRow ?? {
+    defaultValues: isUpdate && currentRow ? {
+      firstName: currentRow.firstName || '',
+      lastName: currentRow.lastName || '',
+      username: currentRow.username || '',
+      email: currentRow.email || '',
+      phoneNumber: currentRow.phoneNumber || '',
+      status: currentRow.status || 'active',
+      role: currentRow.role || 'cashier',
+    } : {
       firstName: '',
       lastName: '',
       username: '',
@@ -138,8 +146,8 @@ export function UsersMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
     const checkUsername = async () => {
       if (!usernameValue) return
 
-      // For updates, only check if username has changed (derived from email)
-      const currentUsername = currentRow?.email?.split('@')[0]
+      // For updates, only check if username has changed
+      const currentUsername = currentRow?.username
       if (isUpdate && usernameValue === currentUsername) {
         setFieldAvailability(prev => ({ ...prev, username: true }))
         return
@@ -236,7 +244,6 @@ export function UsersMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
   useEffect(() => {
     if (isUpdate && open && currentRow) {
       // Pre-validate existing data
-      const currentUsername = currentRow.email?.split('@')[0]
       setFieldAvailability({
         email: true,
         username: true,
@@ -256,8 +263,7 @@ export function UsersMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       if (emailValue !== currentRow?.email && fieldAvailability.email === false) return true
 
       // If username changed and failed validation, disable
-      const currentUsername = currentRow?.email?.split('@')[0]
-      if (usernameValue !== currentUsername && fieldAvailability.username === false) return true
+      if (usernameValue !== currentRow?.username && fieldAvailability.username === false) return true
 
       // If phone number changed and failed validation, disable
       if (phoneNumberValue !== currentRow?.phoneNumber && phoneNumberValue && fieldAvailability.phoneNumber === false) return true

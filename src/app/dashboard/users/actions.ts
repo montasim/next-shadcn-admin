@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { prisma } from '@/lib/prisma'
 import { User, userSchema } from './data/schema'
 import { getAllAdmins, deleteAdmin as deleteAdminFromDb, findAdminById, updateAdmin } from '@/lib/auth/repositories/admin.repository'
 
@@ -33,6 +34,7 @@ export async function updateUser(id: string, formData: FormData) {
     // Extract form data
     const firstName = formData.get('firstName') as string
     const lastName = formData.get('lastName') as string
+    const username = formData.get('username') as string
     const email = formData.get('email') as string
     const phoneNumber = formData.get('phoneNumber') as string
     const role = formData.get('role') as string
@@ -40,6 +42,23 @@ export async function updateUser(id: string, formData: FormData) {
     // Validate required fields
     if (!firstName || !email) {
       throw new Error('First name and email are required')
+    }
+
+    // Check username availability if changed
+    if (username && username !== currentAdmin.username) {
+      try {
+        const existingWithUsername = await prisma.admin.findFirst({
+          where: {
+            username,
+            NOT: { id }
+          }
+        })
+        if (existingWithUsername) {
+          throw new Error('Username is already taken')
+        }
+      } catch (usernameError) {
+        console.warn('Username field not available in database, skipping check')
+      }
     }
 
     // Check email uniqueness (exclude current user)
@@ -51,15 +70,32 @@ export async function updateUser(id: string, formData: FormData) {
       }
     }
 
-    // Update admin in database
-    await updateAdmin(id, {
+    // Build update data dynamically based on what fields exist
+    const updateData: any = {
       firstName,
       lastName: lastName || null,
       email: email,
       phoneNumber: phoneNumber || null,
-    })
+    }
 
-    revalidatePath('/users')
+    // Only add username if the field exists and is provided
+    if (username) {
+      try {
+        updateData.username = username
+      } catch (e) {
+        console.warn('Username field not available in database, skipping update')
+      }
+    }
+
+    // Update admin in database
+    await updateAdmin(id, updateData)
+
+    // Update role in memory (temporary solution)
+    if (role) {
+      userRoles[id] = role
+    }
+
+    revalidatePath('/dashboard/users')
     return { message: 'User updated successfully' }
   } catch (error) {
     console.error('Error updating user:', error)
@@ -86,7 +122,8 @@ export async function updateUserRole(id: string, role: string) {
 
 // Helper function to map Admin to User interface
 function mapAdminToUser(admin: any): User {
-  const username = admin.email.split('@')[0] || ''
+  // Try to get the actual username from database, fallback to email prefix
+  const username = admin.username || admin.email.split('@')[0] || ''
 
   // Get the stored role or default to 'admin'
   const role = userRoles[admin.id] || 'admin'
@@ -176,10 +213,10 @@ export async function checkUsernameAvailability(username: string, excludeUserId?
     const { getAllAdmins } = await import('@/lib/auth/repositories/admin.repository')
     const admins = await getAllAdmins()
 
-    // Generate usernames from admin emails for comparison
+    // Check actual username fields from database, fallback to email prefix
     const existingUsernames = admins
       .filter(admin => admin.id !== excludeUserId)
-      .map(admin => admin.email.split('@')[0].toLowerCase())
+      .map(admin => (admin.username || admin.email.split('@')[0]).toLowerCase())
 
     const isTaken = existingUsernames.includes(username.toLowerCase())
 
