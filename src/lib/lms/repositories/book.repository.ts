@@ -164,6 +164,7 @@ export async function createBook(data: {
   name: string
   image?: string
   type: BookType
+  summary?: string
   buyingPrice?: number
   sellingPrice?: number
   numberOfCopies?: number
@@ -193,6 +194,7 @@ export async function createBook(data: {
         name: data.name,
         image: data.image,
         type: data.type,
+        summary: data.summary,
         buyingPrice: data.buyingPrice,
         sellingPrice: data.sellingPrice,
         numberOfCopies: data.type === 'HARD_COPY' ? data.numberOfCopies : null,
@@ -249,6 +251,7 @@ export async function updateBook(
     name?: string
     image?: string | null
     type?: BookType
+    summary?: string | null
     buyingPrice?: number | null
     sellingPrice?: number | null
     numberOfCopies?: number | null
@@ -285,6 +288,7 @@ export async function updateBook(
         name: data.name,
         image: data.image,
         type: updateType,
+        summary: data.summary,
         buyingPrice: data.buyingPrice,
         sellingPrice: data.sellingPrice,
         numberOfCopies: updateType === 'HARD_COPY'

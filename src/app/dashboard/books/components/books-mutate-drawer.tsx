@@ -54,6 +54,7 @@ const formSchema = z.object({
   name: z.string().min(1, 'Book name is required.'),
   image: z.string().optional(),
   type: z.enum(['HARD_COPY', 'EBOOK', 'AUDIO'] as const),
+  summary: z.string().optional(),
   buyingPrice: z.string().optional(),
   sellingPrice: z.string().optional(),
   numberOfCopies: z.string().optional(),
@@ -104,6 +105,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       name: currentRow.name || '',
       image: currentRow.image || '',
       type: currentRow.type,
+      summary: currentRow.summary || '',
       buyingPrice: currentRow.buyingPrice?.toString() || '',
       sellingPrice: currentRow.sellingPrice?.toString() || '',
       numberOfCopies: currentRow.numberOfCopies?.toString() || '',
@@ -115,6 +117,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       name: '',
       image: '',
       type: 'HARD_COPY',
+      summary: '',
       buyingPrice: '',
       sellingPrice: '',
       numberOfCopies: '',
@@ -295,6 +298,24 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                   <FormLabel>Image URL</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder='Enter image URL' />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='summary'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Summary</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder='Enter book summary'
+                      className='resize-none'
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

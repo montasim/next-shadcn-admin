@@ -35,6 +35,7 @@ const bookFormSchema = z.object({
   name: z.string().min(1, 'Book name is required'),
   image: z.string().optional(),
   type: z.enum(['HARD_COPY', 'EBOOK', 'AUDIO']),
+  summary: z.string().optional(),
   buyingPrice: z.string().optional(),
   sellingPrice: z.string().optional(),
   numberOfCopies: z.string().optional(),
@@ -83,6 +84,7 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
       name: initialData?.name || '',
       image: initialData?.image || '',
       type: initialData?.type || 'HARD_COPY',
+      summary: initialData?.summary || '',
       buyingPrice: initialData?.buyingPrice || '',
       sellingPrice: initialData?.sellingPrice || '',
       numberOfCopies: initialData?.numberOfCopies || '',
@@ -196,6 +198,24 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
               <FormLabel>Image URL</FormLabel>
               <FormControl>
                 <Input placeholder='Enter image URL' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='summary'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Summary</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder='Enter book summary'
+                  className='resize-none'
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
