@@ -6,7 +6,7 @@
  */
 
 import { prisma } from '../../prisma'
-import { BookType } from '@prisma/client'
+import { BookType, BindingType } from '@prisma/client'
 
 // ============================================================================
 // BOOK QUERIES
@@ -164,6 +164,9 @@ export async function createBook(data: {
   name: string
   image?: string
   type: BookType
+  bindingType?: BindingType | null
+  pageNumber?: number | null
+  fileUrl?: string | null
   summary?: string
   buyingPrice?: number
   sellingPrice?: number
@@ -184,8 +187,27 @@ export async function createBook(data: {
     }
 
     // Validate hard copy requirements
-    if (data.type === 'HARD_COPY' && (!data.numberOfCopies || data.numberOfCopies <= 0)) {
-      throw new Error('Number of copies is required for hard copy books')
+    if (data.type === 'HARD_COPY') {
+      if (!data.numberOfCopies || data.numberOfCopies <= 0) {
+        throw new Error('Number of copies is required for hard copy books')
+      }
+      if (!data.bindingType) {
+        throw new Error('Binding type is required for hard copy books')
+      }
+      if (!data.pageNumber || data.pageNumber <= 0) {
+        throw new Error('Page number is required for hard copy books')
+      }
+    } else if (data.type === 'EBOOK') {
+      if (!data.pageNumber || data.pageNumber <= 0) {
+        throw new Error('Page number is required for ebooks')
+      }
+      if (!data.fileUrl) {
+        throw new Error('File URL is required for ebooks')
+      }
+    } else if (data.type === 'AUDIO') {
+      if (!data.fileUrl) {
+        throw new Error('File URL is required for audio books')
+      }
     }
 
     // Create the book
@@ -194,6 +216,9 @@ export async function createBook(data: {
         name: data.name,
         image: data.image,
         type: data.type,
+        bindingType: data.type === 'HARD_COPY' ? data.bindingType : null,
+        pageNumber: (data.type === 'HARD_COPY' || data.type === 'EBOOK') ? data.pageNumber : null,
+        fileUrl: (data.type === 'EBOOK' || data.type === 'AUDIO') ? data.fileUrl : null,
         summary: data.summary,
         buyingPrice: data.buyingPrice,
         sellingPrice: data.sellingPrice,
@@ -251,6 +276,9 @@ export async function updateBook(
     name?: string
     image?: string | null
     type?: BookType
+    bindingType?: BindingType | null
+    pageNumber?: number | null
+    fileUrl?: string | null
     summary?: string | null
     buyingPrice?: number | null
     sellingPrice?: number | null
@@ -279,6 +307,30 @@ export async function updateBook(
       if (!numberOfCopies || numberOfCopies <= 0) {
         throw new Error('Number of copies is required for hard copy books')
       }
+      
+      const bindingType = data.bindingType ?? existingBook.bindingType
+      if (!bindingType) {
+        throw new Error('Binding type is required for hard copy books')
+      }
+
+      const pageNumber = data.pageNumber ?? existingBook.pageNumber
+      if (!pageNumber || pageNumber <= 0) {
+        throw new Error('Page number is required for hard copy books')
+      }
+    } else if (updateType === 'EBOOK') {
+      const pageNumber = data.pageNumber ?? existingBook.pageNumber
+      if (!pageNumber || pageNumber <= 0) {
+        throw new Error('Page number is required for ebooks')
+      }
+      const fileUrl = data.fileUrl ?? existingBook.fileUrl
+      if (!fileUrl) {
+        throw new Error('File URL is required for ebooks')
+      }
+    } else if (updateType === 'AUDIO') {
+      const fileUrl = data.fileUrl ?? existingBook.fileUrl
+      if (!fileUrl) {
+        throw new Error('File URL is required for audio books')
+      }
     }
 
     // Update the book
@@ -288,6 +340,15 @@ export async function updateBook(
         name: data.name,
         image: data.image,
         type: updateType,
+        bindingType: updateType === 'HARD_COPY' 
+          ? (data.bindingType ?? existingBook.bindingType) 
+          : null,
+        pageNumber: (updateType === 'HARD_COPY' || updateType === 'EBOOK')
+          ? (data.pageNumber ?? existingBook.pageNumber)
+          : null,
+        fileUrl: (updateType === 'EBOOK' || updateType === 'AUDIO')
+          ? (data.fileUrl ?? existingBook.fileUrl)
+          : null,
         summary: data.summary,
         buyingPrice: data.buyingPrice,
         sellingPrice: data.sellingPrice,
