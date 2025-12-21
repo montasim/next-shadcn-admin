@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Sheet,
   SheetClose,
@@ -40,7 +39,6 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Book } from '../data/schema'
 import { createBook, updateBook, getAuthorsForSelect, getPublicationsForSelect, getCategoriesForSelect, getBookTypesForSelect } from '../actions'
-import { IconLoader2, IconCheck, IconX } from '@tabler/icons-react'
 import { BookType } from '@prisma/client'
 import { MDXEditor } from '@/components/ui/mdx-editor'
 
@@ -55,6 +53,9 @@ const formSchema = z.object({
   name: z.string().min(1, 'Book name is required.'),
   image: z.string().optional(),
   type: z.enum(['HARD_COPY', 'EBOOK', 'AUDIO'] as const),
+  bindingType: z.enum(['HARDCOVER', 'PAPERBACK']).optional(),
+  pageNumber: z.string().optional(),
+  fileUrl: z.string().optional(),
   summary: z.string().optional(),
   buyingPrice: z.string().optional(),
   sellingPrice: z.string().optional(),
@@ -63,7 +64,47 @@ const formSchema = z.object({
   authorIds: z.array(z.string()).min(1, 'At least one author is required.'),
   publicationIds: z.array(z.string()).min(1, 'At least one publication is required.'),
   categoryIds: z.array(z.string()).min(1, 'At least one category is required.'),
-})
+}).superRefine((data, ctx) => {
+  if (data.type === 'HARD_COPY') {
+    if (!data.bindingType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Binding type is required for hard copy books',
+        path: ['bindingType'],
+      });
+    }
+    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Page number is required and must be a positive number',
+        path: ['pageNumber'],
+      });
+    }
+  } else if (data.type === 'EBOOK') {
+    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Page number is required and must be a positive number',
+        path: ['pageNumber'],
+      });
+    }
+    if (!data.fileUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'File URL is required for eBooks',
+        path: ['fileUrl'],
+      });
+    }
+  } else if (data.type === 'AUDIO') {
+    if (!data.fileUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'File URL is required for audio books',
+        path: ['fileUrl'],
+      });
+    }
+  }
+});
 
 type BookForm = z.infer<typeof formSchema>
 
@@ -106,6 +147,9 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       name: currentRow.name || '',
       image: currentRow.image || '',
       type: currentRow.type,
+      bindingType: currentRow.bindingType || undefined,
+      pageNumber: currentRow.pageNumber?.toString() || '',
+      fileUrl: currentRow.fileUrl || '',
       summary: currentRow.summary || '',
       buyingPrice: currentRow.buyingPrice?.toString() || '',
       sellingPrice: currentRow.sellingPrice?.toString() || '',
@@ -118,6 +162,9 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       name: '',
       image: '',
       type: 'HARD_COPY',
+      bindingType: undefined,
+      pageNumber: '',
+      fileUrl: '',
       summary: '',
       buyingPrice: '',
       sellingPrice: '',
@@ -171,7 +218,19 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
         if (Array.isArray(value)) {
           value.forEach(item => formData.append(key, item))
         } else {
-          formData.append(key, value)
+          // Handle conditional fields
+          if (key === 'bindingType' && data.type !== 'HARD_COPY') {
+            return;
+          }
+          if (key === 'pageNumber' && data.type !== 'HARD_COPY' && data.type !== 'EBOOK') {
+            return;
+          }
+          if (key === 'fileUrl' && data.type !== 'EBOOK' && data.type !== 'AUDIO') {
+            return;
+          }
+          if (value !== undefined && value !== null) {
+            formData.append(key, value)
+          }
         }
       })
 
@@ -290,6 +349,68 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                 </FormItem>
               )}
             />
+
+            {/* Conditional fields */}
+            {watchType === 'HARD_COPY' && (
+                <FormField
+                  control={form.control}
+                  name='bindingType'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Binding Type <span className="text-destructive">*</span></FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder='Select binding type' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='HARDCOVER'>Hardcover</SelectItem>
+                          <SelectItem value='PAPERBACK'>Paperback</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            )}
+
+            {(watchType === 'HARD_COPY' || watchType === 'EBOOK') && (
+                <FormField
+                  control={form.control}
+                  name='pageNumber'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Page Number <span className="text-destructive">*</span></FormLabel>
+                      <FormControl>
+                        <Input
+                          type='number'
+                          min='1'
+                          placeholder='Enter number of pages'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            )}
+
+            {(watchType === 'EBOOK' || watchType === 'AUDIO') && (
+                <FormField
+                  control={form.control}
+                  name='fileUrl'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>File URL <span className="text-destructive">*</span></FormLabel>
+                      <FormControl>
+                        <Input placeholder='Enter file URL' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            )}
 
             <FormField
               control={form.control}
@@ -440,7 +561,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                         label: author.name,
                         value: author.id,
                       }))}
-                      selected={field.value}
+                      selected={field.value || []}
                       onChange={field.onChange}
                       placeholder='Select authors'
                       emptyText='No authors found'
@@ -464,7 +585,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                         label: pub.name,
                         value: pub.id,
                       }))}
-                      selected={field.value}
+                      selected={field.value || []}
                       onChange={field.onChange}
                       placeholder='Select publications'
                       emptyText='No publications found'
@@ -488,7 +609,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                         label: category.name,
                         value: category.id,
                       }))}
-                      selected={field.value}
+                      selected={field.value || []}
                       onChange={field.onChange}
                       placeholder='Select categories'
                       emptyText='No categories found'

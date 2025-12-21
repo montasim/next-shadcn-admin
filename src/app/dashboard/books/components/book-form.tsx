@@ -6,8 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 import {
   Form,
   FormControl,
@@ -24,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
+import { MDXEditor } from '@/components/ui/mdx-editor'
 import { bookTypes } from '../data/schema'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -35,6 +34,9 @@ const bookFormSchema = z.object({
   name: z.string().min(1, 'Book name is required'),
   image: z.string().optional(),
   type: z.enum(['HARD_COPY', 'EBOOK', 'AUDIO']),
+  bindingType: z.enum(['HARDCOVER', 'PAPERBACK']).optional(),
+  pageNumber: z.string().optional(),
+  fileUrl: z.string().optional(),
   summary: z.string().optional(),
   buyingPrice: z.string().optional(),
   sellingPrice: z.string().optional(),
@@ -43,7 +45,47 @@ const bookFormSchema = z.object({
   authorIds: z.array(z.string()).min(1, 'At least one author is required'),
   publicationIds: z.array(z.string()).min(1, 'At least one publication is required'),
   categoryIds: z.array(z.string()).optional(),
-})
+}).superRefine((data, ctx) => {
+  if (data.type === 'HARD_COPY') {
+    if (!data.bindingType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Binding type is required for hard copy books',
+        path: ['bindingType'],
+      });
+    }
+    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Page number is required and must be a positive number',
+        path: ['pageNumber'],
+      });
+    }
+  } else if (data.type === 'EBOOK') {
+    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Page number is required and must be a positive number',
+        path: ['pageNumber'],
+      });
+    }
+    if (!data.fileUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'File URL is required for eBooks',
+        path: ['fileUrl'],
+      });
+    }
+  } else if (data.type === 'AUDIO') {
+    if (!data.fileUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'File URL is required for audio books',
+        path: ['fileUrl'],
+      });
+    }
+  }
+});
 
 type BookFormValues = z.infer<typeof bookFormSchema>
 
@@ -84,6 +126,9 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
       name: initialData?.name || '',
       image: initialData?.image || '',
       type: initialData?.type || 'HARD_COPY',
+      bindingType: initialData?.bindingType || undefined,
+      pageNumber: initialData?.pageNumber || '',
+      fileUrl: initialData?.fileUrl || '',
       summary: initialData?.summary || '',
       buyingPrice: initialData?.buyingPrice || '',
       sellingPrice: initialData?.sellingPrice || '',
@@ -136,6 +181,17 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
         if (Array.isArray(value)) {
           value.forEach(item => formData.append(key, item))
         } else {
+          // Handle conditional fields
+          if (key === 'bindingType' && values.type !== 'HARD_COPY') {
+            return;
+          }
+          if (key === 'pageNumber' && values.type !== 'HARD_COPY' && values.type !== 'EBOOK') {
+            return;
+          }
+          if (key === 'fileUrl' && values.type !== 'EBOOK' && values.type !== 'AUDIO') {
+            return;
+          }
+          
           formData.append(key, value)
         }
       })
@@ -189,6 +245,68 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
                   </FormItem>
               )}
           />
+
+        {/* Conditional fields */}
+        {watchType === 'HARD_COPY' && (
+            <FormField
+              control={form.control}
+              name='bindingType'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Binding Type *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder='Select binding type' />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value='HARDCOVER'>Hardcover</SelectItem>
+                      <SelectItem value='PAPERBACK'>Paperback</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        )}
+
+        {(watchType === 'HARD_COPY' || watchType === 'EBOOK') && (
+            <FormField
+              control={form.control}
+              name='pageNumber'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Page Number *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type='number'
+                      min='1'
+                      placeholder='Enter number of pages'
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        )}
+
+        {(watchType === 'EBOOK' || watchType === 'AUDIO') && (
+            <FormField
+              control={form.control}
+              name='fileUrl'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>File URL *</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Enter file URL' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        )}
 
         <FormField
           control={form.control}
@@ -339,7 +457,7 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
                     label: author.name,
                     value: author.id,
                   }))}
-                  selected={field.value}
+                  selected={field.value || []}
                   onChange={field.onChange}
                   placeholder='Select authors'
                   emptyText='No authors found'
@@ -362,7 +480,7 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
                     label: pub.name,
                     value: pub.id,
                   }))}
-                  selected={field.value}
+                  selected={field.value || []}
                   onChange={field.onChange}
                   placeholder='Select publications'
                   emptyText='No publications found'
@@ -385,7 +503,7 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
                     label: category.name,
                     value: category.id,
                   }))}
-                  selected={field.value}
+                  selected={field.value || []}
                   onChange={field.onChange}
                   placeholder='Select categories'
                   emptyText='No categories found'
