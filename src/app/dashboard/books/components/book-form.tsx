@@ -29,14 +29,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { ImageUpload } from '@/components/ui/image-upload'
+import { FileUpload } from '@/components/ui/file-upload'
 
 const bookFormSchema = z.object({
   name: z.string().min(1, 'Book name is required'),
-  image: z.string().optional(),
+  image: z.union([z.string(), z.instanceof(File)]).optional(),
   type: z.enum(['HARD_COPY', 'EBOOK', 'AUDIO']),
   bindingType: z.enum(['HARDCOVER', 'PAPERBACK']).optional(),
   pageNumber: z.string().optional(),
-  fileUrl: z.string().optional(),
+  fileUrl: z.union([z.string(), z.instanceof(File)]).optional(),
   summary: z.string().optional(),
   buyingPrice: z.string().optional(),
   sellingPrice: z.string().optional(),
@@ -72,7 +74,7 @@ const bookFormSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File URL is required for eBooks',
+        message: 'File is required for eBooks',
         path: ['fileUrl'],
       });
     }
@@ -80,7 +82,7 @@ const bookFormSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File URL is required for audio books',
+        message: 'File is required for audio books',
         path: ['fileUrl'],
       });
     }
@@ -192,7 +194,11 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
             return;
           }
           
-          formData.append(key, value)
+          if (value instanceof File) {
+            formData.append(key, value)
+          } else if (value !== null && value !== undefined) {
+            formData.append(key, value as string)
+          }
         }
       })
 
@@ -298,9 +304,14 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
               name='fileUrl'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>File URL *</FormLabel>
+                  <FormLabel>File Upload *</FormLabel>
                   <FormControl>
-                    <Input placeholder='Enter file URL' {...field} />
+                    <FileUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      onRemove={() => field.onChange('')}
+                      accept={watchType === 'EBOOK' ? '.pdf,.epub' : '.mp3,.wav'}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -313,9 +324,13 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
           name='image'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URL</FormLabel>
+              <FormLabel>Book Cover Image</FormLabel>
               <FormControl>
-                <Input placeholder='Enter image URL' {...field} />
+                <ImageUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  onRemove={() => field.onChange('')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
