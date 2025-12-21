@@ -1,5 +1,6 @@
 import {
   IconBarrierBlock,
+  IconBook,
   IconBrowserCheck,
   IconBug,
   IconChecklist,
@@ -18,6 +19,9 @@ import {
   IconUserCog,
   IconUserOff,
   IconUsers,
+  IconTag,
+  IconBuildingStore,
+  IconUser,
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -74,6 +78,31 @@ export const sidebarData: SidebarData = {
           title: 'Users',
           url: '/dashboard/users',
           icon: IconUsers,
+        },
+      ],
+    },
+    {
+      title: 'Library Management',
+      items: [
+        {
+          title: 'Books',
+          url: '/dashboard/books',
+          icon: IconBook,
+        },
+        {
+          title: 'Authors',
+          url: '/dashboard/authors',
+          icon: IconUser,
+        },
+        {
+          title: 'Publications',
+          url: '/dashboard/publications',
+          icon: IconBuildingStore,
+        },
+        {
+          title: 'Categories',
+          url: '/dashboard/categories',
+          icon: IconTag,
         },
       ],
     },
