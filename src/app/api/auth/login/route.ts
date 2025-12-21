@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
         await resetRateLimit(email, clientIp, RateLimitAction.LOGIN)
 
         // Create authenticated session with HttpOnly cookie
-        await createLoginSession(admin.id, admin.email, admin.name)
+        const displayName = admin.name || `${admin.firstName || ''} ${admin.lastName || ''}`.trim() || admin.email
+        await createLoginSession(admin.id, admin.email, displayName)
 
         // Return success response with admin data
         const response: LoginResponse = {
