@@ -14,6 +14,7 @@ import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/auth/session'
 import { findAdminById } from '@/lib/auth/repositories/admin.repository'
 import { successResponse, errorResponse } from '@/lib/auth/request-utils'
+import { getUserDisplayName } from '@/lib/utils/user'
 
 export async function GET(request: NextRequest) {
     try {
@@ -32,9 +33,13 @@ export async function GET(request: NextRequest) {
         }
 
         // Construct display name with fallbacks
-        const displayName = admin.firstName && admin.lastName
-            ? `${admin.firstName} ${admin.lastName}`
-            : admin.firstName || admin.lastName || admin.username || admin.email.split('@')[0] || 'User'
+        const displayName = getUserDisplayName({
+            firstName: admin.firstName,
+            lastName: admin.lastName,
+            username: admin.username,
+            name: admin.name,
+            email: admin.email
+        })
 
         // Return admin data
         return successResponse({

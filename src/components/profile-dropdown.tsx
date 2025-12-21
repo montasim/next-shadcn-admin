@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
+import { getUserInitials } from "@/lib/utils/user"
 
 export function ProfileDropdown() {
   const { user, logout } = useAuth()
@@ -27,7 +28,7 @@ export function ProfileDropdown() {
         <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
           <Avatar className='h-8 w-8'>
             <AvatarFallback>
-              {(user.name || user.email.substring(0, 2)).substring(0, 2).toUpperCase()}
+              {getUserInitials(user)}
             </AvatarFallback>
           </Avatar>
         </Button>

@@ -27,6 +27,7 @@ import {
   useSidebar,
 } from '../ui/sidebar'
 import { useAuth } from '@/hooks/use-auth'
+import { getUserInitials } from '@/lib/utils/user'
 
 export function NavUser({
   user,
@@ -52,7 +53,7 @@ export function NavUser({
               <Avatar className='h-8 w-8 rounded-lg'>
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className='rounded-lg'>
-                  {(user.name || user.email.substring(0, 2)).substring(0, 2).toUpperCase()}
+                  {getUserInitials(user)}
                 </AvatarFallback>
               </Avatar>
               <div className='grid flex-1 text-left text-sm leading-tight'>
@@ -75,7 +76,7 @@ export function NavUser({
                 <Avatar className='h-8 w-8 rounded-lg'>
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className='rounded-lg'>
-                    {(user.name || user.email.substring(0, 2)).substring(0, 2).toUpperCase()}
+                    {getUserInitials(user)}
                   </AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
