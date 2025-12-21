@@ -12,6 +12,7 @@ import {Search} from "@/components/search";
 import {ThemeSwitch} from "@/components/theme-switch";
 import {ProfileDropdown} from "@/components/profile-dropdown";
 import {Main} from "@/components/ui/main";
+import { MDXViewerProvider } from 'mdx-craft';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -53,7 +54,9 @@ export default function DashboardLayout({
                         </div>
                     </Header>
                     <Main fixed>
+                      <MDXViewerProvider>
                         {children}
+                      </MDXViewerProvider>
                     </Main>
                 </div>
               </SearchProvider>
