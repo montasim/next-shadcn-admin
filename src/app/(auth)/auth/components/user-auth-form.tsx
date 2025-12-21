@@ -43,7 +43,7 @@ const passwordSchema = z.object({
     }),
 })
 
-export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
+export function UserAuthForm({ className, onStepChange }: UserAuthFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email')
@@ -87,7 +87,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
         // Email exists - proceed to password step
         setEmail(data.email)
         setStep('password')
-        props.onStepChange?.('password', data.email)
+        onStepChange?.('password', data.email)
         toast({
           title: 'Email found',
           description: 'Please enter your password',
@@ -162,14 +162,14 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
   const goBackToEmail = () => {
     setStep('email')
-    props.onStepChange?.('email')
+    onStepChange?.('email')
     passwordForm.reset()
   }
 
   // Render Step 1: Email Input
   if (step === 'email') {
     return (
-      <div className={cn('grid gap-6', className)} {...props}>
+      <div className={cn('grid gap-6', className)}>
         <Form {...emailForm}>
           <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
             <div className='grid gap-2'>
@@ -228,7 +228,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
   // Render Step 2: Password Input
   return (
-    <div className={cn('grid gap-6', className)} {...props}>
+    <div className={cn('grid gap-6', className)}>
       <div className='mb-4 sr-only'>
         <p className='text-sm text-muted-foreground'>
           Welcome back, <strong>{email}</strong>
