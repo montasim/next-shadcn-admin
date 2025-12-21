@@ -129,6 +129,9 @@ model Book {
   name           String
   image          String?
   type           BookType
+  bindingType    BindingType?
+  pageNumber     Int?
+  fileUrl        String?
   buyingPrice    Float?
   sellingPrice   Float?
   numberOfCopies Int?
@@ -186,4 +189,9 @@ enum BookType {
   HARD_COPY
   EBOOK
   AUDIO
+}
+
+enum BindingType {
+  HARDCOVER
+  PAPERBACK
 }
