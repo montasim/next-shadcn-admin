@@ -10,6 +10,7 @@ interface UsersContextType {
   setOpen: (str: UsersDialogType | null) => void
   currentRow: User | null
   setCurrentRow: React.Dispatch<React.SetStateAction<User | null>>
+  refreshUsers?: () => Promise<void>
 }
 
 const UsersContext = React.createContext<UsersContextType | null>(null)
