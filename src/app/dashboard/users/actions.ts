@@ -4,26 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { User, userSchema } from './data/schema'
 import { getAllAdmins, deleteAdmin as deleteAdminFromDb, findAdminById, updateAdmin } from '@/lib/auth/repositories/admin.repository'
 
-// Helper function to map Admin to User interface
-function mapAdminToUser(admin: any): User {
-  const username = admin.email.split('@')[0] || ''
-
-  return {
-    id: admin.id,
-    name: admin.lastName ? `${admin.firstName} ${admin.lastName}` : admin.firstName,
-    email: admin.email,
-    status: 'active', // All registered admins are active
-    role: 'admin', // All admins have admin role for now
-    createdAt: admin.createdAt.toISOString(),
-    updatedAt: admin.updatedAt.toISOString(),
-
-    // All UI fields
-    firstName: admin.firstName,
-    lastName: admin.lastName || '',
-    username,
-    phoneNumber: admin.phoneNumber || '',
-  }
-}
 
 // Get all users (admins from database)
 export async function getUsers() {
@@ -55,6 +35,7 @@ export async function updateUser(id: string, formData: FormData) {
     const lastName = formData.get('lastName') as string
     const email = formData.get('email') as string
     const phoneNumber = formData.get('phoneNumber') as string
+    const role = formData.get('role') as string
 
     // Validate required fields
     if (!firstName || !email) {
@@ -83,6 +64,47 @@ export async function updateUser(id: string, formData: FormData) {
   } catch (error) {
     console.error('Error updating user:', error)
     throw error || new Error('Failed to update user')
+  }
+}
+
+// Update user role (stored in memory for now, since database doesn't have role field)
+// This is a temporary solution until we add role to the database schema
+const userRoles: Record<string, string> = {}
+
+export async function updateUserRole(id: string, role: string) {
+  try {
+    // For now, store role in memory (temp solution)
+    userRoles[id] = role
+
+    revalidatePath('/users')
+    return { message: 'User role updated successfully' }
+  } catch (error) {
+    console.error('Error updating user role:', error)
+    throw error || new Error('Failed to update user role')
+  }
+}
+
+// Helper function to map Admin to User interface
+function mapAdminToUser(admin: any): User {
+  const username = admin.email.split('@')[0] || ''
+
+  // Get the stored role or default to 'admin'
+  const role = userRoles[admin.id] || 'admin'
+
+  return {
+    id: admin.id,
+    name: admin.lastName ? `${admin.firstName} ${admin.lastName}` : admin.firstName,
+    email: admin.email,
+    status: 'active', // All registered admins are active
+    role, // Use the stored role
+    createdAt: admin.createdAt.toISOString(),
+    updatedAt: admin.updatedAt.toISOString(),
+
+    // All UI fields
+    firstName: admin.firstName,
+    lastName: admin.lastName || '',
+    username,
+    phoneNumber: admin.phoneNumber || '',
   }
 }
 
