@@ -211,10 +211,10 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
             <FormItem>
               <FormLabel>Summary</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder='Enter book summary'
-                  className='resize-none'
-                  {...field}
+                <MDXEditor
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  placeholder='Enter book summary in markdown format...'
                 />
               </FormControl>
               <FormMessage />

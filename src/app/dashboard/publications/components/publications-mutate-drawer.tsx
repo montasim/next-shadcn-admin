@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { MDXEditor } from '@/components/ui/mdx-editor'
 import {
   Sheet,
   SheetClose,
@@ -253,10 +254,10 @@ export function PublicationsMutateDrawer({ open, onOpenChange, currentRow, onSuc
                 <FormItem className='space-y-1'>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder='Enter publication description'
-                      rows={3}
+                    <MDXEditor
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      placeholder='Enter publication description in markdown format...'
                     />
                   </FormControl>
                   <FormMessage />

@@ -42,6 +42,7 @@ import { Book } from '../data/schema'
 import { createBook, updateBook, getAuthorsForSelect, getPublicationsForSelect, getCategoriesForSelect, getBookTypesForSelect } from '../actions'
 import { IconLoader2, IconCheck, IconX } from '@tabler/icons-react'
 import { BookType } from '@prisma/client'
+import { MDXEditor } from '@/components/ui/mdx-editor'
 
 interface Props {
   open: boolean
@@ -311,10 +312,10 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                 <FormItem>
                   <FormLabel>Summary</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder='Enter book summary'
-                      className='resize-none'
-                      {...field}
+                    <MDXEditor
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      placeholder='Enter book summary in markdown format...'
                     />
                   </FormControl>
                   <FormMessage />
