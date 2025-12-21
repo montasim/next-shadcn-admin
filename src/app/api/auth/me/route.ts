@@ -31,12 +31,20 @@ export async function GET(request: NextRequest) {
             return errorResponse('Admin account not found', 404)
         }
 
+        // Construct display name with fallbacks
+        const displayName = admin.firstName && admin.lastName
+            ? `${admin.firstName} ${admin.lastName}`
+            : admin.firstName || admin.lastName || admin.username || admin.email.split('@')[0] || 'User'
+
         // Return admin data
         return successResponse({
             admin: {
                 id: admin.id,
                 email: admin.email,
-                name: admin.name,
+                name: displayName,
+                firstName: admin.firstName,
+                lastName: admin.lastName,
+                username: admin.username,
                 createdAt: admin.createdAt,
                 updatedAt: admin.updatedAt,
             },
