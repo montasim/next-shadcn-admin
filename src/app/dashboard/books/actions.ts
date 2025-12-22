@@ -70,7 +70,7 @@ const createBookSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books',
+        message: 'Binding type is required for hard copy books-old',
         path: ['bindingType'],
       });
     }
@@ -100,7 +100,7 @@ const createBookSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books',
+        message: 'File is required for audio books-old',
         path: ['fileUrl'],
       });
     }
@@ -127,7 +127,7 @@ const updateBookSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books',
+        message: 'Binding type is required for hard copy books-old',
         path: ['bindingType'],
       });
     }
@@ -157,7 +157,7 @@ const updateBookSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books',
+        message: 'File is required for audio books-old',
         path: ['fileUrl'],
       });
     }
@@ -174,7 +174,7 @@ export type UpdateBookData = z.infer<typeof updateBookSchema>
 // ============================================================================
 
 /**
- * Get all books
+ * Get all books-old
  */
 export async function getBooks() {
   try {
@@ -213,7 +213,7 @@ export async function getBooks() {
       })),
     }))
   } catch (error) {
-    console.error('Error fetching books:', error)
+    console.error('Error fetching books-old:', error)
     return []
   }
 }
@@ -387,7 +387,7 @@ export async function createBook(formData: FormData) {
     // Create book
     await createBookInDb(processedData)
 
-    revalidatePath('/dashboard/books')
+    revalidatePath('/dashboard/books-old')
     return { message: 'Book created successfully' }
   } catch (error) {
     console.error('Error creating book:', error)
@@ -494,7 +494,7 @@ export async function updateBook(id: string, formData: FormData) {
     // Update book
     await updateBookInDb(id, processedData)
 
-    revalidatePath('/dashboard/books')
+    revalidatePath('/dashboard/books-old')
     return { message: 'Book updated successfully' }
   } catch (error) {
     console.error('Error updating book:', error)
@@ -519,7 +519,7 @@ export async function deleteBook(id: string) {
     }
 
     await deleteBookFromDb(id)
-    revalidatePath('/dashboard/books')
+    revalidatePath('/dashboard/books-old')
     return { message: 'Book deleted successfully' }
   } catch (error) {
     console.error('Error deleting book:', error)

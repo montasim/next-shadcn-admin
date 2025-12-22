@@ -12,7 +12,7 @@ interface SearchBarProps {
   className?: string
 }
 
-export function SearchBar({ onSearch, placeholder = "Search books...", className }: SearchBarProps) {
+export function SearchBar({ onSearch, placeholder = "Search books-old...", className }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const router = useRouter()
 

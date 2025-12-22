@@ -112,7 +112,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
           <div className="flex gap-4">
             {/* Book Cover - Compact */}
             <div className="flex-shrink-0">
-              <Link href={`/books/${book.id}`}>
+              <Link href={`/books-old/${book.id}`}>
                 <div className="relative w-16 h-20 overflow-hidden rounded">
                   {book.image ? (
                     <Image
@@ -141,7 +141,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
             {/* Book Info - Compact */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-2">
-                <Link href={`/books/${book.id}`}>
+                <Link href={`/books-old/${book.id}`}>
                   <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-colors">
                     {book.name}
                   </h3>
@@ -196,7 +196,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                 </div>
 
                 {book.canAccess ? (
-                  <Link href={`/books/${book.id}`}>
+                  <Link href={`/books-old/${book.id}`}>
                     <Button size="sm" variant="outline">
                       <Eye className="h-4 w-4 mr-1" />
                       {isEbook && 'Read'}
@@ -253,7 +253,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
     >
       {/* Book Cover */}
       <div className="relative">
-        <Link href={`/books/${book.id}`}>
+        <Link href={`/books-old/${book.id}`}>
           <div className="aspect-[3/4] overflow-hidden rounded-t-lg">
             {book.image ? (
               <Image
@@ -322,7 +322,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
 
       {/* Book Content */}
       <CardContent className="p-4">
-        <Link href={`/books/${book.id}`}>
+        <Link href={`/books-old/${book.id}`}>
           <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">
             {book.name}
           </h3>
@@ -363,7 +363,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
           <div className="flex items-center space-x-1">
             {book.canAccess ? (
               <>
-                <Link href={`/books/${book.id}`}>
+                <Link href={`/books-old/${book.id}`}>
                   <Button size="sm" variant="outline">
                     <Eye className="h-4 w-4 mr-1" />
                     {isEbook && 'Read'}

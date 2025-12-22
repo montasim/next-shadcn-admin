@@ -51,7 +51,7 @@ export const createBookSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books',
+        message: 'Binding type is required for hard copy books-old',
         path: ['bindingType'],
       });
     }
@@ -81,7 +81,7 @@ export const createBookSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books',
+        message: 'File is required for audio books-old',
         path: ['fileUrl'],
       });
     }
@@ -108,7 +108,7 @@ export const updateBookSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books',
+        message: 'Binding type is required for hard copy books-old',
         path: ['bindingType'],
       });
     }
@@ -138,7 +138,7 @@ export const updateBookSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books',
+        message: 'File is required for audio books-old',
         path: ['fileUrl'],
       });
     }

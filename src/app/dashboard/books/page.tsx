@@ -34,7 +34,7 @@ export default function BooksPage() {
       const rawBooks = await getBooks()
       setBooks(rawBooks)
     } catch (error) {
-      console.error('Error refreshing books:', error)
+      console.error('Error refreshing books-old:', error)
     }
   }
 

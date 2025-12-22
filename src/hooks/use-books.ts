@@ -59,7 +59,7 @@ export function useBooks(filters: BookFilters = {}) {
     queryFn: async (): Promise<BooksResponse> => {
       const response = await fetch(`/api/public/books?${queryParams.toString()}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch books')
+        throw new Error('Failed to fetch books-old')
       }
       return response.json()
     },
