@@ -26,7 +26,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '../ui/sidebar'
-import { useAuth } from '@/hooks/use-auth'
+import {useAuth} from "@/context/auth-context";
 import { getUserInitials } from '@/lib/utils/user'
 
 export function NavUser({

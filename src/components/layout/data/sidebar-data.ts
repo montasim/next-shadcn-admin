@@ -22,6 +22,8 @@ import {
   IconTag,
   IconBuildingStore,
   IconUser,
+  IconBooks,
+  IconBookmark,
 } from '@tabler/icons-react'
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -171,6 +173,26 @@ export const sidebarData: SidebarData = {
     {
       title: 'Other',
       items: [
+        {
+          title: 'Dashboard',
+          url: '/dashboard',
+          icon: IconLayoutDashboard,
+        },
+        {
+          title: 'My Books',
+          url: '/my-books',
+          icon: IconBook,
+        },
+        {
+          title: 'My Bookshelves',
+          url: '/shelves',
+          icon: IconBooks,
+        },
+        {
+          title: 'Continue Reading',
+          url: '/library',
+          icon: IconBookmark,
+        },
         {
           title: 'Settings',
           icon: IconSettings,

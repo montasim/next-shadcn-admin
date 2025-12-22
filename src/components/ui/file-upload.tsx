@@ -115,7 +115,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         renderPreview()
       ) : (
         <div className='flex items-center justify-center w-full'>
-          <label className='flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-md cursor-pointer hover:bg-gray-50'>
+          <label className='flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-md cursor-pointer hover:bg-accent transition-colors'>
             <div className='flex flex-col items-center justify-center pt-5 pb-6'>
               <UploadCloud className='h-8 w-8 text-gray-400' />
               <p className='mb-2 text-sm text-gray-500'>

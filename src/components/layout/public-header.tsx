@@ -38,7 +38,7 @@ export function PublicHeader({ className }: PublicHeaderProps) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t py-4">
+          <div className="md:hidden border-t px-2 py-4">
             <div className="flex flex-col space-y-4">
               {/* Mobile Navigation */}
               <nav className="flex flex-col space-y-2 px-2">

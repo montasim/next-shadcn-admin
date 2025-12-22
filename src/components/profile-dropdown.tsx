@@ -14,7 +14,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/hooks/use-auth"
+import {useAuth} from "@/context/auth-context";
 import { getUserInitials } from "@/lib/utils/user"
 
 export function ProfileDropdown() {

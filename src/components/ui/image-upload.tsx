@@ -58,8 +58,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           </div>
         </div>
       ) : (
-        <div className='flex items-center justify-center h-32 w-32 border-2 border-dashed rounded-md'>
-          <label className='flex flex-col items-center justify-center w-full h-full cursor-pointer'>
+        <div className='flex items-center justify-center h-32 w-32 border-2 border-dashed rounded-md overflow-hidden'>
+          <label className='flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-accent transition-colors'>
             <ImageIcon className='h-8 w-8 text-gray-400' />
             <span className='text-sm text-gray-500'>Upload Image</span>
             <Input

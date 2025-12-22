@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { BookOpen, User, Settings, LogOut, Menu, CreditCard } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
+import {useAuth} from "@/context/auth-context";
 import { getUserInitials } from '@/lib/utils/user'
 
 interface UserTopbarProps {
