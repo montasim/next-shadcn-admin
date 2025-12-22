@@ -6,7 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model AuthSession {
   id        String   @id
   email     String
@@ -81,32 +80,32 @@ model Category {
 }
 
 model Book {
-  id             String            @id @default(uuid())
-  name           String
-  image          String?
-  type           BookType
-  bindingType    BindingType?
-  pageNumber     Int?
-  fileUrl        String?
-  buyingPrice    Float?
-  sellingPrice   Float?
-  numberOfCopies Int?
-  purchaseDate   DateTime?
-  entryDate      DateTime          @default(now())
-  entryById      String
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  summary        String?
-  isPublic       Boolean           @default(false)
-  requiresPremium Boolean          @default(false)
-  authors        BookAuthor[]
-  categories     BookCategory[]
-  publications   BookPublication[]
+  id              String            @id @default(uuid())
+  name            String
+  image           String?
+  type            BookType
+  bindingType     BindingType?
+  pageNumber      Int?
+  fileUrl         String?
+  buyingPrice     Float?
+  sellingPrice    Float?
+  numberOfCopies  Int?
+  purchaseDate    DateTime?
+  entryDate       DateTime          @default(now())
+  entryById       String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  summary         String?
+  isPublic        Boolean           @default(false)
+  requiresPremium Boolean           @default(false)
+  authors         BookAuthor[]
+  categories      BookCategory[]
+  publications    BookPublication[]
   readingProgress ReadingProgress[]
-  bookshelves    BookshelfItem[]
-  entryBy        User              @relation("UserBooks", fields: [entryById], references: [id])
+  bookshelves     BookshelfItem[]
+  entryBy         User              @relation("UserBooks", fields: [entryById], references: [id])
 
-  @@map("books")
+  @@map("books-old")
 }
 
 model BookAuthor {
@@ -146,45 +145,45 @@ model BookCategory {
 }
 
 model User {
-  id                  String            @id @default(uuid())
-  email               String            @unique
-  name                String            @default("")
-  firstName           String            @default("")
-  lastName            String?
-  passwordHash        String
-  avatar              String?
-  role                UserRole          @default(USER)
-  isActive            Boolean           @default(true)
-  isPremium           Boolean           @default(false)
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String   @default("")
+  firstName    String   @default("")
+  lastName     String?
+  passwordHash String
+  avatar       String?
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true)
+  isPremium    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Admin fields (nullable for regular users)
   bio                 String?
-  communicationEmails Boolean?          @default(false)
-  displayItems        Json?             @default("[\"recents\", \"home\", \"applications\", \"desktop\", \"downloads\", \"documents\"]")
+  communicationEmails Boolean?  @default(false)
+  displayItems        Json?     @default("[\"recents\", \"home\", \"applications\", \"desktop\", \"downloads\", \"documents\"]")
   dob                 DateTime?
-  font                String?           @default("inter")
+  font                String?   @default("inter")
   language            String?
-  marketingEmails     Boolean?          @default(false)
-  mobileNotifications Boolean?          @default(false)
-  notificationType    String?           @default("all")
-  phoneNumber         String?           @unique
-  securityEmails      Boolean?          @default(true)
-  socialEmails        Boolean?          @default(false)
-  theme               String?           @default("light")
-  urls                Json?             @default("[]")
-  username            String?           @unique
+  marketingEmails     Boolean?  @default(false)
+  mobileNotifications Boolean?  @default(false)
+  notificationType    String?   @default("all")
+  phoneNumber         String?   @unique
+  securityEmails      Boolean?  @default(true)
+  socialEmails        Boolean?  @default(false)
+  theme               String?   @default("light")
+  urls                Json?     @default("[]")
+  username            String?   @unique
 
   // Relationships
-  subscription        Subscription?
-  readingProgress     ReadingProgress[]
-  bookshelves          Bookshelf[]
-  sessions            UserSession[]
-  authoredBooks       Author[]          @relation("UserAuthors")
-  books               Book[]            @relation("UserBooks")
-  categorizedBooks    Category[]        @relation("UserCategories")
-  publishedBooks      Publication[]     @relation("UserPublications")
+  subscription     Subscription?
+  readingProgress  ReadingProgress[]
+  bookshelves      Bookshelf[]
+  sessions         UserSession[]
+  authoredBooks    Author[]          @relation("UserAuthors")
+  books            Book[]            @relation("UserBooks")
+  categorizedBooks Category[]        @relation("UserCategories")
+  publishedBooks   Publication[]     @relation("UserPublications")
 
   @@map("users")
 }
@@ -215,16 +214,16 @@ model UserSession {
 }
 
 model Subscription {
-  id            String            @id @default(uuid())
-  userId        String            @unique
-  plan          SubscriptionPlan  @default(FREE)
-  startDate     DateTime          @default(now())
-  endDate       DateTime?
-  isActive      Boolean           @default(true)
-  paymentId     String?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String           @id @default(uuid())
+  userId    String           @unique
+  plan      SubscriptionPlan @default(FREE)
+  startDate DateTime         @default(now())
+  endDate   DateTime?
+  isActive  Boolean          @default(true)
+  paymentId String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
 }
@@ -234,7 +233,7 @@ model ReadingProgress {
   userId        String
   bookId        String
   currentPage   Int?
-  currentEpocha Float?   // For audio books (position in seconds)
+  currentEpocha Float? // For audio books-old (position in seconds)
   progress      Float    @default(0) // Percentage 0-100
   isCompleted   Boolean  @default(false)
   lastReadAt    DateTime @default(now())
@@ -248,15 +247,15 @@ model ReadingProgress {
 }
 
 model Bookshelf {
-  id          String            @id @default(uuid())
+  id          String          @id @default(uuid())
   userId      String
   name        String
   description String?
-  isPublic    Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  isPublic    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   books       BookshelfItem[]
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bookshelves")
 }
