@@ -73,7 +73,8 @@ export function PDFViewer({
   const loadPDFJS = useCallback(async () => {
     try {
       const pdfjs = await import('pdfjs-dist')
-      pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
+      // Use jsdelivr CDN which is more reliable
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
       return pdfjs
     } catch (err) {
       throw new Error('Failed to load PDF viewer')
@@ -89,9 +90,15 @@ export function PDFViewer({
       setError(null)
       setLoadingProgress(0)
 
+      // Convert Google Drive URLs to proxy API URLs to avoid CORS/iframe issues
+      let proxiedUrl = fileUrl
+      if (fileUrl.includes('drive.google.com') || fileUrl.includes('docs.google.com')) {
+        proxiedUrl = `/api/proxy/pdf?url=${encodeURIComponent(fileUrl)}`
+      }
+
       const pdfjs = await loadPDFJS()
       const loadingTask = pdfjs.getDocument({
-        url: fileUrl,
+        url: proxiedUrl,
         onProgress: (progress: any) => {
           setLoadingProgress(Math.round((progress.loaded / progress.total) * 100))
         }
@@ -213,9 +220,14 @@ export function PDFViewer({
 
   // Download PDF
   const handleDownload = useCallback(() => {
+    // For Google Drive URLs, use proxy for download
+    const downloadUrl = fileUrl.includes('drive.google.com')
+      ? `/api/proxy/pdf?url=${encodeURIComponent(fileUrl)}`
+      : fileUrl
+
     const link = document.createElement('a')
-    link.href = fileUrl
-    link.download = `book-${currentPage}.pdf`
+    link.href = downloadUrl
+    link.download = `${fileUrl.split('/').pop() || 'book'}.pdf`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -288,9 +300,9 @@ export function PDFViewer({
   }
 
   return (
-    <div ref={containerRef} className={cn("flex flex-col h-full bg-background", className)}>
+    <div ref={containerRef} className={cn("flex flex-col bg-background w-full", className)}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur">
+      <div className="flex items-center justify-between px-8 py-2 border-b bg-background/95 backdrop-blur flex-shrink-0">
         {/* Page Navigation */}
         <div className="flex items-center space-x-2">
           <Button
@@ -410,7 +422,7 @@ export function PDFViewer({
       </div>
 
       {/* PDF Canvas Container */}
-      <div className="flex-1 overflow-auto bg-muted/30">
+      <div className="flex-1 overflow-auto bg-muted/30 min-h-0 mx-8 mt-6 rounded-lg">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />

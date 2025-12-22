@@ -3,15 +3,16 @@ import { cn } from '@/lib/utils'
 
 interface MainProps extends React.HTMLAttributes<HTMLElement> {
   fixed?: boolean
+  noPadding?: boolean
   ref?: React.Ref<HTMLElement>
 }
 
-export const Main = ({ fixed, ...props }: MainProps) => {
+export const Main = ({ fixed, noPadding, ...props }: MainProps) => {
   return (
     <main
       className={cn(
         'peer-[.header-fixed]/header:mt-16',
-        'px-4 py-6',
+        !noPadding && 'px-4 py-6',
         fixed && 'fixed-main flex flex-col flex-grow overflow-hidden'
       )}
       {...props}

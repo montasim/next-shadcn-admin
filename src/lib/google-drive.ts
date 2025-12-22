@@ -55,7 +55,10 @@ export async function uploadFile(file: File, folderId: string | undefined): Prom
       },
     })
 
-    return response.data.webViewLink || ''
+    // Return embeddable preview URL instead of webViewLink
+    // webViewLink doesn't work in iframes due to X-Frame-Options
+    const fileId = response.data.id
+    return `https://drive.google.com/file/d/${fileId}/preview`
   } catch (error: any) {
     // Log the detailed error for better debugging
     console.error('Full error object from Google Drive API:', JSON.stringify(error, null, 2));
