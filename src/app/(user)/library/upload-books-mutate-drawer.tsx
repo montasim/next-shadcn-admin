@@ -76,7 +76,7 @@ const formSchema = z.object({
 
 type BookForm = z.infer<typeof formSchema>
 
-export function MyBooksMutateDrawer({ open, onOpenChange, onSuccess }: Props) {
+export function UploadBooksMutateDrawer({ open, onOpenChange, onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
 
   const form = useForm<BookForm>({

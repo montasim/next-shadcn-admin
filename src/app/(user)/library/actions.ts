@@ -10,7 +10,6 @@ const bookSchema = z.object({
   author: z.string().min(1, 'Author is required'),
   type: z.enum(['EBOOK', 'AUDIO']),
   isPublic: z.boolean().default(false),
-  // In a real app, you'd validate the file here too
 })
 
 export async function createBook(formData: FormData) {
@@ -25,7 +24,6 @@ export async function createBook(formData: FormData) {
     const type = formData.get('type') as 'EBOOK' | 'AUDIO'
     const isPublic = formData.get('isPublic') === 'on'
     
-    // Validate data
     const validation = bookSchema.safeParse({
       name,
       author: authorName,
@@ -37,15 +35,12 @@ export async function createBook(formData: FormData) {
       return { success: false, message: validation.error.errors[0].message }
     }
 
-    // Handle file upload (mocking for now)
     const file = formData.get('file') as File
     const fileUrl = file ? `/uploads/${file.name}` : null
 
-    // Handle image upload (mocking for now)
     const image = formData.get('image') as File
     const imageUrl = image ? `/uploads/${image.name}` : null
 
-    // Find or create author
     let author = await prisma.author.findFirst({
       where: { name: authorName }
     })
@@ -59,7 +54,6 @@ export async function createBook(formData: FormData) {
       })
     }
 
-    // Create book
     await prisma.book.create({
       data: {
         name,
@@ -76,7 +70,7 @@ export async function createBook(formData: FormData) {
       }
     })
 
-    revalidatePath('/my-books-old')
+    revalidatePath('/library')
     return { success: true, message: 'Book uploaded successfully' }
   } catch (error) {
     console.error('Error creating book:', error)
@@ -98,6 +92,11 @@ export async function getUserBooks() {
           include: {
             author: true
           }
+        },
+        readingProgress: {
+          where: {
+            userId: session.userId
+          }
         }
       },
       orderBy: {
@@ -107,7 +106,41 @@ export async function getUserBooks() {
 
     return books
   } catch (error) {
-    console.error('Error fetching user books-old:', error)
+    console.error('Error fetching user books:', error)
     return []
   }
+}
+
+const bookshelfSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().optional(),
+  isPublic: z.boolean().default(false),
+})
+
+export async function createBookshelf(data: z.infer<typeof bookshelfSchema>) {
+    try {
+        const session = await requireAuth()
+        if (!session) {
+            return { success: false, message: 'Not authenticated' }
+        }
+
+        const validation = bookshelfSchema.safeParse(data)
+
+        if (!validation.success) {
+            return { success: false, message: validation.error.errors[0].message }
+        }
+
+        await prisma.bookshelf.create({
+            data: {
+                ...validation.data,
+                userId: session.userId,
+            }
+        })
+
+        revalidatePath('/library')
+        return { success: true, message: 'Bookshelf created successfully' }
+    } catch (error) {
+        console.error('Error creating bookshelf:', error)
+        return { success: false, message: 'Failed to create bookshelf' }
+    }
 }
