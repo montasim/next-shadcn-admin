@@ -19,8 +19,8 @@ export async function getProfile(): Promise<GetProfileResult> {
     }
 
     // Try to select only the fields we know exist
-    const admin = await prisma.admin.findUnique({
-      where: { id: session.adminId },
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
       select: {
         id: true,
         email: true,
@@ -30,7 +30,7 @@ export async function getProfile(): Promise<GetProfileResult> {
       },
     })
 
-    if (!admin) {
+    if (!user) {
       return { status: 'error', message: 'User not found' }
     }
 
@@ -40,23 +40,23 @@ export async function getProfile(): Promise<GetProfileResult> {
     let urls: any[] = []
 
     try {
-      const adminWithExtra = await prisma.admin.findUnique({
-        where: { id: session.adminId },
+      const userWithExtra = await prisma.user.findUnique({
+        where: { id: session.userId },
         select: {
           username: true,
           bio: true,
           urls: true,
         },
       })
-      username = adminWithExtra?.username || undefined
-      bio = adminWithExtra?.bio || undefined
-      urls = Array.isArray(adminWithExtra?.urls)
-        ? (adminWithExtra.urls as any[]).map(u => ({ value: typeof u === 'string' ? u : u.value }))
+      username = userWithExtra?.username || undefined
+      bio = userWithExtra?.bio || undefined
+      urls = Array.isArray(userWithExtra?.urls)
+        ? (userWithExtra.urls as any[]).map(u => ({ value: typeof u === 'string' ? u : u.value }))
         : []
     } catch (fieldError) {
       console.warn('Some profile fields not available in database:', fieldError)
       // Use default values if fields don't exist
-      username = admin.firstName ? admin.firstName.toLowerCase() : admin.email.split('@')[0]
+      username = user.firstName ? user.firstName.toLowerCase() : user.email.split('@')[0]
       bio = ''
       urls = []
     }
@@ -65,7 +65,7 @@ export async function getProfile(): Promise<GetProfileResult> {
       status: 'success',
       data: {
         username: username || '',
-        email: admin.email,
+        email: user.email,
         bio: bio || '',
         urls: urls.length > 0 ? urls : [{ value: '' }],
       }
@@ -93,10 +93,10 @@ export async function updateProfile(data: ProfileFormValues): Promise<UpdateProf
     // Check username availability if changed
     if (validatedData.username) {
       try {
-        const existing = await prisma.admin.findFirst({
+        const existing = await prisma.user.findFirst({
           where: {
             username: validatedData.username,
-            NOT: { id: session.adminId }
+            NOT: { id: session.userId }
           }
         })
         if (existing) {
@@ -131,8 +131,8 @@ export async function updateProfile(data: ProfileFormValues): Promise<UpdateProf
 
     // Only update if we have data to update
     if (Object.keys(updateData).length > 0) {
-      await prisma.admin.update({
-        where: { id: session.adminId },
+      await prisma.user.update({
+        where: { id: session.userId },
         data: updateData
       })
     }
@@ -158,10 +158,10 @@ export async function checkUsernameAvailability(username: string): Promise<boole
   if (!session) return false
 
   try {
-    const existing = await prisma.admin.findFirst({
+    const existing = await prisma.user.findFirst({
       where: {
         username,
-        NOT: { id: session.adminId }
+        NOT: { id: session.userId }
       }
     })
 
@@ -180,12 +180,12 @@ export async function checkEmailAvailability(email: string): Promise<boolean> {
   const session = await requireAuth()
   if (!session) return false
 
-  const existing = await prisma.admin.findUnique({
+  const existing = await prisma.user.findUnique({
     where: { email }
   })
 
   // If email exists but belongs to current user, it's available
-  if (existing && existing.id !== session.adminId) return false
+  if (existing && existing.id !== session.userId) return false
 
   return true
 }
@@ -203,7 +203,7 @@ export async function sendEmailChangeOtp(newEmail: string): Promise<{ success: b
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 mins
 
   // First, invalidate any existing OTPs for this email and intent
-  await prisma.adminOtp.updateMany({
+  await prisma.userOtp.updateMany({
     where: {
       email: newEmail,
       intent: 'EMAIL_CHANGE',
@@ -214,7 +214,7 @@ export async function sendEmailChangeOtp(newEmail: string): Promise<{ success: b
     }
   })
 
-  await prisma.adminOtp.create({
+  await prisma.userOtp.create({
     data: {
       email: newEmail,
       codeHash,
@@ -237,7 +237,7 @@ export async function verifyEmailChangeOtp(newEmail: string, code: string): Prom
 
     const codeHash = createHash('sha256').update(code).digest('hex')
 
-    const otpRecord = await prisma.adminOtp.findFirst({
+    const otpRecord = await prisma.userOtp.findFirst({
       where: {
         email: newEmail,
         intent: 'EMAIL_CHANGE',
@@ -251,14 +251,14 @@ export async function verifyEmailChangeOtp(newEmail: string, code: string): Prom
     }
 
     // Mark used
-    await prisma.adminOtp.update({
+    await prisma.userOtp.update({
       where: { id: otpRecord.id },
       data: { used: true }
     })
 
     // Update user email
-    await prisma.admin.update({
-      where: { id: session.adminId },
+    await prisma.user.update({
+      where: { id: session.userId },
       data: { email: newEmail }
     })
 

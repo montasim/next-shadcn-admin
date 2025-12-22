@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
-import { findAdminById, updateAdmin } from '@/lib/auth/repositories/admin.repository'
+import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { accountFormSchema, type AccountFormValues } from './schema'
 
 type GetAccountResult =
@@ -12,19 +12,19 @@ type GetAccountResult =
 export async function getAccount(): Promise<GetAccountResult> {
   try {
     const session = await requireAuth()
-    const admin = await findAdminById(session.adminId)
+    const user = await findUserById(session.userId)
 
-    if (!admin) {
-      return { status: 'error', message: 'Admin not found' }
+    if (!user) {
+      return { status: 'error', message: 'User not found' }
     }
 
     return {
       status: 'success',
       data: {
-        firstName: admin.firstName || '',
-        lastName: admin.lastName || '',
-        dob: admin.dob ? new Date(admin.dob) : new Date('2000-01-01'),
-        language: admin.language || 'en',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        dob: user.dob ? new Date(user.dob) : new Date('2000-01-01'),
+        language: user.language || 'en',
       }
     }
   } catch (error) {
@@ -44,14 +44,14 @@ export async function updateAccount(data: AccountFormValues): Promise<UpdateAcco
 
   try {
     const session = await requireAuth()
-    const currentAdmin = await findAdminById(session.adminId)
+    const currentUser = await findUserById(session.userId)
 
-    if (!currentAdmin) {
-      return { status: 'error', message: 'Admin not found' }
+    if (!currentUser) {
+      return { status: 'error', message: 'User not found' }
     }
 
-    // Update admin with account data
-    await updateAdmin(session.adminId, {
+    // Update user with account data
+    await updateUser(session.userId, {
       firstName: validatedData.firstName,
       lastName: validatedData.lastName,
       dob: validatedData.dob,

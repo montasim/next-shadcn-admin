@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
-import { findAdminById, updateAdmin } from '@/lib/auth/repositories/admin.repository'
+import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { appearanceFormSchema, type AppearanceFormValues } from './schema'
 
 type GetAppearanceResult =
@@ -12,17 +12,17 @@ type GetAppearanceResult =
 export async function getAppearance(): Promise<GetAppearanceResult> {
   try {
     const session = await requireAuth()
-    const admin = await findAdminById(session.adminId)
+    const user = await findUserById(session.userId)
 
-    if (!admin) {
-      return { status: 'error', message: 'Admin not found' }
+    if (!user) {
+      return { status: 'error', message: 'User not found' }
     }
 
     return {
       status: 'success',
       data: {
-        theme: (admin.theme as any) || 'light',
-        font: (admin.font as any) || 'inter',
+        theme: (user.theme as any) || 'light',
+        font: (user.font as any) || 'inter',
       }
     }
   } catch (error) {
@@ -42,14 +42,14 @@ export async function updateAppearance(data: AppearanceFormValues): Promise<Upda
 
   try {
     const session = await requireAuth()
-    const currentAdmin = await findAdminById(session.adminId)
+    const currentUser = await findUserById(session.userId)
 
-    if (!currentAdmin) {
-      return { status: 'error', message: 'Admin not found' }
+    if (!currentUser) {
+      return { status: 'error', message: 'User not found' }
     }
 
-    // Update admin with appearance data
-    await updateAdmin(session.adminId, {
+    // Update user with appearance data
+    await updateUser(session.userId, {
       theme: validatedData.theme,
       font: validatedData.font,
     })

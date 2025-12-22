@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
-import { findAdminById, updateAdmin } from '@/lib/auth/repositories/admin.repository'
+import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { displayFormSchema, type DisplayFormValues } from './schema'
 
 type GetDisplayResult =
@@ -12,16 +12,16 @@ type GetDisplayResult =
 export async function getDisplay(): Promise<GetDisplayResult> {
   try {
     const session = await requireAuth()
-    const admin = await findAdminById(session.adminId)
+    const user = await findUserById(session.userId)
 
-    if (!admin) {
-      return { status: 'error', message: 'Admin not found' }
+    if (!user) {
+      return { status: 'error', message: 'User not found' }
     }
 
     return {
       status: 'success',
       data: {
-        items: (admin.displayItems as any) || ["recents", "home", "applications", "desktop", "downloads", "documents"],
+        items: (user.displayItems as any) || ["recents", "home", "applications", "desktop", "downloads", "documents"],
       }
     }
   } catch (error) {
@@ -41,14 +41,14 @@ export async function updateDisplay(data: DisplayFormValues): Promise<UpdateDisp
 
   try {
     const session = await requireAuth()
-    const currentAdmin = await findAdminById(session.adminId)
+    const currentUser = await findUserById(session.userId)
 
-    if (!currentAdmin) {
-      return { status: 'error', message: 'Admin not found' }
+    if (!currentUser) {
+      return { status: 'error', message: 'User not found' }
     }
 
-    // Update admin with display data
-    await updateAdmin(session.adminId, {
+    // Update user with display data
+    await updateUser(session.userId, {
       displayItems: validatedData.items,
     })
 
