@@ -35,6 +35,19 @@ export async function createBook(formData: FormData) {
       return { success: false, message: validation.error.errors[0].message }
     }
 
+    // Check if book already exists for this user
+    const existingBook = await prisma.book.findFirst({
+        where: {
+            name: validation.data.name,
+            type: validation.data.type,
+            entryById: session.userId,
+        }
+    })
+
+    if (existingBook) {
+        return { success: false, message: 'This book already exists in your uploads.' }
+    }
+
     const file = formData.get('file') as File
     const fileUrl = file ? `/uploads/${file.name}` : null
 
@@ -142,5 +155,34 @@ export async function createBookshelf(data: z.infer<typeof bookshelfSchema>) {
     } catch (error) {
         console.error('Error creating bookshelf:', error)
         return { success: false, message: 'Failed to create bookshelf' }
+    }
+}
+
+export async function getBookshelves() {
+    try {
+        const session = await requireAuth()
+        if (!session) return []
+
+        const bookshelves = await prisma.bookshelf.findMany({
+            where: {
+                userId: session.userId
+            },
+            include: {
+                _count: {
+                    select: { books: true }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        })
+
+        return bookshelves.map(shelf => ({
+            ...shelf,
+            bookCount: shelf._count.books
+        }))
+    } catch (error) {
+        console.error('Error fetching bookshelves:', error)
+        return []
     }
 }

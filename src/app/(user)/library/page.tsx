@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,35 +20,11 @@ import {
     Target
 } from 'lucide-react'
 import { BookList } from './book-list'
-import { UploadBooksMutateDrawer } from './upload-books-mutate-drawer'
 import { BookshelfMutateDrawer } from './bookshelf-mutate-drawer'
 import { BookCard } from './book-card'
 import { useRouter } from 'next/navigation'
-
-// Mock shelves data - in a real app, this would come from your API
-const shelves = [
-  {
-    id: '1',
-    name: 'Summer Reading',
-    description: 'Perfect books for lazy summer days',
-    bookCount: 12,
-    isPublic: false,
-    books: [
-        { id: '1', name: 'The Great Adventure', authors: [{ author: { name: 'John Doe' } }], image: null, readingProgress: [{ progress: 75, currentPage: 150 }] },
-        { id: '2', name: 'Mystery of the Lost City', authors: [{ author: { name: 'Jane Smith' } }], image: null, readingProgress: [{ progress: 25, currentPage: 50 }] },
-    ]
-  },
-  {
-    id: '2',
-    name: 'Classic Literature',
-    description: 'Timeless masterpieces everyone should read',
-    bookCount: 25,
-    isPublic: true,
-    books: [
-        { id: '3', name: 'The Science of Everything', authors: [{ author: { name: 'Dr. Robert Johnson' } }], image: null, readingProgress: [{ progress: 100, currentPage: 320 }] },
-    ]
-  },
-]
+import { getBookshelves } from './actions'
+import {UploadBooksMutateDrawer} from "@/app/(user)/library/upload-books-mutate-drawer";
 
 // Mock stats data
 const stats = {
@@ -58,6 +34,8 @@ const stats = {
 }
 
 export default function LibraryPage() {
+  const [shelves, setShelves] = useState<any[]>([])
+  const [isLoadingShelves, setIsLoadingShelves] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isBookDrawerOpen, setIsBookDrawerOpen] = useState(false)
@@ -65,13 +43,27 @@ export default function LibraryPage() {
   const [selectedShelf, setSelectedShelf] = useState<any | null>(null)
   const router = useRouter()
 
+  useEffect(() => {
+    const fetchShelves = async () => {
+        setIsLoadingShelves(true)
+        const userShelves = await getBookshelves()
+        setShelves(userShelves)
+        setIsLoadingShelves(false)
+    }
+    fetchShelves()
+  }, [])
+
   const filteredShelves = shelves.filter(shelf =>
     shelf.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (shelf.description && shelf.description.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const handleSuccess = () => {
-    // This should ideally refetch the data for shelves
+    const fetchShelves = async () => {
+        const userShelves = await getBookshelves()
+        setShelves(userShelves)
+    }
+    fetchShelves()
     router.refresh()
   }
 
@@ -82,10 +74,10 @@ export default function LibraryPage() {
                 &larr; Back to Bookshelves
             </Button>
             <h2 className="text-2xl font-bold">{selectedShelf.name}</h2>
+            <p className="text-muted-foreground">{selectedShelf.description}</p>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {selectedShelf.books.map((book: any) => (
-                    <BookCard key={book.id} book={book} />
-                ))}
+                {/* This part needs real book data for the shelf */}
+                <p>Book display for this shelf is not implemented yet.</p>
             </div>
         </div>
     )
@@ -199,7 +191,19 @@ export default function LibraryPage() {
           </div>
 
           {/* Bookshelves Grid */}
-          {filteredShelves.length === 0 ? (
+          {isLoadingShelves ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                    <Card key={i} className="animate-pulse">
+                        <div className="w-full h-32 bg-muted rounded-lg mb-4" />
+                        <CardContent className="p-4 space-y-2">
+                            <div className="h-5 bg-muted rounded w-3/4" />
+                            <div className="h-4 bg-muted rounded w-1/2" />
+                        </CardContent>
+                    </Card>
+                ))}
+             </div>
+          ) : filteredShelves.length === 0 ? (
             <Card>
               <CardContent className="pt-12 pb-12">
                 <div className="text-center">
