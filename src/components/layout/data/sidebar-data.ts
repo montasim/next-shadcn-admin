@@ -179,16 +179,6 @@ export const sidebarData: SidebarData = {
           icon: IconLayoutDashboard,
         },
         {
-          title: 'My Books',
-          url: '/my-books',
-          icon: IconBook,
-        },
-        {
-          title: 'My Bookshelves',
-          url: '/shelves',
-          icon: IconBooks,
-        },
-        {
           title: 'Continue Reading',
           url: '/library',
           icon: IconBookmark,
