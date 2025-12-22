@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { OverviewChart } from './overview-chart'
 import { Card } from '../ui/card'
-import { getOverviewData } from '@/app/dashboard/actions'
+import {getOverviewData} from "@/app/dashboard/actions";
 
 export function Overview() {
   const [data, setData] = useState<Array<{ name: string; total: number }>>([])

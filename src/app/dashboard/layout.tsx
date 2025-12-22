@@ -3,12 +3,12 @@
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { SearchProvider } from '@/context/search-context'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { AuthGuard } from '@/components/auth-guard'
 import { cn } from '@/lib/utils'
 import { UserTopbar } from "@/components/layout/user-topbar";
-import {Main} from "@/components/ui/main";
+import { Main } from "@/components/ui/main";
 import { MDXViewerProvider } from 'mdx-craft';
 
 const inter = Inter({ subsets: ['latin'] })

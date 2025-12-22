@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from '@/components/ui/progress'
 import { Overview } from "@/components/dashboard/overview"
 import { RecentSales } from "@/components/dashboard/recent-sales"
 import { Header } from "@/components/layout/header"
@@ -13,6 +14,16 @@ import { Search } from "@/components/search"
 import { ThemeSwitch } from "@/components/theme-switch"
 import { Main } from '@/components/ui/main'
 import { HeaderContainer } from "@/components/ui/header-container"
+import { useAuth } from '@/context/auth-context'
+import {
+  BookOpen,
+  Clock,
+  TrendingUp,
+  Target,
+  Award,
+  Library,
+  Star
+} from 'lucide-react'
 
 const adminTopNav = [
   {
@@ -41,33 +52,6 @@ const adminTopNav = [
   },
 ]
 
-const userTopNav = [
-  {
-    title: 'My Books',
-    href: 'dashboard/books',
-    isActive: true,
-    disabled: false,
-  },
-  {
-    title: 'Reading Progress',
-    href: 'dashboard/reading',
-    isActive: false,
-    disabled: false,
-  },
-  {
-    title: 'Bookshelves',
-    href: 'dashboard/bookshelves',
-    isActive: false,
-    disabled: false,
-  },
-  {
-    title: 'Profile',
-    href: 'dashboard/profile',
-    isActive: false,
-    disabled: false,
-  },
-]
-
 function AdminDashboard() {
   return (
     <>
@@ -82,12 +66,12 @@ function AdminDashboard() {
 
       <Main fixed>
         <HeaderContainer>
-          <>
+          <div className="flex items-center justify-between w-full">
             <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
             <div className="flex items-center space-x-2">
               <Button>Download</Button>
             </div>
-          </>
+          </div>
         </HeaderContainer>
 
         <Tabs defaultValue="overview" className="space-y-4">
@@ -216,182 +200,194 @@ function AdminDashboard() {
 }
 
 function UserDashboard() {
+  // Mock data - in a real app, this would come from your API
+  const stats = {
+    totalBooks: 12,
+    completedBooks: 8,
+    currentlyReading: 3,
+    readingTime: 45, // hours
+    averageProgress: 75
+  }
+
   return (
-    <>
-      <Header fixed>
-        <TopNav links={userTopNav} />
-        <div className='ml-auto flex items-center space-x-4'>
-          <Search />
-          <ThemeSwitch />
-          <ProfileDropdown />
+    <div className="space-y-4">
+      <HeaderContainer>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Welcome to Your Library</h1>
+            <p className="text-muted-foreground">
+              Track your reading journey and discover your next great read.
+            </p>
+          </div>
+          <Link href="/books">
+            <Button>
+              <BookOpen className="h-4 w-4 mr-2" />
+              Browse Books
+            </Button>
+          </Link>
         </div>
-      </Header>
+      </HeaderContainer>
 
-      <Main fixed>
-        <HeaderContainer>
-          <>
-            <h1 className="text-2xl font-bold tracking-tight">My Library</h1>
-            <div className="flex items-center space-x-2">
-              <Button>Browse Books</Button>
-            </div>
-          </>
-        </HeaderContainer>
+      {/* Stats Overview */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Books Read</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.completedBooks}</div>
+            <p className="text-xs text-muted-foreground">
+              2 this month
+            </p>
+          </CardContent>
+        </Card>
 
-        <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Books Read</CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">+2 this month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Reading Streak</CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">7 days</div>
-                <p className="text-xs text-muted-foreground">Keep it up!</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Books</CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">24</div>
-                <p className="text-xs text-muted-foreground">In your library</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Bookshelves</CardTitle>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  className="h-4 w-4 text-muted-foreground"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="9" y1="9" x2="15" y2="9" />
-                  <line x1="9" y1="15" x2="15" y2="15" />
-                </svg>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">3</div>
-                <p className="text-xs text-muted-foreground">Personal collections</p>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Reading Time</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.readingTime}h</div>
+            <p className="text-xs text-muted-foreground">
+              Total time invested
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Currently Reading</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.currentlyReading}</div>
+            <p className="text-xs text-muted-foreground">
+              Active books
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Reading Goal</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">67%</div>
+            <p className="text-xs text-muted-foreground">
+              8 of 12 books
+            </p>
+            <Progress value={67} className="mt-2 h-2" />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Continue Reading */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Continue Reading</h2>
+            <Link href="/user-library">
+              <Button variant="outline" size="sm">
+                View All
+              </Button>
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Currently Reading</CardTitle>
-                <CardDescription>Books you're in the middle of</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  <p>No books currently being read</p>
-                  <Button variant="outline" className="mt-4">Browse Books</Button>
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <div className="w-12 h-16 bg-muted rounded flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold line-clamp-1">The Great Adventure</h3>
+                    <p className="text-sm text-muted-foreground mb-2">by John Doe</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-muted-foreground">Progress</span>
+                      <span className="text-xs">75%</span>
+                    </div>
+                    <Progress value={75} className="h-1" />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Your latest reading progress</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  <p>No recent activity</p>
-                  <Button variant="outline" className="mt-4">Start Reading</Button>
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Page 150 of 200</span>
+                  <Link href="/user-reader/book-1">
+                    <Button size="sm">Continue Reading</Button>
+                  </Link>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-      </Main>
-    </>
+
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="space-y-3">
+            <Link href="/books" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Library className="h-4 w-4 mr-2" />
+                Browse Library
+              </Button>
+            </Link>
+            <Link href="/user-shelves" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Award className="h-4 w-4 mr-2" />
+                My Bookshelves
+              </Button>
+            </Link>
+            <Link href="/premium" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Star className="h-4 w-4 mr-2" />
+                Upgrade to Premium
+              </Button>
+            </Link>
+          </div>
+
+          {/* Recent Achievement */}
+          <div className="mt-6">
+            <h3 className="font-medium mb-3">Recent Achievement</h3>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Award className="h-6 w-6 text-yellow-600" />
+                  </div>
+                  <h4 className="font-semibold mb-1">Book Worm</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Read 5 books this month
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
 export default function DashboardPage() {
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const { user, isLoading } = useAuth()
 
-  useEffect(() => {
-    // Fetch user data to determine role
-    fetch('/api/auth/me')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.user) {
-          setUserRole(data.user.role)
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching user data:', error)
-      })
-  }, [])
-
-  if (userRole === null) {
+  if (isLoading) {
     return (
-      <Main fixed>
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </Main>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-lg">Loading...</div>
+      </div>
     )
   }
 
-  if (userRole === 'USER') {
-    return <UserDashboard />
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
+
+  if (isAdmin) {
+    return <AdminDashboard />
   }
 
-  return <AdminDashboard />
+  return <UserDashboard />
 }

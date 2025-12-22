@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import { RecentSalesList } from './recent-sales-list'
-import { getRecentSales } from '@/app/dashboard/actions'
+import {getRecentSales} from "@/app/dashboard/actions";
 
 interface Sale {
   id: string
