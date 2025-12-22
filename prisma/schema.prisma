@@ -105,7 +105,7 @@ model Book {
   bookshelves     BookshelfItem[]
   entryBy         User              @relation("UserBooks", fields: [entryById], references: [id])
 
-  @@map("books-old")
+  @@map("books")
 }
 
 model BookAuthor {
@@ -233,7 +233,7 @@ model ReadingProgress {
   userId        String
   bookId        String
   currentPage   Int?
-  currentEpocha Float? // For audio books-old (position in seconds)
+  currentEpocha Float? // For audio books (position in seconds)
   progress      Float    @default(0) // Percentage 0-100
   isCompleted   Boolean  @default(false)
   lastReadAt    DateTime @default(now())
@@ -251,6 +251,7 @@ model Bookshelf {
   userId      String
   name        String
   description String?
+  image       String?
   isPublic    Boolean         @default(false)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
