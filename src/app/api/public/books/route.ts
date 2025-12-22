@@ -1,9 +1,9 @@
 /**
  * Public Books API Route
  *
- * Provides public access to books catalog
+ * Provides public access to books-old catalog
  * Supports pagination, filtering, searching, and sorting
- * Only returns books that are marked as public
+ * Only returns books-old that are marked as public
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -57,7 +57,7 @@ const MAX_PAGE_SIZE = 100
 // ============================================================================
 
 /**
- * Build filter conditions for books query
+ * Build filter conditions for books-old query
  */
 function buildFilterConditions(
     validatedQuery: z.infer<typeof BooksQuerySchema>,
@@ -78,7 +78,7 @@ function buildFilterConditions(
     } = validatedQuery
 
     const where: any = {
-        isPublic: true, // Only return public books
+        isPublic: true, // Only return public books-old
     }
 
     // Search functionality
@@ -172,7 +172,7 @@ function buildFilterConditions(
     }
     // If premium === 'all', no additional filtering
 
-    // If user doesn't have premium access, exclude premium books
+    // If user doesn't have premium access, exclude premium books-old
     if (!userHasPremium) {
         where.requiresPremium = false
     }
@@ -181,7 +181,7 @@ function buildFilterConditions(
 }
 
 /**
- * Build sort conditions for books query
+ * Build sort conditions for books-old query
  */
 function buildSortConditions(sortBy: string, sortOrder: string) {
     switch (sortBy) {
@@ -247,9 +247,9 @@ function transformBookData(book: any, userHasPremium: boolean) {
 // ============================================================================
 
 /**
- * GET /api/public/books
+ * GET /api/public/books-old
  *
- * Get public books with pagination, filtering, and search
+ * Get public books-old with pagination, filtering, and search
  */
 export async function GET(request: NextRequest) {
     try {
@@ -327,7 +327,7 @@ export async function GET(request: NextRequest) {
             prisma.book.count({ where })
         ])
 
-        // Transform books data
+        // Transform books-old data
         const transformedBooks = books.map(book => transformBookData(book, userHasPremium))
 
         // Calculate pagination info
@@ -370,7 +370,7 @@ export async function GET(request: NextRequest) {
         })
 
     } catch (error) {
-        console.error('Get books error:', error)
+        console.error('Get books-old error:', error)
 
         if (error instanceof z.ZodError) {
             return NextResponse.json({
@@ -382,14 +382,14 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             success: false,
-            error: 'Failed to retrieve books',
-            message: 'An error occurred while fetching books'
+            error: 'Failed to retrieve books-old',
+            message: 'An error occurred while fetching books-old'
         }, { status: 500 })
     }
 }
 
 /**
- * POST /api/public/books (Future: Book recommendations)
+ * POST /api/public/books-old (Future: Book recommendations)
  *
  * Could be used for book recommendations, AI-powered suggestions, etc.
  */

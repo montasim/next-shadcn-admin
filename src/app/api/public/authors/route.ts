@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
             books: author.books
                 .map(ba => ba.book)
                 .sort((a, b) => b._count.readingProgress - a._count.readingProgress) // Sort by popularity
-                .slice(0, 6) // Limit to 6 most popular books
+                .slice(0, 6) // Limit to 6 most popular books-old
                 .map(book => ({
                     id: book.id,
                     name: book.name,

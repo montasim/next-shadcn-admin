@@ -16,7 +16,7 @@ import { BookType } from '@prisma/client'
 // ============================================================================
 
 /**
- * GET /api/public/books/[id]
+ * GET /api/public/books-old/[id]
  *
  * Get detailed information about a specific book
  */
@@ -132,7 +132,7 @@ export async function GET(
             }, { status: 403 })
         }
 
-        // Get related books (same category or author)
+        // Get related books-old (same category or author)
         const relatedBooksQuery = {
             where: {
                 id: { not: bookId },
@@ -244,7 +244,7 @@ export async function GET(
                 totalReaders: book._count.readingProgress,
                 avgProgress: 0, // Could be calculated if needed
             },
-            // Related books
+            // Related books-old
             relatedBooks: relatedBooks.map(relatedBook => ({
                 id: relatedBook.id,
                 name: relatedBook.name,
@@ -293,7 +293,7 @@ export async function GET(
 }
 
 /**
- * POST /api/public/books/[id]/progress
+ * POST /api/public/books-old/[id]/progress
  *
  * Update reading progress for a book (requires authentication)
  */

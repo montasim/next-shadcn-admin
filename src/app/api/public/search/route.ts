@@ -1,7 +1,7 @@
 /**
  * Public Search API Route
  *
- * Global search across books, authors, and categories
+ * Global search across books-old, authors, and categories
  * Provides intelligent search results with ranking
  */
 
@@ -29,7 +29,7 @@ const SearchQuerySchema = z.object({
 /**
  * GET /api/public/search
  *
- * Global search across books, authors, and categories
+ * Global search across books-old, authors, and categories
  */
 export async function GET(request: NextRequest) {
     try {
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // Search books
+        // Search books-old
         if (type === 'all' || type === 'books') {
             const where: any = {
                 isPublic: true,
