@@ -5,7 +5,7 @@
  * This module provides utilities for extracting information from Next.js requests
  */
 
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Extract client IP address from request
@@ -54,17 +54,14 @@ export async function parseRequestBody(request: NextRequest): Promise<any> {
  * @param {number} status - HTTP status code
  * @returns {Response} Next.js Response object
  */
-export function errorResponse(error: string, status: number = 400): Response {
-    return new Response(
-        JSON.stringify({
+export function errorResponse(error: string, status: number = 400): NextResponse {
+    return NextResponse.json(
+        {
             success: false,
             error,
-        }),
+        },
         {
             status,
-            headers: {
-                'Content-Type': 'application/json',
-            },
         }
     )
 }
@@ -76,17 +73,14 @@ export function errorResponse(error: string, status: number = 400): Response {
  * @param {number} status - HTTP status code
  * @returns {Response} Next.js Response object
  */
-export function successResponse(data: any, status: number = 200): Response {
-    return new Response(
-        JSON.stringify({
+export function successResponse(data: any, status: number = 200): NextResponse {
+    return NextResponse.json(
+        {
             success: true,
             ...data,
-        }),
+        },
         {
             status,
-            headers: {
-                'Content-Type': 'application/json',
-            },
         }
     )
 }
