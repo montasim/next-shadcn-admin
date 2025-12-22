@@ -16,14 +16,31 @@ import { BookType, BindingType } from '@prisma/client'
 // REQUEST VALIDATION & CONFIGURATION
 // ============================================================================
 
+// Custom schema to handle array parameters that come as comma-separated strings or empty strings
+const arrayFromString = (schema: z.ZodTypeAny) =>
+  z.preprocess((val: any) => {
+    // Handle empty strings, undefined, null
+    if (!val || val === '') {
+      return []
+    }
+    // Handle comma-separated strings
+    if (typeof val === 'string') {
+      return val.split(',').filter(Boolean)
+    }
+    // Handle arrays (shouldn't happen but just in case)
+    return Array.isArray(val) ? val : [val]
+  }, z.array(schema))
+
 const BooksQuerySchema = z.object({
     page: z.coerce.number().min(1).default(1),
     limit: z.coerce.number().min(1).max(100).default(20),
     search: z.string().optional(),
     category: z.string().uuid().optional(),
+    categories: arrayFromString(z.string().uuid()).optional(),
     author: z.string().uuid().optional(),
     publication: z.string().uuid().optional(),
     type: z.enum([BookType.HARD_COPY, BookType.EBOOK, BookType.AUDIO]).optional(),
+    types: arrayFromString(z.enum([BookType.HARD_COPY, BookType.EBOOK, BookType.AUDIO])).optional(),
     bindingType: z.enum([BindingType.HARDCOVER, BindingType.PAPERBACK]).optional(),
     sortBy: z.enum(['title', 'author', 'createdAt', 'purchaseDate']).default('title'),
     sortOrder: z.enum(['asc', 'desc']).default('asc'),
@@ -49,9 +66,11 @@ function buildFilterConditions(
     const {
         search,
         category,
+        categories,
         author,
         publication,
         type,
+        types,
         bindingType,
         minPrice,
         maxPrice,
@@ -79,8 +98,15 @@ function buildFilterConditions(
         ]
     }
 
-    // Category filter
-    if (category) {
+    // Category filter (support both single and multiple)
+    if (categories && categories.length > 0) {
+        where.categories = {
+            some: {
+                categoryId: { in: categories }
+            }
+        }
+    } else if (category) {
+        // Backward compatibility for single category
         where.categories = {
             some: {
                 categoryId: category
@@ -106,14 +132,25 @@ function buildFilterConditions(
         }
     }
 
-    // Type filter
-    if (type) {
+    // Type filter (support both single and multiple)
+    if (types && types.length > 0) {
+        where.type = { in: types }
+    } else if (type) {
+        // Backward compatibility for single type
         where.type = type
     }
 
     // Binding type filter (only for hard copies)
-    if (bindingType && type === BookType.HARD_COPY) {
-        where.bindingType = bindingType
+    if (bindingType) {
+        if (types && types.length > 0) {
+            // Check if HARD_COPY is in the types array
+            if (types.includes(BookType.HARD_COPY)) {
+                where.bindingType = bindingType
+            }
+        } else if (type === BookType.HARD_COPY) {
+            // Backward compatibility
+            where.bindingType = bindingType
+        }
     }
 
     // Price filters
@@ -314,9 +351,11 @@ export async function GET(request: NextRequest) {
                 filters: {
                     search: validatedQuery.search || null,
                     category: validatedQuery.category || null,
+                    categories: validatedQuery.categories || null,
                     author: validatedQuery.author || null,
                     publication: validatedQuery.publication || null,
                     type: validatedQuery.type || null,
+                    types: validatedQuery.types || null,
                     bindingType: validatedQuery.bindingType || null,
                     minPrice: validatedQuery.minPrice || null,
                     maxPrice: validatedQuery.maxPrice || null,

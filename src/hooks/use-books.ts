@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import type { BookType } from '@prisma/client'
 
 interface BookFilters {
   page?: number
@@ -12,11 +13,11 @@ interface BookFilters {
   premium?: 'all' | 'free' | 'premium'
 }
 
-interface Book {
+export interface Book {
   id: string
   name: string
   summary?: string
-  type: string
+  type: BookType
   image?: string
   requiresPremium: boolean
   canAccess: boolean
