@@ -19,7 +19,7 @@ import { LoginSessionData, SessionExpiredError } from './types'
 // SESSION CONFIGURATION
 // ============================================================================
 
-const SESSION_COOKIE_NAME = 'admin_session'
+const SESSION_COOKIE_NAME = 'user_session'
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
 
 // ============================================================================
@@ -28,22 +28,25 @@ const SESSION_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
 
 /**
  * Create a login session and set HttpOnly cookie
- * 
- * @param {string} adminId - Admin ID
- * @param {string} email - Admin email
- * @param {string} name - Admin name
- * 
+ *
+ * @param {string} userId - User ID
+ * @param {string} email - User email
+ * @param {string} name - User name
+ * @param {string} role - User role
+ *
  * Security: Uses HttpOnly, Secure (in production), SameSite=Lax
  */
 export async function createLoginSession(
-    adminId: string,
+    userId: string,
     email: string,
-    name: string
+    name: string,
+    role: string
 ): Promise<void> {
     const sessionData: LoginSessionData = {
-        adminId,
+        userId,
         email,
         name,
+        role,
     }
 
     const cookieStore = await cookies()
@@ -79,9 +82,10 @@ export async function getSession(): Promise<LoginSessionData | null> {
 
         // Validate session data structure
         if (
-            !sessionData.adminId ||
+            !sessionData.userId ||
             !sessionData.email ||
-            !sessionData.name
+            !sessionData.name ||
+            !sessionData.role
         ) {
             return null
         }

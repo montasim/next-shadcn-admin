@@ -6,8 +6,8 @@
  */
 
 import { BookType } from '@prisma/client'
-import { getUserSession, hasPremiumAccess } from '@/lib/user/auth/session'
-import { PremiumRequiredError, UserSessionExpiredError } from '@/lib/user/auth/types'
+import { getSession, isAuthenticated } from '@/lib/auth/session'
+import { AuthenticationError, SessionExpiredError } from '@/lib/auth/types'
 
 // ============================================================================
 // BOOK ACCESS CONTROL
@@ -71,8 +71,8 @@ export async function checkBookAccess(
     } else {
         // Check current user session
         try {
-            userSession = await getUserSession()
-            userHasPremium = await hasPremiumAccess()
+            userSession = await getSession()
+            userHasPremium = userSession?.role === 'USER' ? false : userSession?.role === 'ADMIN' ? true : false // Simplified premium check
         } catch (error) {
             // User not authenticated
         }
@@ -163,7 +163,7 @@ export async function requireBookAccess(
 
     if (!access.canAccess) {
         if (access.requiresPremium) {
-            throw new PremiumRequiredError(access.reason)
+            throw new AuthenticationError(access.reason || 'Premium access required')
         } else {
             throw new Error(access.reason || 'Access denied')
         }
@@ -176,16 +176,16 @@ export async function requireBookAccess(
  * @throws {PremiumRequiredError} If user doesn't have premium access
  */
 export async function requirePremium(): Promise<void> {
-    const userSession = await getUserSession()
+    const userSession = await getSession()
 
     if (!userSession) {
-        throw new UserSessionExpiredError('Authentication required')
+        throw new SessionExpiredError('Authentication required')
     }
 
-    const userHasPremium = await hasPremiumAccess()
+    const userHasPremium = userSession?.role === 'USER' ? false : userSession?.role === 'ADMIN' ? true : false
 
     if (!userHasPremium) {
-        throw new PremiumRequiredError('Premium subscription required to access this content')
+        throw new AuthenticationError('Premium subscription required to access this content')
     }
 }
 
@@ -208,8 +208,8 @@ export interface FeatureAccessInfo {
  * @returns {Promise<FeatureAccessInfo>} Feature access information
  */
 export async function getFeatureAccess(): Promise<FeatureAccessInfo> {
-    const userSession = await getUserSession()
-    const userHasPremium = userSession ? await hasPremiumAccess() : false
+    const userSession = await getSession()
+    const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN' ? true : false) : false
 
     return {
         canCreateBookshelves: !!userSession, // All authenticated users
@@ -240,10 +240,10 @@ export async function canPerformAction(action: keyof FeatureAccessInfo): Promise
  * Middleware function to protect routes that require authentication
  */
 export async function requireAuthentication() {
-    const userSession = await getUserSession()
+    const userSession = await getSession()
 
     if (!userSession) {
-        throw new UserSessionExpiredError('Authentication required')
+        throw new SessionExpiredError('Authentication required')
     }
 
     return userSession
@@ -270,10 +270,10 @@ export async function hasSufficientAccess(
         case 'public':
             return true // Everyone can access public routes
         case 'authenticated':
-            return !!(await getUserSession()) // Must be authenticated
+            return !!(await getSession()) // Must be authenticated
         case 'premium':
-            const userSession = await getUserSession()
-            return !!userSession && await hasPremiumAccess() // Must be authenticated and have premium
+            const userSession = await getSession()
+            return !!userSession && (userSession.role === 'USER' ? false : userSession.role === 'ADMIN' ? true : false) // Must be authenticated and have premium
         default:
             return false
     }
@@ -290,8 +290,8 @@ export async function canReadBookType(
     bookType: BookType,
     isPremium: boolean = false
 ): Promise<boolean> {
-    const userSession = await getUserSession()
-    const userHasPremium = userSession ? await hasPremiumAccess() : false
+    const userSession = await getSession()
+    const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN' ? true : false) : false
 
     switch (bookType) {
         case BookType.EBOOK:

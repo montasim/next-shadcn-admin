@@ -3,6 +3,7 @@
  *
  * Following Repository Pattern and Single Responsibility Principle:
  * This module handles all database operations for the User model
+ * Now works with unified user table (based on former admin table structure)
  *
  * Benefits:
  * - Separation of concerns (business logic from data access)
@@ -66,7 +67,7 @@ export async function findUserById(id: string) {
  */
 export async function findUserBySessionToken(token: string) {
     const session = await prisma.userSession.findUnique({
-        where: { token },
+        where: { id: token }, // Changed from token to id to match schema
         include: { user: true }
     })
 
@@ -246,13 +247,13 @@ export async function deleteUser(id: string) {
  *
  * @param {Object} data - Session data
  * @param {string} data.userId - User ID
- * @param {string} data.token - Session token
+ * @param {string} data.id - Session ID (token)
  * @param {Date} data.expiresAt - Expiration date
  * @returns {Promise<UserSession>} Created session
  */
 export async function createUserSession(data: {
     userId: string
-    token: string
+    id: string
     expiresAt: Date
 }) {
     return prisma.userSession.create({
@@ -268,7 +269,7 @@ export async function createUserSession(data: {
  */
 export async function deleteUserSession(token: string) {
     return prisma.userSession.delete({
-        where: { token },
+        where: { id: token }, // Changed from token to id to match schema
     })
 }
 
@@ -295,6 +296,129 @@ export async function cleanupExpiredSessions() {
             expiresAt: {
                 lt: new Date()
             }
+        }
+    })
+}
+
+// ============================================================================
+// USER MANAGEMENT FUNCTIONS (Including former admin functionality)
+// ============================================================================
+
+/**
+ * Get all users (for admin dashboard)
+ *
+ * @returns {Promise<User[]>} Array of all users
+ */
+export async function getAllUsers() {
+    return prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+            subscription: true,
+            _count: {
+                select: {
+                    readingProgress: true,
+                    bookshelves: true,
+                }
+            }
+        }
+    })
+}
+
+/**
+ * Update user role
+ *
+ * @param {string} id - User ID
+ * @param {string} role - New role (USER, ADMIN, SUPER_ADMIN)
+ * @returns {Promise<User>} Updated user
+ */
+export async function updateUserRole(id: string, role: 'USER' | 'ADMIN' | 'SUPER_ADMIN') {
+    return prisma.user.update({
+        where: { id },
+        data: { role },
+    })
+}
+
+/**
+ * Create user with extended fields (for admin creation)
+ *
+ * @param {Object} data - User data
+ * @param {string} data.email - User email
+ * @param {string} data.firstName - User first name
+ * @param {string} [data.lastName] - User last name
+ * @param {string} data.passwordHash - Hashed password
+ * @param {string} [data.role] - User role (defaults to USER)
+ * @param {string} [data.phoneNumber] - Optional phone number
+ * @returns {Promise<User>} Created user
+ */
+export async function createFullUser(data: {
+    email: string
+    firstName: string
+    lastName?: string
+    passwordHash: string
+    role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN'
+    phoneNumber?: string
+    username?: string
+    bio?: string
+    dob?: Date
+    language?: string
+    theme?: string
+    font?: string
+    urls?: any
+    displayItems?: any
+    notificationType?: string
+    mobileNotifications?: boolean
+    communicationEmails?: boolean
+    socialEmails?: boolean
+    marketingEmails?: boolean
+    securityEmails?: boolean
+}) {
+    return prisma.user.create({
+        data,
+        include: {
+            subscription: true,
+        }
+    })
+}
+
+/**
+ * Update user profile (extended fields)
+ *
+ * @param {string} id - User ID
+ * @param {Object} data - User data to update
+ * @returns {Promise<User>} Updated user
+ */
+export async function updateUserProfile(
+    id: string,
+    data: {
+        firstName?: string
+        lastName?: string | null
+        email?: string
+        phoneNumber?: string | null
+        passwordHash?: string
+        username?: string | null
+        bio?: string | null
+        dob?: Date | null
+        language?: string | null
+        theme?: string | null
+        font?: string | null
+        urls?: any
+        displayItems?: any
+        notificationType?: string | null
+        mobileNotifications?: boolean | null
+        communicationEmails?: boolean | null
+        socialEmails?: boolean | null
+        marketingEmails?: boolean | null
+        securityEmails?: boolean | null
+        isActive?: boolean
+        isPremium?: boolean
+        avatar?: string | null
+    }
+) {
+    return prisma.user.update({
+        where: { id },
+        data,
+        include: {
+            subscription: true,
         }
     })
 }

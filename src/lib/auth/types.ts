@@ -38,10 +38,12 @@ export interface CheckEmailResponse {
 
 export interface LoginResponse {
   success: true
-  admin: {
+  user: {
     id: string
     email: string
     name: string
+    role: string
+    isPremium?: boolean
   }
 }
 
@@ -57,10 +59,11 @@ export interface VerifyOtpResponse {
 
 export interface CreateAccountResponse {
   success: true
-  admin: {
+  user: {
     id: string
     email: string
     name: string
+    role: string
   }
 }
 
@@ -91,9 +94,10 @@ export interface AuthSessionData {
 }
 
 export interface LoginSessionData {
-  adminId: string
+  userId: string
   email: string
   name: string
+  role: string
 }
 
 // ============================================================================
@@ -134,5 +138,32 @@ export class SessionExpiredError extends Error {
   constructor(message: string = 'Session expired. Please start again.') {
     super(message)
     this.name = 'SessionExpiredError'
+  }
+}
+
+// ============================================================================
+// INVITE TYPES
+// ============================================================================
+
+export interface InviteData {
+  id: string
+  email: string
+  token: string
+  invitedBy: string
+  role: string
+  desc?: string
+  expiresAt: Date
+  used: boolean
+  createdAt: Date
+  usedAt?: Date
+}
+
+export interface CreateInviteResponse {
+  success: true
+  invite: {
+    id: string
+    email: string
+    role: string
+    expiresAt: string
   }
 }

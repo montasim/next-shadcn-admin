@@ -2,60 +2,48 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-    const adminSession = request.cookies.get('admin_session')?.value
     const userSession = request.cookies.get('user_session')?.value
     const { pathname } = request.nextUrl
 
     // Define route types
     const isAdminRoute = pathname.startsWith('/dashboard')
-    const isUserRoute = pathname.startsWith('/(user)') || pathname.startsWith('/books') || pathname.startsWith('/profile') || pathname.startsWith('/bookshelves')
-    const isPublicRoute = pathname.startsWith('/(public)')
-    const isAuthRoute =
-        pathname.startsWith('/auth/sign-in') ||
-        pathname.startsWith('/sign-up') ||
-        pathname.startsWith('/forgot-password') ||
-        pathname.startsWith('/otp') ||
-        pathname.startsWith('/login') ||
-        pathname.startsWith('/register')
+    const isUserRoute = pathname.startsWith('/profile') || pathname.startsWith('/bookshelves')
+    const isPublicRoute = pathname.startsWith('/(public)') || pathname.startsWith('/books')
+    const isAuthRoute = pathname.startsWith('/auth/')
 
-    // Function to validate admin session cookie format
-    const isValidAdminSession = (sessionValue: string): boolean => {
+    // Function to validate unified session cookie format and extract role
+    const getSessionRole = (sessionValue: string): { valid: boolean; role?: string } => {
         try {
             const sessionData = JSON.parse(sessionValue)
-            return sessionData &&
-                   sessionData.adminId &&
-                   sessionData.email &&
-                   sessionData.name
+            const valid = sessionData &&
+                         sessionData.userId &&
+                         sessionData.email &&
+                         sessionData.name &&
+                         sessionData.role
+            return {
+                valid,
+                role: valid ? sessionData.role : undefined
+            }
         } catch {
-            return false
+            return { valid: false }
         }
     }
 
-    // Function to validate user session cookie format
-    const isValidUserSession = (sessionValue: string): boolean => {
-        try {
-            const sessionData = sessionValue // User sessions are stored as tokens, not JSON
-            return sessionData && sessionData.length > 10 // Basic validation for session token
-        } catch {
-            return false
-        }
-    }
+    const sessionValidation = userSession ? getSessionRole(userSession) : { valid: false }
 
-    // Handle admin routes
+    // Handle admin routes (require ADMIN or SUPER_ADMIN role)
     if (isAdminRoute) {
-        if (!adminSession || !isValidAdminSession(adminSession)) {
-            // Invalid or missing admin session, delete cookie and redirect
+        if (!sessionValidation.valid || !['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
             const response = NextResponse.redirect(new URL('/auth/sign-in', request.url))
-            response.cookies.delete('admin_session')
+            response.cookies.delete('user_session')
             return response
         }
     }
 
-    // Handle user routes (require user authentication)
-    if (isUserRoute && !pathname.startsWith('/books')) { // Books page can be accessed publicly
-        if (!userSession || !isValidUserSession(userSession)) {
-            // Invalid or missing user session, delete cookie and redirect
-            const response = NextResponse.redirect(new URL('/login', request.url))
+    // Handle protected user routes (require authentication)
+    if (isUserRoute) {
+        if (!sessionValidation.valid) {
+            const response = NextResponse.redirect(new URL('/auth/sign-in', request.url))
             response.cookies.delete('user_session')
             return response
         }
@@ -63,15 +51,11 @@ export function middleware(request: NextRequest) {
 
     // Handle authentication routes
     if (isAuthRoute) {
-        // Admin auth routes
-        if (pathname.startsWith('/auth/sign-in') || pathname.startsWith('/auth/')) {
-            if (adminSession && isValidAdminSession(adminSession)) {
+        if (sessionValidation.valid) {
+            // User is authenticated, redirect based on role
+            if (['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
                 return NextResponse.redirect(new URL('/dashboard', request.url))
-            }
-        }
-        // User auth routes
-        else if (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password')) {
-            if (userSession && isValidUserSession(userSession)) {
+            } else {
                 return NextResponse.redirect(new URL('/books', request.url))
             }
         }
@@ -79,23 +63,19 @@ export function middleware(request: NextRequest) {
 
     // Handle root route - redirect based on existing sessions
     if (pathname === '/') {
-        if (adminSession && isValidAdminSession(adminSession)) {
-            return NextResponse.redirect(new URL('/dashboard', request.url))
-        } else if (userSession && isValidUserSession(userSession)) {
-            return NextResponse.redirect(new URL('/books', request.url))
+        if (sessionValidation.valid) {
+            if (['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
+                return NextResponse.redirect(new URL('/dashboard', request.url))
+            } else {
+                return NextResponse.redirect(new URL('/books', request.url))
+            }
         } else {
-            return NextResponse.redirect(new URL('/books', request.url)) // Default to public books page
+            return NextResponse.redirect(new URL('/auth/sign-in', request.url))
         }
     }
 
     // Clean up invalid sessions
-    if (adminSession && !isValidAdminSession(adminSession)) {
-        const response = NextResponse.next()
-        response.cookies.delete('admin_session')
-        return response
-    }
-
-    if (userSession && !isValidUserSession(userSession)) {
+    if (userSession && !sessionValidation.valid) {
         const response = NextResponse.next()
         response.cookies.delete('user_session')
         return response

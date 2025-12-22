@@ -7,6 +7,8 @@ interface User {
     id: string
     email: string
     name: string
+    role: string
+    isPremium?: boolean
     firstName?: string
     lastName?: string
     username?: string
@@ -27,7 +29,7 @@ export function useAuth() {
             const result = await response.json()
 
             if (response.ok && result.success) {
-                setUser(result.admin)
+                setUser(result.user)
             } else {
                 setUser(null)
                 setError(result.error || 'Failed to fetch user')
