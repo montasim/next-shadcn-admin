@@ -5,10 +5,25 @@ export function middleware(request: NextRequest) {
     const userSession = request.cookies.get('user_session')?.value
     const { pathname } = request.nextUrl
 
+    // Define admin-only sub-routes
+    const adminSubRoutes = [
+        '/dashboard/users',
+        '/dashboard/apps',
+        '/dashboard/chats',
+        '/dashboard/tasks',
+        '/dashboard/authors',
+        '/dashboard/categories',
+        '/dashboard/publications',
+        '/dashboard/books-old', // Assuming this is admin-only book management
+    ]
+
     // Define route types
-    const isAdminRoute = pathname.startsWith('/dashboard')
-    const isUserRoute = pathname.startsWith('/profile') || pathname.startsWith('/bookshelves')
-    const isPublicRoute = pathname.startsWith('/(public)') || pathname.startsWith('/books')
+    const isAdminRoute = adminSubRoutes.some(route => pathname.startsWith(route))
+    const isUserRoute = pathname.startsWith('/profile') || 
+                       pathname.startsWith('/bookshelves') || 
+                       pathname.startsWith('/settings') ||
+                       pathname.startsWith('/dashboard') // Dashboard is now for all users
+    const isPublicRoute = pathname.startsWith('/(public)') || pathname.startsWith('/books-old')
     const isAuthRoute = pathname.startsWith('/auth/')
 
     // Function to validate unified session cookie format and extract role
@@ -31,12 +46,16 @@ export function middleware(request: NextRequest) {
 
     const sessionValidation = userSession ? getSessionRole(userSession) : { valid: false }
 
-    // Handle admin routes (require ADMIN or SUPER_ADMIN role)
+    // Handle admin-only sub-routes
     if (isAdminRoute) {
-        if (!sessionValidation.valid || !['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
+        if (!sessionValidation.valid) {
             const response = NextResponse.redirect(new URL('/auth/sign-in', request.url))
             response.cookies.delete('user_session')
             return response
+        }
+        if (!['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
+            // Not an admin, redirect to the main dashboard
+            return NextResponse.redirect(new URL('/dashboard', request.url))
         }
     }
 
@@ -52,23 +71,15 @@ export function middleware(request: NextRequest) {
     // Handle authentication routes
     if (isAuthRoute) {
         if (sessionValidation.valid) {
-            // User is authenticated, redirect based on role
-            if (['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
-                return NextResponse.redirect(new URL('/dashboard', request.url))
-            } else {
-                return NextResponse.redirect(new URL('/books', request.url))
-            }
+            // User is authenticated, redirect to dashboard
+            return NextResponse.redirect(new URL('/dashboard', request.url))
         }
     }
 
     // Handle root route - redirect based on existing sessions
     if (pathname === '/') {
         if (sessionValidation.valid) {
-            if (['ADMIN', 'SUPER_ADMIN'].includes(sessionValidation.role || '')) {
-                return NextResponse.redirect(new URL('/dashboard', request.url))
-            } else {
-                return NextResponse.redirect(new URL('/books', request.url))
-            }
+            return NextResponse.redirect(new URL('/dashboard', request.url))
         } else {
             return NextResponse.redirect(new URL('/auth/sign-in', request.url))
         }

@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Your Book Library - Discover, Read, and Share Books',
-  description: 'Discover amazing books, track your reading progress, and share your favorite reads with our comprehensive book management platform.',
+  description: 'Discover amazing books-old, track your reading progress, and share your favorite reads with our comprehensive book management platform.',
   keywords: ['books', 'reading', 'library', 'ebooks', 'audiobooks', 'book discovery'],
 }
 

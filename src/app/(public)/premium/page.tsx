@@ -30,14 +30,14 @@ const plans = [
     period: 'forever',
     description: 'Perfect for getting started',
     features: [
-      'Access to free books',
+      'Access to free books-old',
       'Basic reading progress tracking',
       'Up to 3 bookshelves',
       'Community features',
       'Mobile reading'
     ],
     limitations: [
-      'Limited to free books only',
+      'Limited to free books-old only',
       'Ads supported experience',
       'Basic reading features',
       'Limited storage'
@@ -53,7 +53,7 @@ const plans = [
     period: 'month',
     description: 'Most popular for avid readers',
     features: [
-      'Access to all premium books',
+      'Access to all premium books-old',
       'Ad-free reading experience',
       'Unlimited bookshelves',
       'Advanced reading stats',
@@ -75,7 +75,7 @@ const plans = [
     description: 'For the ultimate reading experience',
     features: [
       'Everything in Premium',
-      'Early access to new books',
+      'Early access to new books-old',
       'Exclusive author content',
       'Unlimited offline storage',
       'Family sharing (up to 4 members)',

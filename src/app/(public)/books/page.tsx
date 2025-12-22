@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/context/auth-context'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -285,7 +285,7 @@ export default function BooksPage() {
                     ].map((type) => (
                       <div key={type.value} className="flex items-center space-x-2">
                         <Switch
-                          id={'mobile-' + type.value}
+                          id={`mobile-${type.value}`}
                           checked={filters.types.includes(type.value)}
                           onCheckedChange={(checked) => {
                             const newTypes = checked
@@ -294,7 +294,7 @@ export default function BooksPage() {
                             handleFilterChange('types', newTypes);
                           }}
                         />
-                        <Label htmlFor={'mobile-' + type.value} className="text-sm flex items-center gap-2 cursor-pointer">
+                        <Label htmlFor={`mobile-${type.value}`} className="text-sm flex items-center gap-2 cursor-pointer">
                           <type.icon className="h-4 w-4" />
                           {type.label}
                         </Label>
