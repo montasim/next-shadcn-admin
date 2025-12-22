@@ -140,13 +140,20 @@ export function UserAuthForm({ className, onStepChange }: UserAuthFormProps) {
         return
       }
 
-      // Success - show success message and redirect to dashboard
+      // Success - show success message and redirect based on role
       toast({
         title: 'Success',
         description: 'Logged in successfully',
       })
 
-      router.push('/dashboard')
+      // Redirect based on user role
+      if (result.user?.role === 'USER') {
+        router.push('/') // Regular users go to home/books page
+      } else if (result.user?.role === 'ADMIN' || result.user?.role === 'SUPER_ADMIN') {
+        router.push('/dashboard') // Admins go to dashboard
+      } else {
+        router.push('/dashboard') // Default to dashboard
+      }
       router.refresh()
     } catch (error) {
       console.error('Login error:', error)
