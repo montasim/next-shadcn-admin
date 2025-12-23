@@ -15,7 +15,9 @@ import {
   SkipBack,
   SkipForward,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Menu,
+  X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -68,6 +70,7 @@ export function PDFViewer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [rotation, setRotation] = useState(0)
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const loadedPdfUrl = useRef<string | null>(null) // Track which PDF has been loaded
 
   // Load PDF.js dynamically
@@ -318,127 +321,249 @@ export function PDFViewer({
   return (
     <div ref={containerRef} className={cn("flex flex-col bg-background w-full", className)}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-8 py-2 border-b bg-background/95 backdrop-blur flex-shrink-0">
-        {/* Page Navigation */}
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(1)}
-            disabled={currentPage <= 1}
-          >
-            <SkipBack className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage <= 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-
-          <div className="flex items-center space-x-2 px-3">
-            <input
-              type="number"
-              value={currentPage}
-              onChange={(e) => {
-                const page = parseInt(e.target.value)
-                if (!isNaN(page)) {
-                  goToPage(page)
-                }
-              }}
-              className="w-16 text-center border rounded px-2 py-1 text-sm"
-              min={1}
-              max={totalPages}
-            />
-            <span className="text-sm text-muted-foreground">
-              of {totalPages}
-            </span>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => goToPage(totalPages)}
-            disabled={currentPage >= totalPages}
-          >
-            <SkipForward className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Zoom Controls */}
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+      <div className="flex flex-col bg-background/95 backdrop-blur flex-shrink-0 border-b">
+        {/* Primary Toolbar Row */}
+        <div className="flex items-center justify-between px-2 sm:px-4 md:px-8 py-2">
+          {/* Page Navigation - Mobile: compact, Desktop: full */}
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-1">
+            {/* First page button - hidden on mobile */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleZoomChange([Math.max(0.5, scale - 0.2)])}
+              onClick={() => goToPage(1)}
+              disabled={currentPage <= 1}
+              className="hidden sm:inline-flex"
             >
-              <ZoomOut className="h-4 w-4" />
+              <SkipBack className="h-4 w-4" />
             </Button>
-            <div className="w-32">
-              <Slider
-                value={[scale]}
-                onValueChange={handleZoomChange}
-                min={0.5}
-                max={3}
-                step={0.1}
-                className="w-full"
+
+            {/* Previous page */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className="min-h-[36px] sm:min-h-[32px]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {/* Page input - desktop */}
+            <div className="hidden sm:flex items-center space-x-2 px-2">
+              <input
+                type="number"
+                value={currentPage}
+                onChange={(e) => {
+                  const page = parseInt(e.target.value)
+                  if (!isNaN(page)) {
+                    goToPage(page)
+                  }
+                }}
+                className="w-16 text-center border rounded px-2 py-1 text-sm"
+                min={1}
+                max={totalPages}
               />
+              <span className="text-sm text-muted-foreground">
+                of {totalPages}
+              </span>
             </div>
+
+            {/* Page display - mobile only */}
+            <div className="sm:hidden flex items-center px-2">
+              <span className="text-sm font-medium">
+                {currentPage} / {totalPages}
+              </span>
+            </div>
+
+            {/* Next page */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleZoomChange([Math.min(3, scale + 0.2)])}
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              className="min-h-[36px] sm:min-h-[32px]"
             >
-              <ZoomIn className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground min-w-[3rem]">
-              {Math.round(scale * 100)}%
-            </span>
+
+            {/* Last page button - hidden on mobile */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(totalPages)}
+              disabled={currentPage >= totalPages}
+              className="hidden sm:inline-flex"
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRotate}
-          >
-            <RotateCw className="h-4 w-4" />
-          </Button>
+          {/* Right side controls */}
+          <div className="flex items-center space-x-2">
+            {/* Zoom buttons - always visible on tablet+, compact on mobile */}
+            <div className="hidden md:flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleZoomChange([Math.max(0.5, scale - 0.2)])}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <div className="w-24 lg:w-32">
+                <Slider
+                  value={[scale]}
+                  onValueChange={handleZoomChange}
+                  min={0.5}
+                  max={3}
+                  step={0.1}
+                  className="w-full"
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleZoomChange([Math.min(3, scale + 0.2)])}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground min-w-[3rem]">
+                {Math.round(scale * 100)}%
+              </span>
+            </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleFullscreen}
-          >
-            {isFullscreen ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
-            )}
-          </Button>
+            {/* Rotate button - hidden on mobile */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRotate}
+              className="hidden sm:inline-flex"
+            >
+              <RotateCw className="h-4 w-4" />
+            </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownload}
-          >
-            <Download className="h-4 w-4" />
-          </Button>
+            {/* Fullscreen button - hidden on mobile */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className="hidden sm:inline-flex"
+            >
+              {isFullscreen ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </Button>
+
+            {/* Download button - hidden on mobile */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="hidden sm:inline-flex"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+
+            {/* Mobile menu toggle button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden min-h-[36px]"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Menu className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Menu - Collapsible */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t bg-background px-2 py-3 space-y-3">
+            {/* Zoom controls for mobile */}
+            <div className="flex items-center justify-between space-x-2">
+              <span className="text-sm font-medium">Zoom</span>
+              <div className="flex items-center space-x-2 flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleZoomChange([Math.max(0.5, scale - 0.2)])}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <div className="flex-1 max-w-[120px]">
+                  <Slider
+                    value={[scale]}
+                    onValueChange={handleZoomChange}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleZoomChange([Math.min(3, scale + 0.2)])}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground min-w-[3.5rem]">
+                  {Math.round(scale * 100)}%
+                </span>
+              </div>
+            </div>
+
+            {/* Additional controls grid */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRotate}
+                className="justify-start min-h-[44px]"
+              >
+                <RotateCw className="h-4 w-4 mr-2" />
+                Rotate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleFullscreen}
+                className="justify-start min-h-[44px]"
+              >
+                {isFullscreen ? (
+                  <>
+                    <Minimize2 className="h-4 w-4 mr-2" />
+                    Exit Fullscreen
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="h-4 w-4 mr-2" />
+                    Fullscreen
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="justify-start min-h-[44px] col-span-2"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* PDF Canvas Container */}
-      <div className="flex-1 overflow-auto bg-muted/30 min-h-0 mx-8 mt-6 rounded-lg">
+      <div className="flex-1 overflow-auto bg-muted/30 min-h-0 mx-2 sm:mx-4 md:mx-8 mt-3 sm:mt-4 md:mt-6 rounded-lg">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />
