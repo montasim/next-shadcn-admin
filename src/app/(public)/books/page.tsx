@@ -161,23 +161,23 @@ export default function BooksPage() {
                 </Button>
               </div>
 
-              {/* Admin Actions */}
-              {isAdmin && (
-                <div className="flex items-center gap-2">
-                  <Link href="/dashboard/books">
-                    <Button variant="outline" size="sm">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Manage Books
-                    </Button>
-                  </Link>
-                  <Link href="/dashboard/books/new">
-                    <Button size="sm">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Book
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              {/*/!* Admin Actions *!/*/}
+              {/*{isAdmin && (*/}
+              {/*  <div className="flex items-center gap-2">*/}
+              {/*    <Link href="/dashboard/books">*/}
+              {/*      <Button variant="outline" size="sm">*/}
+              {/*        <Settings className="mr-2 h-4 w-4" />*/}
+              {/*        Manage Books*/}
+              {/*      </Button>*/}
+              {/*    </Link>*/}
+              {/*    <Link href="/dashboard/books/new">*/}
+              {/*      <Button size="sm">*/}
+              {/*        <Plus className="mr-2 h-4 w-4" />*/}
+              {/*        Add Book*/}
+              {/*      </Button>*/}
+              {/*    </Link>*/}
+              {/*  </div>*/}
+              {/*)}*/}
             </div>
           </div>
 
@@ -223,21 +223,21 @@ export default function BooksPage() {
                   <List className="h-4 w-4" />
                 </Button>
 
-                {/* Mobile Admin Actions */}
-                {isAdmin && (
-                  <>
-                    <Link href="/dashboard/books">
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link href="/dashboard/books/new">
-                      <Button size="sm">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </>
-                )}
+                {/*/!* Mobile Admin Actions *!/*/}
+                {/*{isAdmin && (*/}
+                {/*  <>*/}
+                {/*    <Link href="/dashboard/books">*/}
+                {/*      <Button variant="outline" size="sm">*/}
+                {/*        <Settings className="h-4 w-4" />*/}
+                {/*      </Button>*/}
+                {/*    </Link>*/}
+                {/*    <Link href="/dashboard/books/new">*/}
+                {/*      <Button size="sm">*/}
+                {/*        <Plus className="h-4 w-4" />*/}
+                {/*      </Button>*/}
+                {/*    </Link>*/}
+                {/*  </>*/}
+                {/*)}*/}
               </div>
             </div>
 
