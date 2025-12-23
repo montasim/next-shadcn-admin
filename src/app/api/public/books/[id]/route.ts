@@ -22,10 +22,10 @@ import { BookType } from '@prisma/client'
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const bookId = params.id
+        const { id: bookId } = await params
 
         // Validate book ID
         if (!bookId || typeof bookId !== 'string') {
@@ -299,10 +299,10 @@ export async function GET(
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const bookId = params.id
+        const { id: bookId } = await params
 
         // Require authentication
         const userSession = await getSession()

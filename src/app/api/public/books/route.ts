@@ -201,7 +201,7 @@ function buildSortConditions(sortBy: string, sortOrder: string) {
 /**
  * Transform book data for public API response
  */
-function transformBookData(book: any, userHasPremium: boolean) {
+function transformBookData(book: any, userHasPremium: boolean, userId?: string) {
     const canAccess = !book.requiresPremium || userHasPremium
 
     return {
@@ -219,6 +219,13 @@ function transformBookData(book: any, userHasPremium: boolean) {
         canAccess,
         // Include file URL only if user has access
         fileUrl: canAccess ? book.fileUrl : null,
+        // User's reading progress (if authenticated)
+        progress: book.readingProgress && book.readingProgress.length > 0 ? {
+            currentPage: book.readingProgress[0].currentPage,
+            progress: book.readingProgress[0].progress,
+            isCompleted: book.readingProgress[0].progress >= 95,
+            lastReadAt: book.readingProgress[0].lastReadAt,
+        } : undefined,
         // Relationships
         authors: book.authors.map((ba: any) => ({
             id: ba.author.id,
@@ -236,9 +243,7 @@ function transformBookData(book: any, userHasPremium: boolean) {
             image: bp.publication.image,
         })),
         // Statistics
-        _count: {
-            readingProgress: book._count.readingProgress,
-        }
+        readersCount: book._count.readingProgress,
     }
 }
 
@@ -261,6 +266,7 @@ export async function GET(request: NextRequest) {
 
         // Check user authentication and premium status
         const userSession = await getSession()
+        const userId = userSession?.userId
         const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN' ? true : false) : false
 
         const {
@@ -275,6 +281,18 @@ export async function GET(request: NextRequest) {
         // Build filter and sort conditions
         const where = buildFilterConditions(validatedQuery, userHasPremium)
         const orderBy = buildSortConditions(sortBy, sortOrder)
+
+        // Build readingProgress include based on authentication
+        const readingProgressInclude = userId ? {
+            where: {
+                userId: userId
+            },
+            select: {
+                currentPage: true,
+                progress: true,
+                lastReadAt: true,
+            }
+        } : false
 
         // Execute queries in parallel
         const [books, total] = await Promise.all([
@@ -314,6 +332,7 @@ export async function GET(request: NextRequest) {
                             }
                         }
                     },
+                    readingProgress: readingProgressInclude,
                     _count: {
                         select: {
                             readingProgress: true,
@@ -327,8 +346,8 @@ export async function GET(request: NextRequest) {
             prisma.book.count({ where })
         ])
 
-        // Transform books-old data
-        const transformedBooks = books.map(book => transformBookData(book, userHasPremium))
+        // Transform books data
+        const transformedBooks = books.map(book => transformBookData(book, userHasPremium, userId))
 
         // Calculate pagination info
         const totalPages = Math.ceil(total / limit)

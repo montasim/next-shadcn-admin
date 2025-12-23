@@ -31,6 +31,12 @@ export interface Book {
   }>
   fileUrl?: string
   readersCount?: number
+  pageNumber?: number | null
+  progress?: {
+    currentPage?: number
+    progress: number
+    isCompleted?: boolean
+  }
 }
 
 interface BooksResponse {
@@ -59,9 +65,11 @@ export function useBooks(filters: BookFilters = {}) {
     queryFn: async (): Promise<BooksResponse> => {
       const response = await fetch(`/api/public/books?${queryParams.toString()}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch books-old')
+        throw new Error('Failed to fetch books')
       }
-      return response.json()
+      const json = await response.json()
+      // Unwrap the response - API returns { success, data: { books, pagination } }
+      return json.data
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,

@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { BookCard } from '@/components/books/book-card'
 import { SearchBar } from '@/components/books/search-bar'
-import { PublicHeader } from '@/components/layout/public-header'
 import { useBooks } from '@/hooks/use-books'
 import Link from 'next/link'
 import {
@@ -91,8 +90,8 @@ export default function BooksPage() {
 
   const hasActiveFilters = filters.types.length > 0 || filters.categories.length > 0 || filters.author || filters.premium !== 'all'
 
-  const books = booksData?.data?.books || []
-  const pagination = booksData?.data?.pagination
+  const books = booksData?.books || []
+  const pagination = booksData?.pagination
 
   // Category options for MultiSelect
   const CATEGORY_OPTIONS = [
@@ -127,8 +126,6 @@ export default function BooksPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PublicHeader />
-
       <main className="container mx-auto px-4 py-8">
           {/* Header */}
         <div className="mb-8">
@@ -137,7 +134,7 @@ export default function BooksPage() {
             <div>
               <h1 className="text-xl font-bold">Discover Books</h1>
               <p className="text-muted-foreground">
-                {booksData?.data?.pagination?.totalBooks || 0} books available
+                {booksData?.pagination?.totalBooks || 0} books available
               </p>
             </div>
 
@@ -189,7 +186,7 @@ export default function BooksPage() {
               <div>
                 <h1 className="text-xl font-bold">Discover Books</h1>
                 <p className="text-muted-foreground">
-                  {booksData?.data?.pagination?.totalBooks || 0} books available
+                  {booksData?.pagination?.totalBooks || 0} books available
                 </p>
               </div>
 
@@ -574,7 +571,7 @@ export default function BooksPage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+                  <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6" : "space-y-4"}>
                     {books.map((book) => (
                       <BookCard
                         key={book.id}
