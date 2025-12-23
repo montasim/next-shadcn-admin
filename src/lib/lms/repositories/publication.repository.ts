@@ -146,8 +146,14 @@ export async function createPublication(data: {
   image?: string
   entryById: string
 }) {
+  const { entryById, ...publicationData } = data
   return prisma.publication.create({
-    data,
+    data: {
+      ...publicationData,
+      entryBy: {
+        connect: { id: entryById }
+      }
+    },
     include: {
       entryBy: {
         select: {

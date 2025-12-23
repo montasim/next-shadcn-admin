@@ -211,6 +211,7 @@ export async function createBook(data: {
     }
 
     // Create the book
+    const { entryById, ...bookData } = data
     const book = await tx.book.create({
       data: {
         name: data.name,
@@ -226,6 +227,12 @@ export async function createBook(data: {
         purchaseDate: data.purchaseDate,
         entryById: data.entryById,
       },
+      // data: {
+      //     ...bookData,
+      //     entryBy: {
+      //         connect: { id: entryById }
+      //     }
+      // },
       include: {
         entryBy: {
           select: {

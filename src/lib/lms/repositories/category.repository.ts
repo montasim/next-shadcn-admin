@@ -159,8 +159,14 @@ export async function createCategory(data: {
   image?: string
   entryById: string
 }) {
+  const { entryById, ...categoryData } = data
   return prisma.category.create({
-    data,
+    data: {
+      ...categoryData,
+      entryBy: {
+        connect: { id: entryById }
+      }
+    },
     include: {
       entryBy: {
         select: {

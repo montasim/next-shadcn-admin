@@ -146,8 +146,14 @@ export async function createAuthor(data: {
   image?: string
   entryById: string
 }) {
+  const { entryById, ...authorData } = data
   return prisma.author.create({
-    data,
+    data: {
+      ...authorData,
+      entryBy: {
+        connect: { id: entryById }
+      }
+    },
     include: {
       entryBy: {
         select: {
