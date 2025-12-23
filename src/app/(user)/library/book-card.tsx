@@ -13,11 +13,27 @@ interface BookCardProps {
   onDelete?: (book: any) => void
 }
 
+// Calculate estimated reading time based on page count (average reading speed: ~2 minutes per page)
+function calculateReadingTime(pageCount?: number | null): string | null {
+  if (!pageCount || pageCount <= 0) return null
+  const minutesPerPage = 2
+  const totalMinutes = pageCount * minutesPerPage
+
+  if (totalMinutes < 60) {
+    return `${totalMinutes} min read`
+  }
+  const hours = Math.floor(totalMinutes / 60)
+  const remainingMinutes = totalMinutes % 60
+  return remainingMinutes > 0
+    ? `${hours}h ${remainingMinutes}m read`
+    : `${hours}h read`
+}
+
 export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
   const { setOpen, setCurrentRow } = useLibraryContext()
-  const progress = book.readingProgress?.[0]?.progress || 0
+  const progress = Math.round(book.readingProgress?.[0]?.progress || 0)
   const currentPage = book.readingProgress?.[0]?.currentPage || 0
-  const readingTime = book.readingProgress?.[0]?.readingTime || 0
+  const estimatedReadingTime = calculateReadingTime(book.pageNumber)
 
   const handleEdit = () => {
     if (onEdit) {
@@ -96,8 +112,17 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
                 />
               </div>
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Page {currentPage}</span>
-                {readingTime > 0 && <span>{readingTime}h read</span>}
+                <span>Page {currentPage} of {book.pageNumber || '?'}</span>
+                  {/* Estimated Reading Time */}
+                  {estimatedReadingTime && (
+                      <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{estimatedReadingTime}</span>
+                      </span>
+                  )}
+                {progress < 100 && estimatedReadingTime && (
+                  <span>{Math.round((book.pageNumber - currentPage) * 2 / 60)}h left</span>
+                )}
               </div>
             </div>
           )}
@@ -110,7 +135,7 @@ export function BookCard({ book, onEdit, onDelete }: BookCardProps) {
                   Start Reading
                 </Button>
               </Link>
-            ) : progress === 100 ? (
+            ) : progress >= 100 ? (
               <Link href={`/user-reader/${book.id}`}>
                 <Button variant="outline" className="w-full" size="sm">
                   <CheckCircle className="h-4 w-4 mr-2" />
