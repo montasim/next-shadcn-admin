@@ -26,22 +26,36 @@ interface Bookshelf {
 interface BookshelvesProps {
   onEdit?: (bookshelf: Bookshelf) => void
   onDelete?: (bookshelf: Bookshelf) => void
+  bookshelves?: Bookshelf[]
+  isLoading?: boolean
+  onRefresh?: () => void
 }
 
-export function Bookshelves({ onEdit, onDelete }: BookshelvesProps) {
-  const [bookshelves, setBookshelves] = useState<Bookshelf[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function Bookshelves({ onEdit, onDelete, bookshelves: externalBookshelves, isLoading: externalIsLoading, onRefresh }: BookshelvesProps) {
+  const [internalBookshelves, setInternalBookshelves] = useState<Bookshelf[]>([])
+  const [internalIsLoading, setInternalIsLoading] = useState(true)
+
+  const bookshelves = externalBookshelves ?? internalBookshelves
+  const isLoading = externalIsLoading ?? internalIsLoading
 
   const fetchBookshelves = async () => {
-    setIsLoading(true)
+    setInternalIsLoading(true)
     const data = await getBookshelves()
-    setBookshelves(data)
-    setIsLoading(false)
+    setInternalBookshelves(data)
+    setInternalIsLoading(false)
   }
 
   useEffect(() => {
-    fetchBookshelves()
+    if (!externalBookshelves) {
+      fetchBookshelves()
+    }
   }, [])
+
+  useEffect(() => {
+    if (onRefresh) {
+      fetchBookshelves()
+    }
+  }, [onRefresh])
 
   if (isLoading) {
     return (
@@ -107,12 +121,37 @@ export function Bookshelves({ onEdit, onDelete }: BookshelvesProps) {
                     <Link href={`/library?tab=bookshelves&bookshelfId=${shelf.id}`} className="flex-1">
                       <h3 className="font-semibold line-clamp-2 text-sm">{shelf.name}</h3>
                     </Link>
-                    {shelf.isPublic && (
-                      <Badge variant="secondary" className="text-xs flex-shrink-0">
-                        Public
-                      </Badge>
-                    )}
+                    {/* Action Buttons */}
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 bg-background/50 hover:bg-background/80"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          onEdit?.(shelf)
+                        }}
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 bg-background/50 hover:bg-background/80 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          onDelete?.(shelf)
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
+                  {shelf.isPublic && (
+                    <Badge variant="secondary" className="text-xs flex-shrink-0 ml-auto">
+                      Public
+                    </Badge>
+                  )}
                   {shelf.description && (
                     <p className="text-sm text-muted-foreground line-clamp-1">
                       {shelf.description}
