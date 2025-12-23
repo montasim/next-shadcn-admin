@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { UserTopbar } from "@/components/layout/user-topbar";
 import { Main } from "@/components/ui/main";
 import { MDXViewerProvider } from 'mdx-craft';
+import {MobileBottomNav} from "@/components/layout/mobile-bottom-nav";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -52,6 +53,9 @@ export default function UserLayout({
                         {children}
                       </MDXViewerProvider>
                     </Main>
+
+                    {/* Mobile Bottom Navigation */}
+                    <MobileBottomNav />
                 </div>
               </SearchProvider>
             </SidebarProvider>

@@ -13,6 +13,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SearchProvider } from '@/context/search-context'
 import { ThemeProvider } from 'next-themes'
 import { cn } from '@/lib/utils'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 
 const sidebarNavItems = [
   {
@@ -77,9 +78,9 @@ export default function SettingsLayout({
               </div>
             </Header>
 
-            <main className="px-4 flex flex-col flex-grow overflow-hidden">
+            <main className="px-4 flex flex-col flex-grow overflow-y-auto pt-16 pb-20">
               <div className='space-y-0.5'>
-                <h1 className='text-2xl font-bold tracking-tight md:text-3xl'>
+                <h1 className='text-xl font-bold tracking-tight md:text-3xl'>
                   Settings
                 </h1>
                 <p className='text-muted-foreground'>
@@ -98,6 +99,9 @@ export default function SettingsLayout({
                 </div>
               </div>
             </main>
+
+            {/* Mobile Bottom Navigation */}
+            <MobileBottomNav />
           </div>
         </SearchProvider>
       </SidebarProvider>

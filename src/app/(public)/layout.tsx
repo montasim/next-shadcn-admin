@@ -4,6 +4,7 @@ import '../globals.css'
 import { AppQueryClientProvider } from '@/components/providers/query-client-provider'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -32,6 +33,9 @@ export default function PublicLayout({
               <div className="relative flex min-h-screen flex-col">
                 {children}
               </div>
+
+              {/* Mobile Bottom Navigation */}
+              <MobileBottomNav />
             </div>
             <Toaster />
           </AppQueryClientProvider>
