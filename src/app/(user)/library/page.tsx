@@ -22,8 +22,8 @@ import { BookshelfContent } from './components/bookshelf-content'
 import { BookshelfMutateDrawer } from './bookshelf-mutate-drawer'
 import { UploadBooksMutateDrawer } from './upload-books-mutate-drawer'
 import { Book } from '@/app/dashboard/books/data/schema'
-import { getBooks, deleteBook } from '@/app/dashboard/books/actions'
-import { getBookshelves, deleteBookshelf } from './actions'
+import { deleteBook } from '@/app/dashboard/books/actions'
+import { getBookshelves, deleteBookshelf, getUserBooks } from './actions'
 import LibraryContextProvider, { LibraryDialogType } from './context/library-context'
 import useDialogState from '@/hooks/use-dialog-state'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -56,7 +56,7 @@ export default function LibraryPage() {
   const [editingBookshelf, setEditingBookshelf] = useState<any>(null)
 
   const refreshBooks = async () => {
-    const userBooks = await getBooks()
+    const userBooks = await getUserBooks()
     setBooks(userBooks)
   }
 
@@ -107,6 +107,18 @@ export default function LibraryPage() {
 
   useEffect(() => {
     refreshBooks()
+  }, [])
+
+  // Refresh books when page regains focus (user returns from reader)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshBooks()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
   if (bookshelfId) {
