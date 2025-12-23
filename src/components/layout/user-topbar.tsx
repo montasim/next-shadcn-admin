@@ -126,7 +126,7 @@ export function UserTopbar({
                   {
                       !isAdmin && <DropdownMenuItem onClick={() => handleNavigation('/library')}>
                           <BookOpen className="mr-2 h-4 w-4" />
-                          Library
+                          My Library
                       </DropdownMenuItem>
                   }
                 <DropdownMenuItem onClick={() => handleNavigation('/settings/account')}>
