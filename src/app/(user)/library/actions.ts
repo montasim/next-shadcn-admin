@@ -590,3 +590,99 @@ export async function removeBookFromBookshelf(bookshelfId: string, bookId: strin
     return { success: false, message: 'Failed to remove book from bookshelf' }
   }
 }
+
+export async function addBookToBookshelf(bookshelfId: string, bookId: string) {
+  try {
+    const session = await requireAuth()
+    if (!session) {
+      return { success: false, message: 'Not authenticated' }
+    }
+
+    // Verify ownership
+    const bookshelf = await prisma.bookshelf.findFirst({
+      where: {
+        id: bookshelfId,
+        userId: session.userId
+      }
+    })
+
+    if (!bookshelf) {
+      return { success: false, message: 'Bookshelf not found' }
+    }
+
+    // Check if book is already in bookshelf
+    const existing = await prisma.bookshelfItem.findUnique({
+      where: {
+        bookshelfId_bookId: {
+          bookshelfId,
+          bookId
+        }
+      }
+    })
+
+    if (existing) {
+      return { success: false, message: 'Book is already in this bookshelf' }
+    }
+
+    // Add book to bookshelf
+    await prisma.bookshelfItem.create({
+      data: {
+        bookshelfId,
+        bookId
+      }
+    })
+
+    revalidatePath('/library')
+    revalidatePath('/books')
+    return { success: true, message: 'Book added to bookshelf' }
+  } catch (error) {
+    console.error('Error adding book to bookshelf:', error)
+    return { success: false, message: 'Failed to add book to bookshelf' }
+  }
+}
+
+export async function getUserBookshelvesForBook(bookId: string) {
+  try {
+    const session = await requireAuth()
+    if (!session) return []
+
+    // Get all user's bookshelves
+    const bookshelves = await prisma.bookshelf.findMany({
+      where: {
+        userId: session.userId
+      },
+      include: {
+        _count: {
+          select: {
+            books: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    // Check which bookshelves contain this book
+    const bookshelfIds = bookshelves.map(b => b.id)
+    const existingItems = await prisma.bookshelfItem.findMany({
+      where: {
+        bookshelfId: { in: bookshelfIds },
+        bookId
+      },
+      select: {
+        bookshelfId: true
+      }
+    })
+
+    const bookshelfsWithBook = new Set(existingItems.map(item => item.bookshelfId))
+
+    return bookshelves.map(shelf => ({
+      ...shelf,
+      hasBook: bookshelfsWithBook.has(shelf.id)
+    }))
+  } catch (error) {
+    console.error('Error fetching bookshelves:', error)
+    return []
+  }
+}

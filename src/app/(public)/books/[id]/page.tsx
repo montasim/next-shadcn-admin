@@ -3,20 +3,29 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { useBook } from '@/hooks/use-book'
+import { useAuth } from '@/context/auth-context'
+import { cn } from '@/lib/utils'
+import { getProxiedImageUrl } from '@/lib/image-proxy'
+import { addBookToBookshelf, getUserBookshelvesForBook, removeBookFromBookshelf } from '@/app/(user)/library/actions'
+import { toast } from '@/hooks/use-toast'
+import { PDFReaderModal } from '@/components/reader/pdf-reader-modal'
 import {
   BookOpen,
   Headphones,
   FileText,
   Users,
-  Star,
   Clock,
-  Calendar,
   Bookmark,
   Share2,
   Heart,
@@ -24,23 +33,40 @@ import {
   Play,
   ArrowLeft,
   Download,
-  Eye
+  Eye,
+  Building2,
+  Calendar,
+  DollarSign,
+  Package,
+  BookmarkPlus,
+  Check,
+  Loader2,
+  Trash2,
 } from 'lucide-react'
-import { useBooks } from '@/hooks/use-books'
-import { useReadingProgress } from '@/hooks/use-reading-progress'
 
 export default function BookDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const bookId = params.id as string
+  const { user } = useAuth()
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('description')
+  const [removingFromBookshelf, setRemovingFromBookshelf] = useState<string | null>(null)
 
-  // Fetch book details
-  const { data: booksData, isLoading, error } = useBooks({ limit: 1000 })
-  const book = booksData?.data?.books.find(b => b.id === bookId)
-  const { data: progress } = useReadingProgress(bookId)
+  // Bookshelf state
+  const [bookshelfOpen, setBookshelfOpen] = useState(false)
+  const [bookshelves, setBookshelves] = useState<any[]>([])
+  const [loadingBookshelves, setLoadingBookshelves] = useState(false)
+  const [addingToBookshelf, setAddingToBookshelf] = useState<string | null>(null)
+
+  // PDF Reader Modal state
+  const [isReaderModalOpen, setIsReaderModalOpen] = useState(false)
+
+  // Fetch book details using the dedicated API endpoint
+  const { data: responseData, isLoading, error } = useBook({ id: bookId })
+  const book = responseData?.data?.book
+  const userAccess = responseData?.data?.userAccess
 
   if (isLoading) {
     return (
@@ -97,7 +123,8 @@ export default function BookDetailsPage() {
   const handleReadBook = () => {
     if (book.canAccess) {
       if (isEbook) {
-        router.push(`/reader/${bookId}`)
+        // Open modal for ebooks
+        setIsReaderModalOpen(true)
       } else if (isAudio) {
         router.push(`/reader/${bookId}?type=audio`)
       } else {
@@ -113,54 +140,189 @@ export default function BookDetailsPage() {
       try {
         await navigator.share({
           title: book.name,
-          text: book.summary,
+          text: book.summary || '',
           url: window.location.href,
         })
       } catch (err) {
         console.error('Error sharing:', err)
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href)
     }
   }
 
+  // Fetch user's bookshelves when popover opens
+  const handleBookshelfOpen = async (open: boolean) => {
+    setBookshelfOpen(open)
+    if (open && user) {
+      setLoadingBookshelves(true)
+      try {
+        const shelves = await getUserBookshelvesForBook(bookId)
+        setBookshelves(shelves)
+      } catch (error) {
+        console.error('Failed to fetch bookshelves:', error)
+      } finally {
+        setLoadingBookshelves(false)
+      }
+    }
+  }
+
+  // Add book to bookshelf
+  const handleAddToBookshelf = async (bookshelfId: string, bookshelfName: string) => {
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please login to add books to your library.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setAddingToBookshelf(bookshelfId)
+    try {
+      const result = await addBookToBookshelf(bookshelfId, bookId)
+      if (result.success) {
+        toast({
+          title: 'Added to library',
+          description: `"${book.name}" has been added to "${bookshelfName}".`,
+        })
+        // Refresh bookshelves to update hasBook status
+        const shelves = await getUserBookshelvesForBook(bookId)
+        setBookshelves(shelves)
+      } else {
+        toast({
+          title: 'Failed to add',
+          description: result.message,
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Failed to add',
+        description: 'An error occurred while adding the book.',
+        variant: 'destructive',
+      })
+    } finally {
+      setAddingToBookshelf(null)
+    }
+  }
+
+  // Remove book from bookshelf
+  const handleRemoveFromBookshelf = async (bookshelfId: string, bookshelfName: string) => {
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please login to manage your library.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setRemovingFromBookshelf(bookshelfId)
+    try {
+      const result = await removeBookFromBookshelf(bookshelfId, bookId)
+      if (result.success) {
+        toast({
+          title: 'Removed from library',
+          description: `"${book.name}" has been removed from "${bookshelfName}".`,
+        })
+        // Refresh bookshelves to update hasBook status
+        const shelves = await getUserBookshelvesForBook(bookId)
+        setBookshelves(shelves)
+      } else {
+        toast({
+          title: 'Failed to remove',
+          description: result.message,
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Failed to remove',
+        description: 'An error occurred while removing the book.',
+        variant: 'destructive',
+      })
+    } finally {
+      setRemovingFromBookshelf(null)
+    }
+  }
+
+  // Format date for display
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A'
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } catch {
+      return 'N/A'
+    }
+  }
+
+  // Format price for display
+  const formatPrice = (price: number | null | undefined) => {
+    if (price === null || price === undefined) return 'N/A'
+    return `$${price.toFixed(2)}`
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-4">
+      {/* Book Details */}
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Navigation */}
+        <div className="mb-6">
           <Link href="/books" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Books
           </Link>
         </div>
-      </div>
 
-      {/* Book Details */}
-      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Book Cover and Actions */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               {/* Book Cover */}
               <div className="relative mb-6">
-                <div className="aspect-[3/4] overflow-hidden rounded-lg shadow-lg">
+                <div className="aspect-[3/4] overflow-hidden rounded-lg shadow-lg bg-muted">
                   {book.image ? (
-                    <Image
-                      src={book.image}
+                    <img
+                      src={getProxiedImageUrl(book.image) || book.image}
                       alt={book.name}
-                      fill
-                      className="object-cover"
-                      priority
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                       {getTypeIcon()}
                     </div>
                   )}
                 </div>
+
+                {/* Type Badge - Top Left */}
+                <div className="absolute top-3 left-3">
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      'text-xs flex items-center gap-1',
+                      book.type === 'EBOOK' && 'bg-blue-100 text-blue-800 hover:bg-blue-200',
+                      book.type === 'AUDIO' && 'bg-purple-100 text-purple-800 hover:bg-purple-200',
+                      book.type === 'HARD_COPY' && 'bg-green-100 text-green-800 hover:bg-green-200'
+                    )}
+                  >
+                    {getTypeIcon()}
+                    {getTypeLabel()}
+                  </Badge>
+                </div>
+
+                {/* Premium Badge - Top Right */}
+                {book.requiresPremium && (
+                  <div className="absolute top-3 right-3">
+                    <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs">
+                      Premium
+                    </Badge>
+                  </div>
+                )}
 
                 {/* Access Overlay */}
                 {!book.canAccess && (
@@ -173,25 +335,12 @@ export default function BookDetailsPage() {
                 )}
 
                 {/* Progress Badge */}
-                {progress && (progress.currentPage || progress.currentEpocha) && (
-                  <div className="absolute top-4 right-4">
+                {book.readingProgress && (book.readingProgress.currentPage || book.readingProgress.currentEpocha) && (
+                  <div className="absolute bottom-3 right-3">
                     <Badge className="bg-primary/90 text-white">
-                      {progress.isCompleted ? 'Completed' : `${Math.round(progress.progress)}%`}
+                      {book.readingProgress.isCompleted ? 'Completed' : `${Math.round(book.readingProgress.progress)}%`}
                     </Badge>
                   </div>
-                )}
-              </div>
-
-              {/* Type and Premium Badges */}
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  {getTypeIcon()}
-                  {getTypeLabel()}
-                </Badge>
-                {book.requiresPremium && (
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                    Premium
-                  </Badge>
                 )}
               </div>
 
@@ -220,52 +369,118 @@ export default function BookDetailsPage() {
                   )}
                 </Button>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsBookmarked(!isBookmarked)}
-                    className={isBookmarked ? 'text-primary' : ''}
-                  >
-                    <Bookmark className={cn("h-4 w-4 mr-2", isBookmarked && "fill-current")} />
-                    {isBookmarked ? 'Saved' : 'Save'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className={isFavorite ? 'text-red-500' : ''}
-                  >
-                    <Heart className={cn("h-4 w-4 mr-2", isFavorite && "fill-current")} />
-                    {isFavorite ? 'Liked' : 'Like'}
-                  </Button>
-                </div>
+                {/*<div className="grid grid-cols-2 gap-3">*/}
+                {/*  <Button*/}
+                {/*    variant="outline"*/}
+                {/*    onClick={() => setIsBookmarked(!isBookmarked)}*/}
+                {/*    className={isBookmarked ? 'text-primary' : ''}*/}
+                {/*  >*/}
+                {/*    <Bookmark className={cn("h-4 w-4 mr-2", isBookmarked && "fill-current")} />*/}
+                {/*    {isBookmarked ? 'Saved' : 'Save'}*/}
+                {/*  </Button>*/}
+                {/*  <Button*/}
+                {/*    variant="outline"*/}
+                {/*    onClick={() => setIsFavorite(!isFavorite)}*/}
+                {/*    className={isFavorite ? 'text-red-500' : ''}*/}
+                {/*  >*/}
+                {/*    <Heart className={cn("h-4 w-4 mr-2", isFavorite && "fill-current")} />*/}
+                {/*    {isFavorite ? 'Liked' : 'Like'}*/}
+                {/*  </Button>*/}
+                {/*</div>*/}
 
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  className="w-full"
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  Share
-                </Button>
+                <div className='flex items-center justify-between gap-4'>
+                    {/* Add to Bookshelf Popover */}
+                    <Popover open={bookshelfOpen} onOpenChange={handleBookshelfOpen}>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full">
+                                <BookmarkPlus className="h-4 w-4 mr-2" />
+                                Add to Bookshelf
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 p-2" align="center">
+                            <div className="text-sm font-medium mb-2 px-2">Manage Bookshelves</div>
+                            <div className="px-2 mb-2">
+                                <div className="h-px bg-border" />
+                            </div>
+                            {loadingBookshelves ? (
+                                <div className="flex items-center justify-center py-4">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                </div>
+                            ) : bookshelves.length === 0 ? (
+                                <div className="text-sm text-muted-foreground py-2 px-2">
+                                    No bookshelves found. Create one in your library.
+                                </div>
+                            ) : (
+                                <div className="max-h-64 overflow-y-auto">
+                                    {bookshelves.map((shelf) => (
+                                        <div
+                                            key={shelf.id}
+                                            className={cn(
+                                                'flex items-center justify-between px-2 py-2 rounded-md transition-colors',
+                                                shelf.hasBook ? 'bg-accent/50' : 'hover:bg-accent'
+                                            )}
+                                        >
+                                            <span className="text-sm truncate flex-1">{shelf.name}</span>
+                                            <span className="text-xs text-muted-foreground flex items-center gap-2">
+                                                {shelf._count.books} {shelf._count.books === 1 ? 'book' : 'books'}
+                                                {shelf.hasBook ? (
+                                                    <button
+                                                        onClick={() => handleRemoveFromBookshelf(shelf.id, shelf.name)}
+                                                        disabled={removingFromBookshelf === shelf.id}
+                                                        className="ml-2 text-destructive hover:text-destructive/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                                    >
+                                                        {removingFromBookshelf === shelf.id ? (
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Trash2 className="h-3 w-3" />
+                                                                Remove
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleAddToBookshelf(shelf.id, shelf.name)}
+                                                        disabled={addingToBookshelf === shelf.id}
+                                                        className="ml-2 text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                                    >
+                                                        {addingToBookshelf === shelf.id ? (
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <BookmarkPlus className="h-3 w-3" />
+                                                                Add
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </PopoverContent>
+                    </Popover>
+
+                    <Button
+                        variant="outline"
+                        onClick={handleShare}
+                        className="w-full"
+                    >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Share
+                    </Button>
+                </div>
               </div>
 
               {/* Quick Stats */}
               <div className="space-y-3 text-sm">
-                {book.readersCount && (
+                {book.statistics?.totalReaders > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Readers</span>
                     <span className="font-medium flex items-center gap-1">
                       <Users className="h-3 w-3" />
-                      {book.readersCount.toLocaleString()}
-                    </span>
-                  </div>
-                )}
-                {progress?.readingTime && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Your reading time</span>
-                    <span className="font-medium flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {Math.round(progress.readingTime / 60)}h {progress.readingTime % 60}m
+                      {book.statistics.totalReaders.toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -276,24 +491,28 @@ export default function BookDetailsPage() {
           {/* Book Information */}
           <div className="lg:col-span-2">
             <div className="mb-8">
-              <h1 className="text-3xl lg:text-4xl font-bold mb-4">{book.name}</h1>
+              <h1 className="text-xl lg:text-2xl font-bold mb-2">{book.name}</h1>
 
               {/* Authors */}
-              {book.authors.length > 0 && (
-                <div className="mb-6">
+              {book.authors && book.authors.length > 0 && (
+                <div className="mb-4">
                   <p className="text-lg text-muted-foreground">
-                    by {book.authors.map(author => (
-                  <Link key={author.id} href={`/authors/${author.id}`} className="hover:text-primary transition-colors">
-                    {author.name}
-                  </Link>
-                )).join(', ')}
+                    by{' '}
+                    {book.authors.map((author, index) => (
+                      <span key={author.id}>
+                        <Link href={`/authors/${author.id}`} className="hover:text-primary transition-colors font-medium">
+                          {author.name}
+                        </Link>
+                        {index < book.authors!.length - 1 && ', '}
+                      </span>
+                    ))}
                   </p>
                 </div>
               )}
 
               {/* Categories */}
-              {book.categories.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+              {book.categories && book.categories.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
                   {book.categories.map((category) => (
                     <Link key={category.id} href={`/books?category=${category.name.toLowerCase()}`}>
                       <Badge variant="outline" className="hover:bg-primary/10 cursor-pointer">
@@ -303,25 +522,102 @@ export default function BookDetailsPage() {
                   ))}
                 </div>
               )}
-
-              {/* Summary */}
-              {book.summary && (
-                <div className="prose max-w-none mb-8">
-                  <p className="text-lg leading-relaxed">{book.summary}</p>
-                </div>
-              )}
             </div>
 
             {/* Detailed Information Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="progress">Your Progress</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview" className="mt-6">
+              {/* Description Tab - Book Description and Author Info */}
+              <TabsContent value="description" className="mt-4 space-y-4">
+                {/* Book Summary/Description */}
+                {book.summary && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">About This Book</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{book.summary}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Authors with Descriptions */}
+                {book.authors && book.authors.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">About the Author{book.authors.length > 1 ? 's' : ''}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {book.authors.map((author) => (
+                        <div key={author.id} className="flex gap-4">
+                          <Avatar className="h-16 w-16 flex-shrink-0">
+                            <AvatarImage
+                              src={author.image ? getProxiedImageUrl(author.image) || author.image : undefined}
+                              alt={author.name}
+                            />
+                            <AvatarFallback className="text-lg bg-primary/10">
+                              {author.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <Link href={`/authors/${author.id}`}>
+                              <h3 className="font-semibold text-lg hover:text-primary transition-colors">
+                                {author.name}
+                              </h3>
+                            </Link>
+                            {author.description && (
+                              <p className="text-muted-foreground text-sm mt-1 line-clamp-3">
+                                {author.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Publications */}
+                {book.publications && book.publications.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">About the Publisher{book.publications.length > 1 ? 's' : ''}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {book.publications.map((publication) => (
+                        <div key={publication.id} className="flex gap-4">
+                          <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {publication.image ? (
+                              <img
+                                src={getProxiedImageUrl(publication.image) || publication.image}
+                                alt={publication.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <Building2 className="h-8 w-8 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg text-primary">
+                              {publication.name}
+                            </h3>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Details Tab - All Book Metadata */}
+              <TabsContent value="details" className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Reading Information */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Reading Information</CardTitle>
@@ -334,99 +630,116 @@ export default function BookDetailsPage() {
                           {getTypeLabel()}
                         </span>
                       </div>
+                      {book.bindingType && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Binding</span>
+                          <span className="font-medium">{book.bindingType === 'HARDCOVER' ? 'Hardcover' : 'Paperback'}</span>
+                        </div>
+                      )}
+                      {book.pageNumber && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Pages</span>
+                          <span className="font-medium">{book.pageNumber}</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Access</span>
                         <Badge variant={book.canAccess ? 'default' : 'secondary'}>
                           {book.canAccess ? 'Available' : 'Premium Only'}
                         </Badge>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Readers</span>
-                        <span className="font-medium">
-                          {book.readersCount?.toLocaleString() || 'N/A'}
-                        </span>
-                      </div>
                     </CardContent>
                   </Card>
 
+                  {/* Pricing Information */}
+                  {(book.buyingPrice || book.sellingPrice) && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <DollarSign className="h-5 w-5" />
+                          Pricing
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {book.buyingPrice !== null && book.buyingPrice !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Buying Price</span>
+                            <span className="font-medium">{formatPrice(book.buyingPrice)}</span>
+                          </div>
+                        )}
+                        {book.sellingPrice !== null && book.sellingPrice !== undefined && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Selling Price</span>
+                            <span className="font-medium">{formatPrice(book.sellingPrice)}</span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Inventory Information */}
+                  {(book.numberOfCopies !== null && book.numberOfCopies !== undefined) && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Package className="h-5 w-5" />
+                          Inventory
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Available Copies</span>
+                          <span className="font-medium">{book.numberOfCopies}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Dates Information */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Actions</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Calendar className="h-5 w-5" />
+                        Dates
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <Button
-                        onClick={handleReadBook}
-                        className="w-full"
-                        disabled={!book.canAccess}
-                      >
-                        {book.canAccess ? (
-                          <>
-                            {isEbook && <Eye className="h-4 w-4 mr-2" />}
-                            {isAudio && <Play className="h-4 w-4 mr-2" />}
-                            {isEbook && 'Start Reading'}
-                            {isAudio && 'Start Listening'}
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="h-4 w-4 mr-2" />
-                            Get Premium Access
-                          </>
-                        )}
-                      </Button>
-
-                      {book.fileUrl && book.canAccess && (
-                        <Button variant="outline" className="w-full">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
+                      {book.purchaseDate && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Purchase Date</span>
+                          <span className="font-medium">{formatDate(book.purchaseDate)}</span>
+                        </div>
                       )}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Entry Date</span>
+                        <span className="font-medium">{formatDate(book.entryDate)}</span>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Statistics Section */}
+                {book.statistics && (
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Statistics
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Total Readers</span>
+                        <span className="font-medium">{book.statistics.totalReaders.toLocaleString()}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
-              <TabsContent value="details" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Book Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">ISBN</p>
-                          <p className="font-medium">N/A</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Publisher</p>
-                          <p className="font-medium">N/A</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Language</p>
-                          <p className="font-medium">English</p>
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Pages</p>
-                          <p className="font-medium">N/A</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Published Date</p>
-                          <p className="font-medium">N/A</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">File Size</p>
-                          <p className="font-medium">N/A</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
+              {/* Progress Tab */}
               <TabsContent value="progress" className="mt-6">
-                {progress ? (
+                {book.readingProgress ? (
                   <div className="space-y-6">
                     <Card>
                       <CardHeader>
@@ -436,63 +749,54 @@ export default function BookDetailsPage() {
                         <div>
                           <div className="flex justify-between text-sm mb-2">
                             <span>Progress</span>
-                            <span>{Math.round(progress.progress)}%</span>
+                            <span>{Math.round(book.readingProgress.progress)}%</span>
                           </div>
                           <div className="w-full bg-muted rounded-full h-2">
                             <div
                               className="bg-primary h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${progress.progress}%` }}
+                              style={{ width: `${book.readingProgress.progress}%` }}
                             />
                           </div>
                         </div>
 
-                        {progress.currentPage && (
+                        {book.readingProgress.currentPage && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Current Page</span>
-                            <span className="font-medium">{progress.currentPage}</span>
+                            <span className="font-medium">{book.readingProgress.currentPage}</span>
                           </div>
                         )}
 
-                        {progress.currentEpocha && (
+                        {book.readingProgress.currentEpocha && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Position</span>
                             <span className="font-medium">
-                              {Math.floor(progress.currentEpocha / 60)}m {Math.floor(progress.currentEpocha % 60)}s
+                              {Math.floor(book.readingProgress.currentEpocha / 60)}m {Math.floor(book.readingProgress.currentEpocha % 60)}s
                             </span>
                           </div>
                         )}
 
-                        {progress.readingTime && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Total Reading Time</span>
-                            <span className="font-medium">
-                              {Math.floor(progress.readingTime / 60)}h {progress.readingTime % 60}m
-                            </span>
-                          </div>
-                        )}
-
-                        {progress.lastReadAt && (
+                        {book.readingProgress.lastReadAt && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Last Read</span>
                             <span className="font-medium">
-                              {new Date(progress.lastReadAt).toLocaleDateString()}
+                              {new Date(book.readingProgress.lastReadAt).toLocaleDateString()}
                             </span>
                           </div>
                         )}
                       </CardContent>
                     </Card>
 
-                    <Button onClick={handleReadBook} className="w-full">
-                      {progress.isCompleted ? (
-                        <>Read Again</>
-                      ) : (
-                        <>
-                          {isEbook && <Eye className="h-4 w-4 mr-2" />}
-                          {isAudio && <Play className="h-4 w-4 mr-2" />}
-                          Continue {isEbook ? 'Reading' : 'Listening'}
-                        </>
-                      )}
-                    </Button>
+                    {/*<Button onClick={handleReadBook} className="w-full">*/}
+                    {/*  {book.readingProgress.isCompleted ? (*/}
+                    {/*    <>Read Again</>*/}
+                    {/*  ) : (*/}
+                    {/*    <>*/}
+                    {/*      {isEbook && <Eye className="h-4 w-4 mr-2" />}*/}
+                    {/*      {isAudio && <Play className="h-4 w-4 mr-2" />}*/}
+                    {/*      Continue {isEbook ? 'Reading' : 'Listening'}*/}
+                    {/*    </>*/}
+                    {/*  )}*/}
+                    {/*</Button>*/}
                   </div>
                 ) : (
                   <Card>
@@ -515,10 +819,17 @@ export default function BookDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* PDF Reader Modal */}
+      {book && book.fileUrl && (
+        <PDFReaderModal
+          isOpen={isReaderModalOpen}
+          onClose={() => setIsReaderModalOpen(false)}
+          bookId={bookId}
+          fileUrl={book.fileUrl}
+          initialPage={book.readingProgress?.currentPage}
+        />
+      )}
     </div>
   )
-}
-
-function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ')
 }
