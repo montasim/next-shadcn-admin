@@ -33,11 +33,6 @@ const navItems: NavItem[] = [
     icon: Bookmark,
   },
   {
-    label: 'Search',
-    href: '/books',
-    icon: Search,
-  },
-  {
     label: 'Settings',
     href: '/settings',
     icon: Settings,
