@@ -94,6 +94,7 @@ model Book {
   updatedAt       DateTime          @updatedAt
   bindingType     BindingType?
   fileUrl         String?
+  directFileUrl   String?
   isPublic        Boolean           @default(false)
   pageNumber      Int?
   requiresPremium Boolean           @default(false)

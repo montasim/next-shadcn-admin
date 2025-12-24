@@ -15,13 +15,19 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth })
 
+export interface UploadResult {
+  previewUrl: string
+  directUrl: string
+  fileId: string
+}
+
 /**
  * Upload a file to a shared Google Drive folder.
  * @param file The file object to upload
  * @param folderId The ID of the folder shared with the service account
- * @returns The webViewLink (URL) of the uploaded file
+ * @returns Object containing preview URL, direct download URL, and file ID
  */
-export async function uploadFile(file: File, folderId: string | undefined): Promise<string> {
+export async function uploadFile(file: File, folderId: string | undefined): Promise<UploadResult> {
   if (!folderId) {
     throw new Error('Google Drive Folder ID is not configured. Please set GOOGLE_DRIVE_FOLDER_ID in your environment variables.')
   }
@@ -56,14 +62,17 @@ export async function uploadFile(file: File, folderId: string | undefined): Prom
       },
     })
 
-    // Return embeddable preview URL instead of webViewLink
-    // webViewLink doesn't work in iframes due to X-Frame-Options
+    // Return both preview URL and direct download URL
     const fileId = response.data.id
-    return `https://drive.google.com/file/d/${fileId}/preview`
+    return {
+      previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+      directUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+      fileId: fileId
+    }
   } catch (error: any) {
     // Log the detailed error for better debugging
     console.error('Full error object from Google Drive API:', JSON.stringify(error, null, 2));
-    
+
     if (error.code === 403) {
       throw new Error('Permission denied. Please double-check these two things: 1) The Google Drive API is enabled in your Google Cloud project. 2) The service account has "Editor" access to the specified Google Drive folder.')
     }

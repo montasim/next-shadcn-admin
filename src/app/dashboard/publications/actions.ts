@@ -158,7 +158,8 @@ export async function createPublication(formData: FormData) {
     // Handle file upload
     let imageUrl = null
     if (validatedData.image instanceof File) {
-      imageUrl = await uploadFile(validatedData.image, config.google.driveFolderId)
+      const uploadResult = await uploadFile(validatedData.image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
     } else if (typeof validatedData.image === 'string') {
       imageUrl = validatedData.image
     }
@@ -212,7 +213,8 @@ export async function updatePublication(id: string, formData: FormData) {
     let imageUrl = existingPublication.image
     if (validatedData.image instanceof File) {
       // Upload new file
-      imageUrl = await uploadFile(validatedData.image, config.google.driveFolderId)
+      const uploadResult = await uploadFile(validatedData.image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
       // Delete old file if it exists
       if (existingPublication.image) {
         await deleteFile(existingPublication.image)

@@ -167,6 +167,7 @@ export async function createBook(data: {
   bindingType?: BindingType | null
   pageNumber?: number | null
   fileUrl?: string | null
+  directFileUrl?: string | null
   summary?: string
   buyingPrice?: number
   sellingPrice?: number
@@ -222,6 +223,7 @@ export async function createBook(data: {
         bindingType: data.type === 'HARD_COPY' ? data.bindingType : null,
         pageNumber: (data.type === 'HARD_COPY' || data.type === 'EBOOK') ? data.pageNumber : null,
         fileUrl: (data.type === 'EBOOK' || data.type === 'AUDIO') ? data.fileUrl : null,
+        directFileUrl: (data.type === 'EBOOK' || data.type === 'AUDIO') ? data.directFileUrl : null,
         summary: data.summary,
         buyingPrice: data.buyingPrice,
         sellingPrice: data.sellingPrice,
@@ -290,6 +292,7 @@ export async function updateBook(
     bindingType?: BindingType | null
     pageNumber?: number | null
     fileUrl?: string | null
+    directFileUrl?: string | null
     summary?: string | null
     buyingPrice?: number | null
     sellingPrice?: number | null
@@ -362,6 +365,9 @@ export async function updateBook(
             : null,
           fileUrl: (updateType === 'EBOOK' || updateType === 'AUDIO')
             ? (data.fileUrl ?? existingBook.fileUrl)
+            : null,
+          directFileUrl: (updateType === 'EBOOK' || updateType === 'AUDIO')
+            ? (data.directFileUrl ?? existingBook.directFileUrl)
             : null,
           summary: data.summary,
           buyingPrice: data.buyingPrice,

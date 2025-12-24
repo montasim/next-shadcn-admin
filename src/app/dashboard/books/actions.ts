@@ -372,16 +372,25 @@ export async function createBook(formData: FormData) {
     // Handle file uploads
     let imageUrl = null
     if (validatedData.image instanceof File) {
-      imageUrl = await uploadFile(validatedData.image, config.google.driveFolderId)
+      const uploadResult = await uploadFile(validatedData.image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
     } else if (typeof validatedData.image === 'string') {
       imageUrl = validatedData.image
     }
 
     let fileUrl = null
+    let directFileUrl = null
     if (validatedData.fileUrl instanceof File) {
-      fileUrl = await uploadFile(validatedData.fileUrl, config.google.driveFolderId)
+      const uploadResult = await uploadFile(validatedData.fileUrl, config.google.driveFolderId)
+      fileUrl = uploadResult.previewUrl
+      directFileUrl = uploadResult.directUrl
     } else if (typeof validatedData.fileUrl === 'string') {
       fileUrl = validatedData.fileUrl
+      // Generate direct URL if it's a Google Drive URL
+      const fileIdMatch = fileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)
+      if (fileIdMatch) {
+        directFileUrl = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`
+      }
     }
 
     // Convert string values to appropriate types
@@ -392,6 +401,7 @@ export async function createBook(formData: FormData) {
       bindingType: validatedData.bindingType || null,
       pageNumber: validatedData.pageNumber ? parseInt(validatedData.pageNumber) : null,
       fileUrl: fileUrl,
+      directFileUrl: directFileUrl,
       summary: validatedData.summary || null,
       buyingPrice: validatedData.buyingPrice ? parseFloat(validatedData.buyingPrice) : null,
       sellingPrice: validatedData.sellingPrice ? parseFloat(validatedData.sellingPrice) : null,
@@ -461,7 +471,8 @@ export async function updateBook(id: string, formData: FormData) {
     let imageUrl = existingBook.image
     if (validatedData.image instanceof File) {
       // Upload new file
-      imageUrl = await uploadFile(validatedData.image, config.google.driveFolderId)
+      const uploadResult = await uploadFile(validatedData.image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
       // Delete old file if it exists
       if (existingBook.image) {
         await deleteFile(existingBook.image)
@@ -478,9 +489,12 @@ export async function updateBook(id: string, formData: FormData) {
     }
 
     let fileUrl = existingBook.fileUrl
+    let directFileUrl = existingBook.directFileUrl
     if (validatedData.fileUrl instanceof File) {
       // Upload new file
-      fileUrl = await uploadFile(validatedData.fileUrl, config.google.driveFolderId)
+      const uploadResult = await uploadFile(validatedData.fileUrl, config.google.driveFolderId)
+      fileUrl = uploadResult.previewUrl
+      directFileUrl = uploadResult.directUrl
       // Delete old file if it exists
       if (existingBook.fileUrl) {
         await deleteFile(existingBook.fileUrl)
@@ -491,9 +505,17 @@ export async function updateBook(id: string, formData: FormData) {
         await deleteFile(existingBook.fileUrl)
       }
       fileUrl = null
+      directFileUrl = null
     } else if (typeof validatedData.fileUrl === 'string') {
       // Keep existing URL
       fileUrl = validatedData.fileUrl
+      // Generate direct URL if not present
+      if (!directFileUrl) {
+        const fileIdMatch = fileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)
+        if (fileIdMatch) {
+          directFileUrl = `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`
+        }
+      }
     }
 
     // Convert string values to appropriate types
@@ -504,6 +526,7 @@ export async function updateBook(id: string, formData: FormData) {
       bindingType: validatedData.bindingType || null,
       pageNumber: validatedData.pageNumber ? parseInt(validatedData.pageNumber) : null,
       fileUrl: fileUrl,
+      directFileUrl: directFileUrl,
       summary: validatedData.summary || null,
       buyingPrice: validatedData.buyingPrice ? parseFloat(validatedData.buyingPrice) : null,
       sellingPrice: validatedData.sellingPrice ? parseFloat(validatedData.sellingPrice) : null,

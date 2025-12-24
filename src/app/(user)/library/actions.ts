@@ -55,15 +55,19 @@ export async function createBook(formData: FormData) {
     // Upload file to Google Drive
     const file = formData.get('file') as File
     let fileUrl: string | null = null
+    let directFileUrl: string | null = null
     if (file && file.size > 0) {
-      fileUrl = await uploadFile(file, config.google.driveFolderId)
+      const uploadResult = await uploadFile(file, config.google.driveFolderId)
+      fileUrl = uploadResult.previewUrl
+      directFileUrl = uploadResult.directUrl
     }
 
     // Upload image to Google Drive
     const image = formData.get('image') as File
     let imageUrl: string | null = null
     if (image && image.size > 0) {
-      imageUrl = await uploadFile(image, config.google.driveFolderId)
+      const uploadResult = await uploadFile(image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
     }
 
     let author = await prisma.author.findFirst({
@@ -85,6 +89,7 @@ export async function createBook(formData: FormData) {
         type,
         isPublic,
         fileUrl,
+        directFileUrl,
         image: imageUrl,
         entryById: session.userId,
         authors: {
@@ -162,15 +167,19 @@ export async function updateBook(id: string, formData: FormData) {
     // Handle file upload
     const file = formData.get('file') as File
     let fileUrl = existingFileUrl || existingBook.fileUrl
+    let directFileUrl = existingBook.directFileUrl
     if (file && file.size > 0) {
-      fileUrl = await uploadFile(file, config.google.driveFolderId)
+      const uploadResult = await uploadFile(file, config.google.driveFolderId)
+      fileUrl = uploadResult.previewUrl
+      directFileUrl = uploadResult.directUrl
     }
 
     // Handle image upload
     const image = formData.get('image') as File
     let imageUrl = existingImageUrl || existingBook.image
     if (image && image.size > 0) {
-      imageUrl = await uploadFile(image, config.google.driveFolderId)
+      const uploadResult = await uploadFile(image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
     }
 
     // Find or create author
@@ -195,6 +204,7 @@ export async function updateBook(id: string, formData: FormData) {
         type,
         isPublic,
         fileUrl,
+        directFileUrl,
         image: imageUrl,
         authors: {
           deleteMany: {},
@@ -297,7 +307,8 @@ export async function createBookshelf(formData: FormData) {
         const image = formData.get('image') as File
         let imageUrl: string | null = null
         if (image && image.size > 0) {
-            imageUrl = await uploadFile(image, config.google.driveFolderId)
+            const uploadResult = await uploadFile(image, config.google.driveFolderId)
+            imageUrl = uploadResult.previewUrl
         }
 
         await prisma.bookshelf.create({
