@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   BadgeCheck,
   Bell,
+  BookOpen,
   ChevronsUpDown,
   CreditCard,
   LogOut,
@@ -112,6 +113,12 @@ export function NavUser({
                 <Link href='/settings/notifications'>
                   <Bell className="mr-2 h-4 w-4" />
                   Notifications
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href='/library/my-requests'>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  My Requests
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>

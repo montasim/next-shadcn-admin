@@ -106,6 +106,11 @@ export const sidebarData: SidebarData = {
           url: '/dashboard/categories',
           icon: IconTag,
         },
+        {
+          title: 'Book Requests',
+          url: '/dashboard/book-requests',
+          icon: IconBooks,
+        },
       ],
     },
     {
@@ -182,6 +187,11 @@ export const sidebarData: SidebarData = {
           title: 'Continue Reading',
           url: '/library',
           icon: IconBookmark,
+        },
+        {
+          title: 'My Requests',
+          url: '/library/my-requests',
+          icon: IconBooks,
         },
         {
           title: 'Settings',

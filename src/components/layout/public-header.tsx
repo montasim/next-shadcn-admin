@@ -31,6 +31,7 @@ export function PublicHeader({ className }: PublicHeaderProps) {
     )}>
       <div className="container mx-auto">
         <UserTopbar
+          showSearch={false}
           showMobileMenu={true}
           isMobileMenuOpen={isMobileMenuOpen}
           onMobileMenuToggle={toggleMobileMenu}
