@@ -10,7 +10,8 @@ import { BookCard } from '@/components/books/book-card'
 import { ReadingHeatmap } from '@/components/reading/reading-heatmap'
 import { PagesReadChart } from '@/components/reading/pages-read-chart'
 import { useUserProfile, useUserBookshelves, useUserReadingActivity } from '@/hooks/use-user-profile'
-import { BookOpen, Calendar, ArrowLeft, Bookmark, Users } from 'lucide-react'
+import {BookOpen, LibraryBig, Calendar, Bookmark, Users, Home, ArrowLeft} from 'lucide-react'
+import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { getUserDisplayName } from '@/lib/utils/user'
 import { useState } from 'react'
@@ -78,13 +79,15 @@ export default function UserProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 pb-24 sm:pb-8">
-        {/* Back Navigation */}
-        <div className="mb-6">
-          <Link href="/books" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Books
-          </Link>
-        </div>
+        {/* Breadcrumb */}
+        <NavigationBreadcrumb
+          className="mb-6"
+          items={[
+            { label: 'Home', href: '/', icon: <Home className="h-4 w-4" /> },
+            { label: 'Books', href: '/books', icon: <LibraryBig className="h-4 w-4" /> },
+            { label: displayName },
+          ]}
+        />
 
         {/* Profile Header */}
         <Card className="mb-8">
