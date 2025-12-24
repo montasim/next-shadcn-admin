@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import {
@@ -27,7 +27,16 @@ interface PDFViewerProps {
   onProgressChange?: (progress: number) => void
   initialPage?: number
   initialScale?: number
+  scale?: number
+  rotation?: number
+  onScaleChange?: (scale: number) => void
+  onRotationChange?: (rotation: number) => void
   className?: string
+  hideToolbarOnMobile?: boolean
+}
+
+export interface PDFViewerRef {
+  downloadPDF: () => void
 }
 
 interface PDFDocument {
@@ -51,27 +60,52 @@ interface PDFViewport {
   height: number
 }
 
-export function PDFViewer({
+export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
   fileUrl,
   onPageChange,
   onProgressChange,
   initialPage = 1,
   initialScale = 1.2,
-  className
-}: PDFViewerProps) {
+  scale: externalScale,
+  rotation: externalRotation,
+  onScaleChange,
+  onRotationChange,
+  className,
+  hideToolbarOnMobile = false
+}, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [pdfDocument, setPdfDocument] = useState<PDFDocument | null>(null)
   const [currentPage, setCurrentPage] = useState(initialPage)
-  const [scale, setScale] = useState(initialScale)
+  const [internalScale, setInternalScale] = useState(initialScale)
+  const [internalRotation, setInternalRotation] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [rotation, setRotation] = useState(0)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const loadedPdfUrl = useRef<string | null>(null) // Track which PDF has been loaded
+  const loadedPdfUrl = useRef<string | null>(null)
+
+  // Use external scale/rotation if provided, otherwise use internal state
+  const scale = externalScale ?? internalScale
+  const rotation = externalRotation ?? internalRotation
+
+  // Expose download method via ref
+  useImperativeHandle(ref, () => ({
+    downloadPDF: () => {
+      const downloadUrl = fileUrl.includes('drive.google.com')
+        ? `/api/proxy/pdf?url=${encodeURIComponent(fileUrl)}`
+        : fileUrl
+
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = `${fileUrl.split('/').pop() || 'book'}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }), [fileUrl])
 
   // Load PDF.js dynamically
   const loadPDFJS = useCallback(async () => {
@@ -180,7 +214,13 @@ export function PDFViewer({
   // Change zoom level
   const handleZoomChange = useCallback(async (newScale: number[]) => {
     const targetScale = newScale[0]
-    setScale(targetScale)
+
+    // Update internal state or notify parent
+    if (externalScale !== undefined) {
+      onScaleChange?.(targetScale)
+    } else {
+      setInternalScale(targetScale)
+    }
 
     if (pdfDocument && currentPage) {
       try {
@@ -189,12 +229,18 @@ export function PDFViewer({
         console.error('Error zooming:', err)
       }
     }
-  }, [pdfDocument, currentPage, rotation, renderPage])
+  }, [pdfDocument, currentPage, rotation, renderPage, externalScale, onScaleChange])
 
   // Rotate page
   const handleRotate = useCallback(async () => {
     const newRotation = (rotation + 90) % 360
-    setRotation(newRotation)
+
+    // Update internal state or notify parent
+    if (externalRotation !== undefined) {
+      onRotationChange?.(newRotation)
+    } else {
+      setInternalRotation(newRotation)
+    }
 
     if (pdfDocument && currentPage) {
       try {
@@ -203,7 +249,7 @@ export function PDFViewer({
         console.error('Error rotating:', err)
       }
     }
-  }, [pdfDocument, currentPage, scale, rotation, renderPage])
+  }, [pdfDocument, currentPage, scale, rotation, renderPage, externalRotation, onRotationChange])
 
   // Toggle fullscreen
   const toggleFullscreen = useCallback(() => {
@@ -320,8 +366,11 @@ export function PDFViewer({
 
   return (
     <div ref={containerRef} className={cn("flex flex-col bg-background w-full", className)}>
-      {/* Toolbar */}
-      <div className="flex flex-col bg-background/95 backdrop-blur flex-shrink-0 border-b">
+      {/* Toolbar - Hidden on mobile when hideToolbarOnMobile is true */}
+      <div className={cn(
+        "flex flex-col bg-background/95 backdrop-blur flex-shrink-0 border-b",
+        hideToolbarOnMobile && "hidden sm:flex"
+      )}>
         {/* Primary Toolbar Row */}
         <div className="flex items-center justify-between px-2 sm:px-4 md:px-8 py-2">
           {/* Page Navigation - Mobile: compact, Desktop: full */}
@@ -563,7 +612,7 @@ export function PDFViewer({
       </div>
 
       {/* PDF Canvas Container */}
-      <div className="flex-1 overflow-auto bg-muted/30 min-h-0 mx-2 sm:mx-4 md:mx-8 mt-3 sm:mt-4 md:mt-6 rounded-lg">
+      <div className="flex-1 overflow-auto bg-muted/30 min-h-0 mx-2 sm:mx-4 md:mx-8 mt-3 sm:mt-4 md:mt-6 rounded-lg relative">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -587,7 +636,38 @@ export function PDFViewer({
             />
           </div>
         )}
+
+        {/* Mobile Floating Page Navigation Buttons */}
+        <div className="sm:hidden fixed bottom-6 left-4 right-4 flex items-center justify-between gap-2 z-50 pointer-events-none">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="h-14 w-14 rounded-full shadow-lg pointer-events-auto bg-primary/90 backdrop-blur-sm hover:bg-primary"
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+
+          <div className="px-3 py-1.5 bg-background/90 backdrop-blur-sm rounded-full shadow-sm pointer-events-auto">
+            <span className="text-sm font-medium">
+              {currentPage} / {totalPages}
+            </span>
+          </div>
+
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            className="h-14 w-14 rounded-full shadow-lg pointer-events-auto bg-primary/90 backdrop-blur-sm hover:bg-primary"
+            aria-label="Next page"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </Button>
+        </div>
       </div>
     </div>
   )
-}
+})
