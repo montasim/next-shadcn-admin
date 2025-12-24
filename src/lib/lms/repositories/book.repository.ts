@@ -163,6 +163,7 @@ export async function bookExists(id: string): Promise<boolean> {
 export async function createBook(data: {
   name: string
   image?: string
+  directImageUrl?: string
   type: BookType
   bindingType?: BindingType | null
   pageNumber?: number | null
@@ -219,6 +220,7 @@ export async function createBook(data: {
       data: {
         name: data.name,
         image: data.image,
+        directImageUrl: data.directImageUrl,
         type: data.type,
         bindingType: data.type === 'HARD_COPY' ? data.bindingType : null,
         pageNumber: (data.type === 'HARD_COPY' || data.type === 'EBOOK') ? data.pageNumber : null,
@@ -288,6 +290,7 @@ export async function updateBook(
   data: {
     name?: string
     image?: string | null
+    directImageUrl?: string | null
     type?: BookType
     bindingType?: BindingType | null
     pageNumber?: number | null
@@ -356,6 +359,7 @@ export async function updateBook(
         data: {
           name: data.name,
           image: data.image,
+          directImageUrl: data.directImageUrl,
           type: updateType,
           bindingType: updateType === 'HARD_COPY'
             ? (data.bindingType ?? existingBook.bindingType)

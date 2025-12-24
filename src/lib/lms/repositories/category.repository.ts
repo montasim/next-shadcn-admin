@@ -157,6 +157,7 @@ export async function createCategory(data: {
   name: string
   description?: string
   image?: string
+  directImageUrl?: string
   entryById: string
 }) {
   const { entryById, ...categoryData } = data
@@ -189,6 +190,7 @@ export async function updateCategory(
     name?: string
     description?: string | null
     image?: string | null
+    directImageUrl?: string | null
   }
 ) {
   return prisma.category.update({

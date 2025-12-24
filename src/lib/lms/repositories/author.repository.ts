@@ -144,6 +144,7 @@ export async function createAuthor(data: {
   name: string
   description?: string
   image?: string
+  directImageUrl?: string
   entryById: string
 }) {
   const { entryById, ...authorData } = data
@@ -176,6 +177,7 @@ export async function updateAuthor(
     name?: string
     description?: string | null
     image?: string | null
+    directImageUrl?: string | null
   }
 ) {
   return prisma.author.update({

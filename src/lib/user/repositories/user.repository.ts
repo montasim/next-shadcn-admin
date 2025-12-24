@@ -166,6 +166,7 @@ export async function getUserReadingStats(id: string) {
  * @param {string} data.name - User name
  * @param {string} data.passwordHash - Hashed password
  * @param {string} [data.avatar] - Optional avatar URL
+ * @param {string} [data.directAvatarUrl] - Optional direct avatar URL
  * @returns {Promise<User>} Created user
  */
 export async function createUser(data: {
@@ -173,6 +174,7 @@ export async function createUser(data: {
     name: string
     passwordHash: string
     avatar?: string
+    directAvatarUrl?: string
 }) {
     return prisma.user.create({
         data,
@@ -190,6 +192,7 @@ export async function createUser(data: {
  * @param {string} [data.name] - User name
  * @param {string} [data.email] - User email
  * @param {string} [data.avatar] - User avatar
+ * @param {string} [data.directAvatarUrl] - Direct avatar URL
  * @param {boolean} [data.isActive] - User active status
  * @param {boolean} [data.isPremium] - User premium status
  * @returns {Promise<User>} Updated user
@@ -200,6 +203,7 @@ export async function updateUser(
         name?: string
         email?: string
         avatar?: string | null
+        directAvatarUrl?: string | null
         isActive?: boolean
         isPremium?: boolean
     }
@@ -371,6 +375,8 @@ export async function createFullUser(data: {
     socialEmails?: boolean
     marketingEmails?: boolean
     securityEmails?: boolean
+    avatar?: string
+    directAvatarUrl?: string
 }) {
     return prisma.user.create({
         data,
@@ -412,6 +418,7 @@ export async function updateUserProfile(
         isActive?: boolean
         isPremium?: boolean
         avatar?: string | null
+        directAvatarUrl?: string | null
     }
 ) {
     return prisma.user.update({

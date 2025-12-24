@@ -262,6 +262,8 @@ export async function getBookshelvesWithBook(bookId: string, userId?: string) {
  * @param {string} data.name - Bookshelf name
  * @param {string} [data.description] - Bookshelf description
  * @param {boolean} [data.isPublic] - Public status (default: false)
+ * @param {string} [data.image] - Bookshelf image URL
+ * @param {string} [data.directImageUrl] - Direct download URL
  * @returns {Promise<Bookshelf>} Created bookshelf
  */
 export async function createBookshelf(data: {
@@ -269,6 +271,8 @@ export async function createBookshelf(data: {
     name: string
     description?: string
     isPublic?: boolean
+    image?: string
+    directImageUrl?: string
 }) {
     return prisma.bookshelf.create({
         data: {
@@ -294,6 +298,8 @@ export async function createBookshelf(data: {
  * @param {string} [data.name] - Bookshelf name
  * @param {string} [data.description] - Bookshelf description
  * @param {boolean} [data.isPublic] - Public status
+ * @param {string} [data.image] - Bookshelf image URL
+ * @param {string} [data.directImageUrl] - Direct download URL
  * @returns {Promise<Bookshelf>} Updated bookshelf
  */
 export async function updateBookshelf(
@@ -303,6 +309,8 @@ export async function updateBookshelf(
         name?: string
         description?: string
         isPublic?: boolean
+        image?: string
+        directImageUrl?: string
     }
 ) {
     // Verify ownership

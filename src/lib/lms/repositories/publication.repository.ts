@@ -144,6 +144,7 @@ export async function createPublication(data: {
   name: string
   description?: string
   image?: string
+  directImageUrl?: string
   entryById: string
 }) {
   const { entryById, ...publicationData } = data
@@ -176,6 +177,7 @@ export async function updatePublication(
     name?: string
     description?: string | null
     image?: string | null
+    directImageUrl?: string | null
   }
 ) {
   return prisma.publication.update({
