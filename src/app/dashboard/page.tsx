@@ -131,7 +131,7 @@ function AdminDashboard() {
           </div>
         </HeaderContainer>
 
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue="overview" className="space-y-4 pb-16 md:pb-4 overflow-y-auto">
           <div className="w-full overflow-x-auto pb-2">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -141,7 +141,7 @@ function AdminDashboard() {
             </TabsList>
           </div>
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -345,7 +345,7 @@ function UserDashboard() {
         </HeaderContainer>
 
         {/* Stats Skeleton */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
