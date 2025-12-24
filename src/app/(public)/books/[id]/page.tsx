@@ -3,17 +3,22 @@
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useBook } from '@/hooks/use-book'
+import { useAuth } from '@/context/auth-context'
 import { cn } from '@/lib/utils'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { PDFReaderModal } from '@/components/reader/pdf-reader-modal'
 import { AddToBookshelf } from '@/components/books/add-to-bookshelf'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
+import { ReadingHeatmap } from '@/components/reading/reading-heatmap'
+import { PagesReadChart } from '@/components/reading/pages-read-chart'
+import { CircularProgressBar } from '@/components/reading/circular-progress-bar'
 import {
   BookOpen,
   Users,
@@ -23,6 +28,7 @@ import {
   ArrowLeft,
   Eye,
   Building2,
+  Calendar,
 } from 'lucide-react'
 
 export default function BookDetailsPage() {
@@ -39,10 +45,37 @@ export default function BookDetailsPage() {
   // PDF Reader Modal state
   const [isReaderModalOpen, setIsReaderModalOpen] = useState(false)
 
+  // Chart period state
+  const [chartPeriod, setChartPeriod] = useState<'week' | 'month'>('week')
+
+  // Get user for auth
+  const { user } = useAuth()
+
   // Fetch book details using the dedicated API endpoint
   const { data: responseData, isLoading, error } = useBook({ id: bookId })
   const book = responseData?.data?.book
   const userAccess = responseData?.data?.userAccess
+
+  // Fetcher for SWR
+  const fetcher = async (url: string) => {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Failed to fetch data')
+    const json = await res.json()
+    return json
+  }
+
+  // Fetch chart data (only if logged in and book is loaded)
+  const { data: heatmapData } = useSWR(
+    user && book ? `/api/user/progress-history/${bookId}?type=heatmap&days=365` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+
+  const { data: pagesReadData } = useSWR(
+    user && book ? `/api/user/progress-history/${bookId}?type=pages-per-day&days=${chartPeriod === 'week' ? 7 : 30}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
 
   if (isLoading) {
     return (
@@ -217,7 +250,7 @@ export default function BookDetailsPage() {
                     variant="ghost"
                     size="icon"
                     onClick={handleShare}
-                    className="h-8 w-8 bg-background/80 hover:bg-background backdrop-blur-sm"
+                    className="bg-background/80 hover:bg-background backdrop-blur-sm h-9 w-9"
                   >
                     <Share2 className="h-4 w-4" />
                   </Button>
@@ -228,6 +261,7 @@ export default function BookDetailsPage() {
                     bookName={book.name}
                     variant="manage"
                     triggerVariant="icon"
+                    triggerClassName="h-9 w-9"
                   />
                 </div>
 
@@ -276,6 +310,33 @@ export default function BookDetailsPage() {
                   )}
                 </Button>
 
+                {/* Quick Stats */}
+                <div className="space-y-3 text-sm pt-2 p-4 rounded-xl border bg-card">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      Readers
+                    </span>
+                    <span className="font-medium">{book.statistics?.totalReaders?.toLocaleString() || '0'}</span>
+                  </div>
+                  {book.pageNumber && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <BookOpen className="h-3 w-3" />
+                        Pages
+                      </span>
+                      <span className="font-medium">{book.pageNumber}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Entry Date
+                    </span>
+                    <span className="font-medium">{formatDate(book.entryDate)}</span>
+                  </div>
+                </div>
+
                 {/*<div className="grid grid-cols-2 gap-3">*/}
                 {/*  <Button*/}
                 {/*    variant="outline"*/}
@@ -294,31 +355,6 @@ export default function BookDetailsPage() {
                 {/*    {isFavorite ? 'Liked' : 'Like'}*/}
                 {/*  </Button>*/}
                 {/*</div>*/}
-              </div>
-
-              {/* Quick Stats */}
-              <div className="space-y-3 text-sm">
-                {book.statistics?.totalReaders > 0 && (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Readers</span>
-                      <span className="font-medium flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        {book.statistics.totalReaders.toLocaleString()}
-                      </span>
-                    </div>
-                    {book.pageNumber && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Pages</span>
-                        <span className="font-medium">{book.pageNumber}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Entry Date</span>
-                      <span className="font-medium">{formatDate(book.entryDate)}</span>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
           </div>
@@ -507,50 +543,29 @@ export default function BookDetailsPage() {
               <TabsContent value="progress" className="mt-6">
                 {book.readingProgress ? (
                   <div className="space-y-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-lg">Reading Progress</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <div className="flex justify-between text-sm mb-2">
-                            <span>Progress</span>
-                            <span>{Math.round(book.readingProgress.progress)}%</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-2">
-                            <div
-                              className="bg-primary h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${book.readingProgress.progress}%` }}
-                            />
-                          </div>
-                        </div>
+                    {/* Circular Progress Bar */}
+                    <CircularProgressBar
+                      progress={book.readingProgress.progress}
+                      currentPage={book.readingProgress.currentPage || undefined}
+                      totalPages={book.pageNumber || undefined}
+                      isCompleted={book.readingProgress.isCompleted}
+                      lastReadAt={book.readingProgress.lastReadAt || undefined}
+                    />
 
-                        {book.readingProgress.currentPage && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Current Page</span>
-                            <span className="font-medium">{book.readingProgress.currentPage}</span>
-                          </div>
-                        )}
+                    {/* Reading Activity Chart */}
+                    {user && (
+                      <PagesReadChart
+                        data={pagesReadData?.data || []}
+                        title="Reading Activity"
+                        period={chartPeriod}
+                        onPeriodChange={setChartPeriod}
+                      />
+                    )}
 
-                        {book.readingProgress.currentEpocha && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Position</span>
-                            <span className="font-medium">
-                              {Math.floor(book.readingProgress.currentEpocha / 60)}m {Math.floor(book.readingProgress.currentEpocha % 60)}s
-                            </span>
-                          </div>
-                        )}
-
-                        {book.readingProgress.lastReadAt && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Last Read</span>
-                            <span className="font-medium">
-                              {new Date(book.readingProgress.lastReadAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                    {/* Reading Heatmap */}
+                    {user && heatmapData?.data && (
+                      <ReadingHeatmap data={heatmapData.data} />
+                    )}
 
                     {/*<Button onClick={handleReadBook} className="w-full">*/}
                     {/*  {book.readingProgress.isCompleted ? (*/}
