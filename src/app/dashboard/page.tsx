@@ -31,6 +31,7 @@ import {
 import { getUserBooks } from '@/app/(user)/library/actions'
 import { Book } from '@/app/dashboard/books/data/schema'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
+import { calculateReadingTime, calculateReadingTimeHours } from '@/lib/utils/reading-time'
 
 interface LibraryStats {
   completedBooks: number
@@ -69,8 +70,7 @@ function calculateLibraryStats(books: Book[]): LibraryStats {
     return sum + currentPage
   }, 0)
 
-  const readingTimeMinutes = totalPagesRead * 2
-  const readingTimeHours = Math.round(readingTimeMinutes / 60)
+  const readingTimeHours = calculateReadingTimeHours(totalPagesRead)
 
   return {
     completedBooks: completedBooks.length,
@@ -295,22 +295,6 @@ function UserDashboard() {
     const bDate = new Date(b.readingProgress?.[0]?.lastReadAt || 0)
     return bDate.getTime() - aDate.getTime()
   })
-
-  // Calculate estimated reading time based on page count (2 min per page)
-  function calculateReadingTime(pageCount?: number | null): string | null {
-    if (!pageCount || pageCount <= 0) return null
-    const minutesPerPage = 2
-    const totalMinutes = pageCount * minutesPerPage
-
-    if (totalMinutes < 60) {
-      return `${totalMinutes} min read`
-    }
-    const hours = Math.floor(totalMinutes / 60)
-    const remainingMinutes = totalMinutes % 60
-    return remainingMinutes > 0
-      ? `${hours}h ${remainingMinutes}m read`
-      : `${hours}h read`
-  }
 
   // Scroll books container helper for mobile navigation
   const scrollBooks = (direction: 'left' | 'right') => {
