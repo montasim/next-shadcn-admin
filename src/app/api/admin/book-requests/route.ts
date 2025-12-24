@@ -44,6 +44,17 @@ export async function GET(request: NextRequest) {
             username: true,
             name: true,
             email: true,
+            role: true,
+          },
+        },
+        cancelledBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            name: true,
+            email: true,
+            role: true,
           },
         },
       },

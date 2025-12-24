@@ -44,6 +44,18 @@ export async function GET(request: NextRequest) {
 
     const requests = await prisma.bookRequest.findMany({
       where,
+      include: {
+        cancelledBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
