@@ -135,27 +135,28 @@ export function ReadingHeatmap({ data, title = 'Reading Heatmap', className }: R
   const visibleMonths = getVisibleMonths()
 
   return (
-    <Card className={className}>
+    <Card className={cn('overflow-hidden', className)}>
       <CardHeader>
         <CardTitle className="text-base font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {/* Month labels */}
-          <div className="flex text-xs text-muted-foreground pl-8">
-            {visibleMonths.map((month) => (
-              <div
-                key={month.label}
-                className="flex-shrink-0"
-                style={{ width: `${Math.max(3, (weeks.length - month.index) * 12)}px` }}
-              >
-                {month.label}
-              </div>
-            ))}
-          </div>
+        <div className="overflow-x-auto">
+          <div className="space-y-3 inline-block min-w-full">
+            {/* Month labels */}
+            <div className="flex text-xs text-muted-foreground pl-8">
+              {visibleMonths.map((month) => (
+                <div
+                  key={month.label}
+                  className="flex-shrink-0"
+                  style={{ width: `${Math.max(3, (weeks.length - month.index) * 12)}px` }}
+                >
+                  {month.label}
+                </div>
+              ))}
+            </div>
 
-          {/* Heatmap grid */}
-          <div className="flex gap-1">
+            {/* Heatmap grid */}
+            <div className="flex gap-1 w-full">
             {/* Day labels */}
             <div className="flex flex-col gap-1 text-[10px] text-muted-foreground pr-2">
               {dayLabels.map((day) => (
@@ -199,6 +200,7 @@ export function ReadingHeatmap({ data, title = 'Reading Heatmap', className }: R
             </div>
             <span>More</span>
           </div>
+        </div>
         </div>
       </CardContent>
 
