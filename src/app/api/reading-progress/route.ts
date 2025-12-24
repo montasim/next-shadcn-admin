@@ -18,6 +18,19 @@ export async function POST(request: NextRequest) {
     // Calculate if completed (progress >= 95%)
     const isCompleted = progressValue >= 95
 
+    // Get previous progress to calculate delta
+    const previousProgress = await prisma.readingProgress.findUnique({
+      where: {
+        userId_bookId: {
+          userId: session.userId,
+          bookId,
+        },
+      },
+    })
+
+    const previousPage = previousProgress?.currentPage || 0
+    const pagesRead = Math.max(0, (currentPage || 1) - previousPage)
+
     // Upsert reading progress
     const readingProgress = await prisma.readingProgress.upsert({
       where: {
@@ -48,6 +61,22 @@ export async function POST(request: NextRequest) {
         },
       },
     })
+
+    // Save progress history if there's meaningful activity
+    // Only save if: pages read > 0 OR this is the first time reading this book
+    if (pagesRead > 0 || !previousProgress) {
+      await prisma.progressHistory.create({
+        data: {
+          userId: session.userId,
+          bookId,
+          currentPage: currentPage || 1,
+          progress: progressValue,
+          pagesRead: pagesRead,
+          timeSpent: 0, // Time tracking would need to be calculated on the client
+          sessionDate: new Date(),
+        },
+      })
+    }
 
     // Also update the book's pageNumber if it's not set and we have totalPages
     if (totalPages && readingProgress.book?.pageNumber === null) {
