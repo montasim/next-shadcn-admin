@@ -244,6 +244,15 @@ function transformBookData(book: any, userHasPremium: boolean, userId?: string) 
         })),
         // Statistics
         readersCount: book._count.readingProgress,
+        // Uploader info (only if role is USER)
+        entryBy: book.entryBy && book.entryBy.role === 'USER' ? {
+            id: book.entryBy.id,
+            username: book.entryBy.username,
+            firstName: book.entryBy.firstName,
+            lastName: book.entryBy.lastName,
+            name: book.entryBy.name,
+            avatar: book.entryBy.avatar,
+        } : null,
     }
 }
 
@@ -333,6 +342,17 @@ export async function GET(request: NextRequest) {
                         }
                     },
                     readingProgress: readingProgressInclude,
+                    entryBy: {
+                        select: {
+                            id: true,
+                            username: true,
+                            firstName: true,
+                            lastName: true,
+                            name: true,
+                            avatar: true,
+                            role: true,
+                        }
+                    },
                     _count: {
                         select: {
                             readingProgress: true,

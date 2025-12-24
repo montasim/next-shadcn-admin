@@ -45,6 +45,19 @@ export async function GET(
         const book = await prisma.book.findUnique({
             where: { id: bookId },
             include: {
+                entryBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        username: true,
+                        name: true,
+                        avatar: true,
+                        bio: true,
+                        role: true,
+                        createdAt: true,
+                    }
+                },
                 authors: {
                     include: {
                         author: {
@@ -197,6 +210,17 @@ export async function GET(
             name: book.name,
             summary: book.summary,
             type: book.type,
+            // User who uploaded the book (only if public and user role is USER)
+            entryBy: book.isPublic && book.entryBy.role === 'USER' ? {
+                id: book.entryBy.id,
+                firstName: book.entryBy.firstName,
+                lastName: book.entryBy.lastName,
+                username: book.entryBy.username,
+                name: book.entryBy.name,
+                avatar: book.entryBy.avatar,
+                bio: book.entryBy.bio,
+                createdAt: book.entryBy.createdAt,
+            } : null,
             bindingType: book.bindingType,
             pageNumber: book.pageNumber,
             buyingPrice: book.buyingPrice,

@@ -13,6 +13,15 @@ interface BookFilters {
   premium?: 'all' | 'free' | 'premium'
 }
 
+export interface BookUploader {
+  id: string
+  username?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  name?: string
+  avatar?: string | null
+}
+
 export interface Book {
   id: string
   name: string
@@ -37,6 +46,7 @@ export interface Book {
     progress: number
     isCompleted?: boolean
   }
+  entryBy?: BookUploader | null
 }
 
 interface BooksResponse {

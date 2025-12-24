@@ -21,6 +21,17 @@ export interface Publication {
   image?: string | null
 }
 
+export interface BookUser {
+  id: string
+  firstName: string
+  lastName?: string | null
+  username?: string | null
+  name: string
+  avatar?: string | null
+  bio?: string | null
+  createdAt: string
+}
+
 export interface ReadingProgress {
   id: string
   currentPage?: number | null
@@ -55,6 +66,7 @@ export interface Book {
     avgProgress: number
   }
   relatedBooks?: Book[]
+  entryBy?: BookUser | null
 }
 
 export interface UserAccess {
