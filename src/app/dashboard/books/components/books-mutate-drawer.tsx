@@ -44,13 +44,7 @@ import { MDXEditor } from '@/components/ui/mdx-editor'
 import { ImageUpload } from '@/components/ui/image-upload'
 import { FileUpload } from '@/components/ui/file-upload'
 import { Switch } from '@/components/ui/switch'
-import { Info } from 'lucide-react'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 interface Props {
   open: boolean
@@ -75,6 +69,7 @@ const formSchema = z.object({
   publicationIds: z.array(z.string()).min(1, 'At least one publication is required.'),
   categoryIds: z.array(z.string()).min(1, 'At least one category is required.'),
   isPublic: z.boolean().default(false),
+  requiresPremium: z.boolean().default(false),
 }).superRefine((data, ctx) => {
   if (data.type === 'HARD_COPY') {
     if (!data.bindingType) {
@@ -170,6 +165,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       publicationIds: [],
       categoryIds: [],
       isPublic: false,
+      requiresPremium: false,
     },
     mode: 'onChange',
   })
@@ -192,6 +188,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
         publicationIds: currentRow.publications.map(pub => pub.id) || [],
         categoryIds: currentRow.categories.map(cat => cat.id) || [],
         isPublic: currentRow.isPublic || false,
+        requiresPremium: currentRow.requiresPremium || false,
       } : {
         name: '',
         image: '',
@@ -208,11 +205,13 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
         publicationIds: [],
         categoryIds: [],
         isPublic: false,
+        requiresPremium: false,
       };
       form.reset(defaultValues);
       setPurchaseDate(currentRow?.purchaseDate ? new Date(currentRow.purchaseDate) : undefined);
     }
-  }, [open, currentRow, isUpdate, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, currentRow, isUpdate]);
 
   const watchType = form.watch('type')
 
@@ -253,13 +252,12 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
       Object.entries(data).forEach(([key, value]) => {
         if (Array.isArray(value)) {
           value.forEach(item => formData.append(key, item))
-        } else if (key === 'isPublic') {
-          // Handle boolean field - convert to 'on'/'off' for server compatibility
-          formData.append(key, value ? 'on' : 'off')
         } else if (value instanceof File) {
           formData.append(key, value)
         } else if (value !== null && value !== undefined) {
-          formData.append(key, value as string)
+          // Handle boolean fields - convert to 'true'/'false' string
+          const formValue = typeof value === 'boolean' ? String(value) : value
+          formData.append(key, formValue as string)
         }
       })
 
@@ -642,16 +640,28 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                     <FormLabel className='flex items-center gap-2'>
                       Make Public
                     </FormLabel>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className='h-4 w-4 text-muted-foreground cursor-help' />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Enabling this book will make the book publicly visible.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <InfoTooltip content="Enabling this book will make the book publicly visible." />
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='requiresPremium'
+              render={({ field }) => (
+                <FormItem className='flex flex-row items-center justify-between space-y-0'>
+                  <div className='flex items-center gap-2'>
+                    <FormLabel className='flex items-center gap-2'>
+                      Requires Premium
+                    </FormLabel>
+                    <InfoTooltip content="Enabling this will require users to have premium access to view this book." />
                   </div>
                   <FormControl>
                     <Switch

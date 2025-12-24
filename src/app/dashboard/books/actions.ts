@@ -66,6 +66,8 @@ const createBookSchema = z.object({
   authorIds: z.array(z.string()).min(1, 'At least one author is required'),
   publicationIds: z.array(z.string()).min(1, 'At least one publication is required'),
   categoryIds: z.array(z.string()).optional(),
+  isPublic: z.boolean().default(false),
+  requiresPremium: z.boolean().default(false),
 }).superRefine((data, ctx) => {
   if (data.type === 'HARD_COPY') {
     if (!data.bindingType) {
@@ -123,6 +125,8 @@ const updateBookSchema = z.object({
   authorIds: z.array(z.string()).min(1, 'At least one author is required'),
   publicationIds: z.array(z.string()).min(1, 'At least one publication is required'),
   categoryIds: z.array(z.string()).optional(),
+  isPublic: z.boolean().default(false),
+  requiresPremium: z.boolean().default(false),
 }).superRefine((data, ctx) => {
   if (data.type === 'HARD_COPY') {
     if (!data.bindingType) {
@@ -204,6 +208,7 @@ export async function getBooks() {
           numberOfCopies: book.numberOfCopies,
           purchaseDate: book.purchaseDate?.toISOString() || null,
           isPublic: book.isPublic ?? false,
+          requiresPremium: book.requiresPremium ?? false,
           entryDate: book.entryDate.toISOString(),
           entryBy: entryByName,
           entryById: book.entryBy.id,
@@ -350,7 +355,8 @@ export async function createBook(formData: FormData) {
       sellingPrice: formData.get('sellingPrice') as string,
       numberOfCopies: formData.get('numberOfCopies') as string,
       purchaseDate: formData.get('purchaseDate') as string,
-      isPublic: formData.get('isPublic') === 'on',
+      isPublic: formData.get('isPublic') === 'true',
+      requiresPremium: formData.get('requiresPremium') === 'true',
       authorIds: formData.getAll('authorIds') as string[],
       publicationIds: formData.getAll('publicationIds') as string[],
       categoryIds: formData.getAll('categoryIds') as string[],
@@ -392,6 +398,7 @@ export async function createBook(formData: FormData) {
       numberOfCopies: validatedData.numberOfCopies ? parseInt(validatedData.numberOfCopies) : null,
       purchaseDate: validatedData.purchaseDate ? new Date(validatedData.purchaseDate) : null,
       isPublic: validatedData.isPublic,
+      requiresPremium: validatedData.requiresPremium,
       entryById: session.userId,
       authorIds: validatedData.authorIds,
       publicationIds: validatedData.publicationIds,
@@ -436,7 +443,8 @@ export async function updateBook(id: string, formData: FormData) {
       sellingPrice: formData.get('sellingPrice') as string,
       numberOfCopies: formData.get('numberOfCopies') as string,
       purchaseDate: formData.get('purchaseDate') as string,
-      isPublic: formData.get('isPublic') === 'on',
+      isPublic: formData.get('isPublic') === 'true',
+      requiresPremium: formData.get('requiresPremium') === 'true',
       authorIds: formData.getAll('authorIds') as string[],
       publicationIds: formData.getAll('publicationIds') as string[],
       categoryIds: formData.getAll('categoryIds') as string[],
@@ -502,6 +510,7 @@ export async function updateBook(id: string, formData: FormData) {
       numberOfCopies: validatedData.numberOfCopies ? parseInt(validatedData.numberOfCopies) : null,
       purchaseDate: validatedData.purchaseDate ? new Date(validatedData.purchaseDate) : null,
       isPublic: validatedData.isPublic,
+      requiresPremium: validatedData.requiresPremium,
       authorIds: validatedData.authorIds,
       publicationIds: validatedData.publicationIds,
       categoryIds: validatedData.categoryIds || [],

@@ -173,6 +173,7 @@ export async function createBook(data: {
   numberOfCopies?: number
   purchaseDate?: Date
   isPublic?: boolean
+  requiresPremium?: boolean
   entryById: string
   authorIds: string[]
   publicationIds: string[]
@@ -227,6 +228,7 @@ export async function createBook(data: {
         numberOfCopies: data.type === 'HARD_COPY' ? data.numberOfCopies : null,
         purchaseDate: data.purchaseDate,
         isPublic: data.isPublic,
+        requiresPremium: data.requiresPremium,
         entryById: data.entryById,
       },
       // data: {
@@ -294,6 +296,7 @@ export async function updateBook(
     numberOfCopies?: number | null
     purchaseDate?: Date | null
     isPublic?: boolean | null
+    requiresPremium?: boolean | null
     authorIds?: string[]
     publicationIds?: string[]
     categoryIds?: string[]
@@ -368,6 +371,7 @@ export async function updateBook(
             : null,
           purchaseDate: data.purchaseDate,
           isPublic: data.isPublic,
+          requiresPremium: data.requiresPremium,
         },
         include: {
           entryBy: {
@@ -449,7 +453,7 @@ export async function updateBook(
   )
 
   // Fetch and return the updated book with all relationships outside the transaction
-  return getBookById(id)
+  return await getBookById(id)
 }
 
 /**
