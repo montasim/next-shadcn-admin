@@ -13,6 +13,7 @@ import { useBook } from '@/hooks/use-book'
 import { useAuth } from '@/context/auth-context'
 import { cn } from '@/lib/utils'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
+import { getUserDisplayName } from '@/lib/utils/user'
 import { PDFReaderModal } from '@/components/reader/pdf-reader-modal'
 import { AddToBookshelf } from '@/components/books/add-to-bookshelf'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
@@ -31,6 +32,7 @@ import {
   Building2,
   Calendar,
   CheckCircle,
+  User as UserIcon,
 } from 'lucide-react'
 
 export default function BookDetailsPage() {
@@ -416,6 +418,43 @@ export default function BookDetailsPage() {
                 </div>
               )}
 
+              {/* Added by user */}
+              {book.entryBy && (
+                <div className="flex items-center gap-3 mb-4">
+                  <Link href={`/users/${book.entryBy.id}`} className="flex items-center gap-3 group">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={book.entryBy.avatar ? getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar : undefined}
+                        alt={getUserDisplayName({
+                          firstName: book.entryBy.firstName,
+                          lastName: book.entryBy.lastName,
+                          username: book.entryBy.username,
+                          name: book.entryBy.name,
+                          email: '',
+                        })}
+                      />
+                      <AvatarFallback className="text-sm bg-primary/10">
+                        {book.entryBy.username
+                          ? book.entryBy.username[0].toUpperCase()
+                          : book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-muted-foreground">Added by</span>
+                      <span className="text-sm font-medium group-hover:text-primary transition-colors">
+                        {getUserDisplayName({
+                          firstName: book.entryBy.firstName,
+                          lastName: book.entryBy.lastName,
+                          username: book.entryBy.username,
+                          name: book.entryBy.name,
+                          email: '',
+                        })}
+                      </span>
+                    </div>
+                  </Link>
+                </div>
+              )}
+
               {/* Categories */}
               {book.categories && book.categories.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -435,7 +474,7 @@ export default function BookDetailsPage() {
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 {/*<TabsTrigger value="details">Details</TabsTrigger>*/}
-                <TabsTrigger value="progress">Your Progress</TabsTrigger>
+                <TabsTrigger value="progress">My Progress</TabsTrigger>
               </TabsList>
 
               {/* Description Tab - Book Description and Author Info */}

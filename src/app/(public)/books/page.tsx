@@ -583,6 +583,7 @@ export default function BooksPage() {
                         showCategories={true}
                         showReaderCount={true}
                         showAddToBookshelf={true}
+                        showUploader={true}
                         showLockOverlay={true}
                         coverHeight="tall"
                       />

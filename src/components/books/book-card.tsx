@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   BookOpen,
   Users,
@@ -37,6 +38,14 @@ interface Book {
   requiresPremium?: boolean
   canAccess?: boolean
   readersCount?: number
+  entryBy?: {
+    id: string
+    username?: string | null
+    firstName?: string | null
+    lastName?: string | null
+    name?: string
+    avatar?: string | null
+  } | null
 }
 
 interface BookCardProps extends React.ComponentPropsWithoutRef<typeof Card> {
@@ -59,6 +68,7 @@ interface BookCardProps extends React.ComponentPropsWithoutRef<typeof Card> {
   showCategories?: boolean
   showReaderCount?: boolean
   showAddToBookshelf?: boolean
+  showUploader?: boolean
   showLockOverlay?: boolean
   coverHeight?: 'default' | 'tall'
 }
@@ -95,6 +105,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
     showCategories = false,
     showReaderCount = false,
     showAddToBookshelf = false,
+    showUploader = false,
     showLockOverlay = false,
     coverHeight = 'default',
     ...props
@@ -403,6 +414,35 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       {book.readersCount}
                     </span>
                   )}
+                  {/* Uploader - Mobile */}
+                  {showUploader && book.entryBy && (
+                    <Link
+                      href={`/users/${book.entryBy.id}`}
+                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                        {book.entryBy.avatar ? (
+                          <img
+                            src={getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-[8px] font-medium">
+                            {book.entryBy.username?.[0]?.toUpperCase() ||
+                             book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[10px] truncate max-w-[80px]">
+                        {book.entryBy.username ||
+                         (book.entryBy.firstName
+                          ? `${book.entryBy.firstName} ${book.entryBy.lastName || ''}`.trim()
+                          : 'User')}
+                      </span>
+                    </Link>
+                  )}
                 </div>
 
                 {/* View More Button - Mobile */}
@@ -512,6 +552,34 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                     <Users className="h-4 w-4" />
                     {book.readersCount} {book.readersCount === 1 ? 'reader' : 'readers'}
                   </span>
+                )}
+                {/* Uploader - Desktop */}
+                {showUploader && book.entryBy && (
+                  <Link
+                    href={`/users/${book.entryBy.id}`}
+                    className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Avatar className="h-5 w-5">
+                      {book.entryBy.avatar ? (
+                        <AvatarImage
+                          src={getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar}
+                          alt=""
+                        />
+                      ) : null}
+                      <AvatarFallback className="text-[9px] bg-primary/10">
+                        {book.entryBy.username
+                          ? book.entryBy.username[0].toUpperCase()
+                          : book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs">
+                      {book.entryBy.username ||
+                       (book.entryBy.firstName && book.entryBy.lastName
+                        ? `${book.entryBy.firstName} ${book.entryBy.lastName}`
+                        : book.entryBy.name || 'User')}
+                    </span>
+                  </Link>
                 )}
               </div>
 
