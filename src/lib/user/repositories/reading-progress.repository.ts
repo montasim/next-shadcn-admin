@@ -12,6 +12,7 @@
 
 import { prisma } from '../../prisma'
 import { BookType } from '@prisma/client'
+import { clampProgress, isBookCompleted } from '@/lib/utils/reading-progress'
 
 // ============================================================================
 // READING PROGRESS QUERIES
@@ -291,8 +292,8 @@ export async function upsertReadingProgress(data: {
     progress?: number
     isCompleted?: boolean
 }) {
-    const progress = Math.min(100, Math.max(0, data.progress || 0))
-    const isCompleted = data.isCompleted || progress >= 100
+    const progress = clampProgress(data.progress)
+    const isCompleted = data.isCompleted || isBookCompleted(progress, 100)
 
     return prisma.readingProgress.upsert({
         where: {

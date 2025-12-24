@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
+import { clampProgress, isBookCompleted } from '@/lib/utils/reading-progress'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,10 +14,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate progress value
-    const progressValue = Math.min(100, Math.max(0, progress || 0))
+    const progressValue = clampProgress(progress)
 
     // Calculate if completed (progress >= 95%)
-    const isCompleted = progressValue >= 95
+    const isCompleted = isBookCompleted(progressValue, 95)
 
     // Get previous progress to calculate delta
     const previousProgress = await prisma.readingProgress.findUnique({

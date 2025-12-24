@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { PDFViewer } from '@/components/reader/pdf-viewer'
 import { Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { calculatePageProgress } from '@/lib/utils/reading-progress'
 
 interface Book {
   fileUrl: string
@@ -115,7 +116,7 @@ export default function UserReaderPage() {
 
   const handlePageChange = useCallback(
     (currentPage: number, totalPages: number) => {
-      const progress = (currentPage / totalPages) * 100
+      const progress = calculatePageProgress(currentPage, totalPages)
       setReadingProgress({ currentPage, progress })
       saveReadingProgress(currentPage, progress, totalPages)
     },

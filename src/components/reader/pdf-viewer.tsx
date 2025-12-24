@@ -20,6 +20,7 @@ import {
   X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { calculatePageProgress } from '@/lib/utils/reading-progress'
 
 interface PDFViewerProps {
   fileUrl: string
@@ -148,7 +149,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
 
       // Note: Page rendering is handled by useEffect below when canvas is mounted
       onPageChange?.(initialPage, pdf.numPages)
-      onProgressChange?.((initialPage / pdf.numPages) * 100)
+      onProgressChange?.(calculatePageProgress(initialPage, pdf.numPages))
     } catch (err) {
       console.error('Error loading PDF:', err)
       setError(err instanceof Error ? err.message : 'Failed to load PDF')
@@ -183,7 +184,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
       }).promise
 
       // Update progress
-      const progress = (pageNumber / pdf.numPages) * 100
+      const progress = calculatePageProgress(pageNumber, pdf.numPages)
       onProgressChange?.(progress)
     } catch (err) {
       console.error('Error rendering page:', err)

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
+import { calculateAverageProgress } from '@/lib/utils/reading-progress'
 
 interface ReadingProgress {
   id?: string
@@ -275,9 +276,7 @@ export function useReadingStats() {
     completedBooks: progressData.filter(p => p.isCompleted).length,
     totalPagesRead: progressData.reduce((sum, p) => sum + (p.currentPage || 0), 0),
     totalReadingTime: progressData.reduce((sum, p) => sum + (p.readingTime || 0), 0),
-    averageProgress: progressData.length > 0
-      ? progressData.reduce((sum, p) => sum + p.progress, 0) / progressData.length
-      : 0,
+    averageProgress: calculateAverageProgress(progressData.map(p => p.progress)),
   }
 
   return stats

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { calculatePageProgress } from '@/lib/utils/reading-progress'
 
 interface Book {
   fileUrl: string
@@ -205,7 +206,7 @@ export function PDFReaderModal({
 
   const handlePageChange = useCallback(
     (page: number, total: number) => {
-      const progress = (page / total) * 100
+      const progress = calculatePageProgress(page, total)
       setCurrentPage(page)
       setTotalPages(total)
       setReadingProgress({ currentPage: page, progress })

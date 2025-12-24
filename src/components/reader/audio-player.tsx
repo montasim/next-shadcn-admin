@@ -22,6 +22,7 @@ import {
   Minimize2
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { calculateAudioProgress } from '@/lib/utils/reading-progress'
 
 interface AudioChapter {
   id: string
@@ -68,7 +69,7 @@ export function AudioPlayer({
   const [showSettings, setShowSettings] = useState(false)
 
   const currentChapter = chapters[currentChapterIndex]
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0
+  const progress = calculateAudioProgress(currentTime, duration)
 
   // Auto-save progress every 30 seconds
   useEffect(() => {
