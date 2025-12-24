@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { BookList } from './book-list'
 import { Bookshelves } from './components/bookshelves'
+import { PDFReaderModal } from '@/components/reader/pdf-reader-modal'
 import { BookshelfContent } from './components/bookshelf-content'
 import { BookshelfMutateDrawer } from './bookshelf-mutate-drawer'
 import { UploadBooksMutateDrawer } from './upload-books-mutate-drawer'
@@ -111,6 +112,10 @@ export default function LibraryPage() {
   })
   const [showSummary, setShowSummary] = useState(true)
 
+  // Reader modal state
+  const [isReaderModalOpen, setIsReaderModalOpen] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState('')
   const [filterReadingStatus, setFilterReadingStatus] = useState<string[]>([])
@@ -151,6 +156,11 @@ export default function LibraryPage() {
   const handleEditBookshelf = (bookshelf: any) => {
     setEditingBookshelf(bookshelf)
     setIsShelfDrawerOpen(true)
+  }
+
+  const handleBookClick = (book: Book) => {
+    setSelectedBook(book)
+    setIsReaderModalOpen(true)
   }
 
   const handleDeleteBookshelf = (bookshelf: any) => {
@@ -450,11 +460,12 @@ export default function LibraryPage() {
             />
 
             {/* Scrollable book list - only this scrolls on mobile */}
-            <div className="overflow-y-auto max-h-[calc(100vh-28rem)] pb-20 md:overflow-y-visible md:max-h-none md:pb-0">
+            <div className={`overflow-y-auto pb-24 md:overflow-y-visible md:max-h-none md:pb-0 ${showSummary ? 'max-h-[calc(100vh-46rem)]' : 'max-h-[calc(100vh-28rem)]'}`}>
               <BookList
                 books={filteredBooks}
                 openDrawer={() => setIsBookDrawerOpen(true)}
                 onEdit={handleEditBook}
+                onCardClick={handleBookClick}
               />
             </div>
           </TabsContent>
@@ -473,7 +484,7 @@ export default function LibraryPage() {
               bookshelfCount={filteredBookshelves.length}
             />
 
-            <div className="overflow-y-auto max-h-[calc(100vh-24rem)] pb-20 md:overflow-y-visible md:max-h-none md:pb-0">
+            <div className="overflow-y-auto max-h-[calc(100vh-24rem)] pb-24 md:overflow-y-visible md:max-h-none md:pb-0">
               <Bookshelves
                 key={bookshelfKey}
                 bookshelves={filteredBookshelves}
@@ -528,6 +539,17 @@ export default function LibraryPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PDF Reader Modal */}
+      {selectedBook && selectedBook.fileUrl && (
+        <PDFReaderModal
+          isOpen={isReaderModalOpen}
+          onClose={() => setIsReaderModalOpen(false)}
+          bookId={selectedBook.id}
+          fileUrl={selectedBook.fileUrl}
+          initialPage={selectedBook.readingProgress?.[0]?.currentPage}
+        />
+      )}
     </LibraryContextProvider>
   )
 }

@@ -12,7 +12,7 @@ interface LibraryContextProps {
   refreshBooks: () => void
 }
 
-const LibraryContext = createContext<LibraryContextProps | undefined>(undefined)
+export const LibraryContext = createContext<LibraryContextProps | undefined>(undefined)
 
 export function useLibraryContext() {
   const context = useContext(LibraryContext)

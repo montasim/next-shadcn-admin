@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FolderOpen, Plus, Loader2 } from 'lucide-react'
-import { BookCard } from '../book-card'
 import { getBookshelfById, removeBookFromBookshelf } from '../actions'
 import { UploadBooksMutateDrawer } from '../upload-books-mutate-drawer'
 import { toast } from '@/hooks/use-toast'
@@ -18,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {BookCard} from "@/components";
 
 interface BookshelfContentProps {
   bookshelfId: string;
