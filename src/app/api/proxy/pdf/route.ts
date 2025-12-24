@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { pdfCache, generateCacheKey } from '@/lib/cache/pdf-cache';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,6 +12,24 @@ export async function GET(request: NextRequest) {
   console.log('[PDF Proxy] Starting download for URL:', url);
 
   try {
+    // Generate cache key
+    const cacheKey = generateCacheKey(url);
+
+    // Check cache first
+    const cachedBuffer = pdfCache.get(cacheKey);
+    if (cachedBuffer) {
+      console.log('[PDF Proxy] Serving from cache');
+      return new NextResponse(cachedBuffer, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          'X-Cache': 'HIT',
+        },
+      });
+    }
+
+    // Cache miss - fetch from Google Drive
+    console.log('[PDF Proxy] Cache miss, fetching from Google Drive...');
+
     // Google Drive preview URLs are not direct file links.
     // A common workaround is to modify the URL to get a direct download link.
     // e.g., from /preview to /export?format=pdf or by getting the direct download link.
@@ -69,9 +88,13 @@ export async function GET(request: NextRequest) {
         const fileBuffer = await confirmedResponse.arrayBuffer();
         console.log('[PDF Proxy] Download complete, size:', fileBuffer.byteLength, 'bytes');
 
+        // Cache the buffer
+        pdfCache.set(cacheKey, fileBuffer);
+
         return new NextResponse(fileBuffer, {
           headers: {
             'Content-Type': 'application/pdf',
+            'X-Cache': 'MISS',
           },
         });
       }
@@ -82,9 +105,13 @@ export async function GET(request: NextRequest) {
     const fileBuffer = await response.arrayBuffer();
     console.log('[PDF Proxy] Download complete, size:', fileBuffer.byteLength, 'bytes');
 
+    // Cache the buffer
+    pdfCache.set(cacheKey, fileBuffer);
+
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
+        'X-Cache': 'MISS',
       },
     });
 
