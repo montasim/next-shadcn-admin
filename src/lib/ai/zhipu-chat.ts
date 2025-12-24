@@ -1,5 +1,6 @@
 import { generateZhipuToken } from './zhipu';
 import { extractRelevantContent, formatContentForAI } from './pdf-extractor';
+import { downloadAndExtractPdf, getPdfExcerpt } from './pdf-downloader';
 import { config } from '@/config';
 
 export interface ChatMessage {
@@ -81,9 +82,22 @@ export async function chatWithZhipuAI(request: ChatRequest): Promise<ChatRespons
       15
     );
   } else if (request.pdfUrl) {
-    // In a real implementation, you would fetch and extract PDF here
-    // For now, we'll use a placeholder
-    bookContent = '[PDF content will be extracted from: ' + request.pdfUrl + ']';
+    // Download and extract PDF content
+    console.log('[Zhipu AI] Downloading PDF from:', request.pdfUrl);
+
+    try {
+      const pdfData = await downloadAndExtractPdf(request.pdfUrl);
+
+      // Get a reasonable excerpt (first 20k chars) to avoid exceeding token limits
+      bookContent = getPdfExcerpt(pdfData.text, 20000);
+
+      console.log('[Zhipu AI] PDF content extracted, length:', bookContent.length);
+      console.log('[Zhipu AI] PDF pages:', pdfData.numPages);
+    } catch (error: any) {
+      console.error('[Zhipu AI] PDF extraction failed:', error);
+      // Continue without PDF content - AI will answer based on metadata only
+      bookContent = `[Could not extract PDF content: ${error.message}]`;
+    }
   }
 
   // Build system prompt
@@ -135,7 +149,7 @@ Provide accurate, helpful responses based strictly on this book's content.`;
       messages: apiMessages,
       temperature: 0.3, // Lower temperature for more focused responses
       top_p: 0.7,
-      max_tokens: 2000,
+      max_tokens: 8000,
       stream: false
     })
   });
@@ -172,8 +186,16 @@ Provide accurate, helpful responses based strictly on this book's content.`;
     throw new Error('No response from Zhipu AI');
   }
 
+  const choice = data.choices[0];
+  const message = choice.message;
+
+  // Some GLM models return the response in reasoning_content instead of content
+  const responseContent = message?.content || message?.reasoning_content || '';
+
+  console.log('[Zhipu AI] Response content length:', responseContent.length);
+
   return {
-    response: data.choices[0].message.content,
+    response: responseContent,
     model: data.model,
     usage: {
       promptTokens: data.usage.prompt_tokens,
