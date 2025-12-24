@@ -22,18 +22,20 @@ import { PagesReadChart } from '@/components/reading/pages-read-chart'
 import { CircularProgressBar } from '@/components/reading/circular-progress-bar'
 import { MDXViewer } from '@/components/ui/mdx-viewer'
 import {
-  BookOpen,
-  Users,
-  Share2,
-  Lock,
-  Play,
-  ArrowLeft,
-  Eye,
-  Building2,
-  Calendar,
-  CheckCircle,
-  User as UserIcon,
+    BookOpen,
+    LibraryBig,
+    Users,
+    Share2,
+    Lock,
+    Play,
+    Eye,
+    Building2,
+    Calendar,
+    CheckCircle,
+    User as UserIcon,
+    Home, ArrowLeft,
 } from 'lucide-react'
+import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 
 export default function BookDetailsPage() {
   const params = useParams()
@@ -229,13 +231,15 @@ export default function BookDetailsPage() {
     <div className="min-h-screen bg-background">
       {/* Book Details */}
       <div className="container mx-auto px-4 py-8 pb-24 sm:pb-8">
-        {/* Back Navigation */}
-        <div className="mb-6">
-          <Link href="/books" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Books
-          </Link>
-        </div>
+        {/* Breadcrumb */}
+        <NavigationBreadcrumb
+          className="mb-6"
+          items={[
+            { label: 'Home', href: '/', icon: <Home className="h-4 w-4" /> },
+            { label: 'Books', href: '/books', icon: <LibraryBig className="h-4 w-4" /> },
+            { label: book.name },
+          ]}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Book Cover and Actions */}
