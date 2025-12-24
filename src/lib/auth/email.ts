@@ -12,20 +12,21 @@
  */
 
 import { Resend } from 'resend'
+import { config } from '@/config'
 
 // ============================================================================
 // RESEND CLIENT INITIALIZATION
 // ============================================================================
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(config.resendApiKey)
 
 // ============================================================================
 // EMAIL CONFIGURATION
 // ============================================================================
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev'
+const FROM_EMAIL = config.fromEmail || 'onboarding@resend.dev'
 const APP_NAME = 'Admin Portal'
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
+const BASE_URL = config.baseUrl || 'http://localhost:3000'
 
 // ============================================================================
 // EMAIL TEMPLATES

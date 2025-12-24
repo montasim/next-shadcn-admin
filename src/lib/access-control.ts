@@ -8,6 +8,7 @@
 import { BookType } from '@prisma/client'
 import { getSession, isAuthenticated } from '@/lib/auth/session'
 import { AuthenticationError, SessionExpiredError } from '@/lib/auth/types'
+import { publicConfig } from '@/config'
 
 // ============================================================================
 // BOOK ACCESS CONTROL
@@ -314,7 +315,7 @@ export async function canReadBookType(
  */
 export function getAccessRestrictedUrl(
     bookId: string,
-    baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    baseUrl: string = publicConfig.appUrl || 'http://localhost:3000'
 ): string {
     return `${baseUrl}/books/${bookId}?access=denied`
 }
@@ -326,7 +327,7 @@ export function getAccessRestrictedUrl(
  * @returns {string} URL for subscription page
  */
 export function getSubscriptionUrl(
-    baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    baseUrl: string = publicConfig.appUrl || 'http://localhost:3000'
 ): string {
     return `${baseUrl}/subscription`
 }

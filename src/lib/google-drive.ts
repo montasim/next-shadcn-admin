@@ -1,13 +1,14 @@
 import { google } from 'googleapis'
 import { Readable } from 'stream'
+import { config } from '@/config'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive']
 
 // Initialize Google Drive API
 const auth = new google.auth.GoogleAuth({
   credentials: {
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    client_email: config.google.clientEmail,
+    private_key: config.google.privateKey?.replace(/\\n/g, '\n'),
   },
   scopes: SCOPES,
 })

@@ -14,6 +14,7 @@
 
 import { cookies } from 'next/headers'
 import { LoginSessionData, SessionExpiredError } from './types'
+import { config } from '@/config'
 
 // ============================================================================
 // SESSION CONFIGURATION
@@ -53,7 +54,7 @@ export async function createLoginSession(
 
     cookieStore.set(SESSION_COOKIE_NAME, JSON.stringify(sessionData), {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: config.isProduction,
         sameSite: 'lax',
         maxAge: SESSION_MAX_AGE,
         path: '/',
