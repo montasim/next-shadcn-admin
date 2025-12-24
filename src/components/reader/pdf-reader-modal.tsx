@@ -20,6 +20,7 @@ import { calculatePageProgress } from '@/lib/utils/reading-progress'
 
 interface Book {
   fileUrl: string
+  directFileUrl?: string | null
   pageNumber?: number | null
 }
 
@@ -33,6 +34,7 @@ interface PDFReaderModalProps {
   onClose: () => void
   bookId: string
   fileUrl?: string | null
+  directFileUrl?: string | null
   initialPage?: number | null
 }
 
@@ -41,6 +43,7 @@ export function PDFReaderModal({
   onClose,
   bookId,
   fileUrl: propFileUrl,
+  directFileUrl: propDirectFileUrl,
   initialPage: propInitialPage,
 }: PDFReaderModalProps) {
   const [book, setBook] = useState<Book | null>(null)
@@ -361,6 +364,7 @@ export function PDFReaderModal({
               ref={pdfViewerRef}
               key={`${bookId}-${fileUrl}`}
               fileUrl={fileUrl}
+              directFileUrl={book?.directFileUrl || propDirectFileUrl}
               initialPage={initialPage}
               onPageChange={handlePageChange}
               scale={scale}

@@ -13,6 +13,7 @@ export interface ChatRequest {
   bookName: string;
   bookType: string;
   pdfUrl: string;
+  pdfDirectUrl?: string | null; // Direct download URL (optional)
   pdfContent?: string; // Pre-extracted content (optional)
   authors: string[];
   categories: string[];
@@ -86,7 +87,10 @@ export async function chatWithZhipuAI(request: ChatRequest): Promise<ChatRespons
     console.log('[Zhipu AI] Downloading PDF from:', request.pdfUrl);
 
     try {
-      const pdfData = await downloadAndExtractPdf(request.pdfUrl);
+      const pdfData = await downloadAndExtractPdf(
+        request.pdfUrl,
+        request.pdfDirectUrl // Pass direct URL for better performance
+      );
 
       // Get a reasonable excerpt (first 20k chars) to avoid exceeding token limits
       bookContent = getPdfExcerpt(pdfData.text, 20000);

@@ -111,6 +111,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       bookName: book.name,
       bookType: book.type,
       pdfUrl: book.fileUrl,
+      pdfDirectUrl: book.directFileUrl,
       authors: authorNames,
       categories: categoryNames,
       messages

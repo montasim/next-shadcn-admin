@@ -10,13 +10,21 @@ export interface ParsedPdf {
  * Downloads and extracts text content from a PDF URL
  * Uses the existing PDF proxy endpoint for Google Drive files
  */
-export async function downloadAndExtractPdf(pdfUrl: string): Promise<ParsedPdf> {
+export async function downloadAndExtractPdf(
+  pdfUrl: string,
+  directUrl?: string | null
+): Promise<ParsedPdf> {
   console.log('[PDF Downloader] Starting download from:', pdfUrl);
 
-  // Use the existing PDF proxy endpoint for Google Drive files
+  // Use direct URL if available for better performance, otherwise use proxy
   let downloadUrl = pdfUrl;
 
-  if (pdfUrl.includes('drive.google.com')) {
+  if (directUrl) {
+    // Use direct URL without proxy
+    downloadUrl = directUrl;
+    console.log('[PDF Downloader] Using direct URL');
+  } else if (pdfUrl.includes('drive.google.com')) {
+    // Fall back to proxy for Google Drive files
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL || 'http://localhost:3000';
     downloadUrl = `${baseUrl}/api/proxy/pdf?url=${encodeURIComponent(pdfUrl)}`;
     console.log('[PDF Downloader] Using proxy endpoint:', downloadUrl);

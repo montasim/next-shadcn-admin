@@ -749,6 +749,7 @@ export default function BookDetailsPage() {
           onClose={() => setIsReaderModalOpen(false)}
           bookId={bookId}
           fileUrl={book.fileUrl}
+          directFileUrl={book.directFileUrl}
           initialPage={book.readingProgress?.currentPage}
         />
       )}

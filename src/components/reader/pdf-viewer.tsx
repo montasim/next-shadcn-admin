@@ -24,6 +24,7 @@ import { calculatePageProgress } from '@/lib/utils/reading-progress'
 
 interface PDFViewerProps {
   fileUrl: string
+  directFileUrl?: string | null
   onPageChange?: (currentPage: number, totalPages: number) => void
   onProgressChange?: (progress: number) => void
   initialPage?: number
@@ -63,6 +64,7 @@ interface PDFViewport {
 
 export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
   fileUrl,
+  directFileUrl,
   onPageChange,
   onProgressChange,
   initialPage = 1,
@@ -95,18 +97,19 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
   // Expose download method via ref
   useImperativeHandle(ref, () => ({
     downloadPDF: () => {
-      const downloadUrl = fileUrl.includes('drive.google.com')
+      // Use direct URL if available, otherwise fall back to proxy
+      const downloadUrl = directFileUrl || (fileUrl.includes('drive.google.com')
         ? `/api/proxy/pdf?url=${encodeURIComponent(fileUrl)}`
-        : fileUrl
+        : fileUrl)
 
       const link = document.createElement('a')
       link.href = downloadUrl
-      link.download = `${fileUrl.split('/').pop() || 'book'}.pdf`
+      link.download = `book.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
     }
-  }), [fileUrl])
+  }), [directFileUrl, fileUrl])
 
   // Load PDF.js dynamically
   const loadPDFJS = useCallback(async () => {
@@ -129,9 +132,11 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
       setError(null)
       setLoadingProgress(0)
 
-      // Convert Google Drive URLs to proxy API URLs to avoid CORS/iframe issues
-      let proxiedUrl = fileUrl
-      if (fileUrl.includes('drive.google.com') || fileUrl.includes('docs.google.com')) {
+      // Use direct URL if available for better performance, otherwise use proxy
+      let proxiedUrl = directFileUrl || fileUrl
+
+      // Only use proxy if we don't have direct URL and it's a Google Drive URL
+      if (!directFileUrl && (fileUrl.includes('drive.google.com') || fileUrl.includes('docs.google.com'))) {
         proxiedUrl = `/api/proxy/pdf?url=${encodeURIComponent(fileUrl)}`
       }
 
@@ -156,7 +161,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
     } finally {
       setIsLoading(false)
     }
-  }, [fileUrl, initialPage, loadPDFJS, onPageChange, onProgressChange]) // eslint-disable-line react-hooks/exhaustive-deps -- scale & rotation read via closure, not as deps
+  }, [directFileUrl, fileUrl, initialPage, loadPDFJS, onPageChange, onProgressChange]) // eslint-disable-line react-hooks/exhaustive-deps -- scale & rotation read via closure, not as deps
 
   // Render specific page
   const renderPage = useCallback(async (pdf: PDFDocument, pageNumber: number, currentScale: number, currentRotation: number) => {
