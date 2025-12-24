@@ -577,6 +577,14 @@ export default function BooksPage() {
                         key={book.id}
                         book={book}
                         variant={viewMode === 'list' ? 'compact' : 'default'}
+                        viewMoreHref={`/books/${book.id}`}
+                        showTypeBadge={true}
+                        showPremiumBadge={true}
+                        showCategories={true}
+                        showReaderCount={true}
+                        showAddToBookshelf={true}
+                        showLockOverlay={true}
+                        coverHeight="tall"
                       />
                     ))}
                   </div>
