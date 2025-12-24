@@ -283,3 +283,94 @@ export async function getBookReadingStats(bookId: string, userId: string) {
     lastRead,
   }
 }
+
+// ============================================================================
+// OVERALL USER READING ACTIVITY (All Books)
+// ============================================================================
+
+/**
+ * Get user's overall reading heatmap data across all books
+ * Returns daily activity for the last 365 days
+ */
+export async function getUserOverallReadingHeatmap(
+  userId: string,
+  days: number = 365
+): Promise<HeatmapData[]> {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - days)
+  startDate.setHours(0, 0, 0, 0)
+
+  const history = await prisma.progressHistory.findMany({
+    where: {
+      userId,
+      sessionDate: {
+        gte: startDate,
+      },
+    },
+    orderBy: {
+      sessionDate: 'asc',
+    },
+  })
+
+  // Group by date
+  const dailyMap = new Map<string, { pagesRead: number; timeSpent: number }>()
+
+  history.forEach((record) => {
+    const dateKey = record.sessionDate.toISOString().split('T')[0]
+    const current = dailyMap.get(dateKey) || { pagesRead: 0, timeSpent: 0 }
+    dailyMap.set(dateKey, {
+      pagesRead: current.pagesRead + (record.pagesRead || 0),
+      timeSpent: current.timeSpent + (record.timeSpent || 0),
+    })
+  })
+
+  // Convert to array and calculate intensity levels
+  const result: HeatmapData[] = []
+  const maxPagesRead = Math.max(...Array.from(dailyMap.values()).map((v) => v.pagesRead), 1)
+
+  dailyMap.forEach((value, dateKey) => {
+    // Calculate intensity level (0-4)
+    const level = value.pagesRead === 0 ? 0 : Math.ceil((value.pagesRead / maxPagesRead) * 4)
+    result.push({
+      date: dateKey,
+      pagesRead: value.pagesRead,
+      timeSpent: value.timeSpent,
+      level: Math.min(level, 4),
+    })
+  })
+
+  return result
+}
+
+/**
+ * Get user's overall pages read per day across all books
+ */
+export async function getUserOverallPagesReadPerDay(
+  userId: string,
+  days: number = 30
+): Promise<PagesReadData[]> {
+  const startDate = new Date()
+  startDate.setDate(startDate.getDate() - days)
+  startDate.setHours(0, 0, 0, 0)
+
+  const history = await prisma.progressHistory.groupBy({
+    by: ['sessionDate'],
+    where: {
+      userId,
+      sessionDate: {
+        gte: startDate,
+      },
+    },
+    _sum: {
+      pagesRead: true,
+    },
+    orderBy: {
+      sessionDate: 'asc',
+    },
+  })
+
+  return history.map((h) => ({
+    date: h.sessionDate.toISOString().split('T')[0],
+    pagesRead: h._sum.pagesRead || 0,
+  }))
+}
