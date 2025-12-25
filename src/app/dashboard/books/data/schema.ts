@@ -11,6 +11,7 @@ export const bookSchema = z.object({
   fileUrl: z.string().optional().nullable(),
   directFileUrl: z.string().optional().nullable(),
   summary: z.string().optional(),
+  extractedContent: z.string().optional().nullable(),
   buyingPrice: z.number().nullable(),
   sellingPrice: z.number().nullable(),
   numberOfCopies: z.number().nullable(),
