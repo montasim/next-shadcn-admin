@@ -75,7 +75,7 @@ const formSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books-old',
+        message: 'Binding type is required for hard copy books',
         path: ['bindingType'],
       });
     }
@@ -84,6 +84,13 @@ const formSchema = z.object({
         code: z.ZodIssueCode.custom,
         message: 'Page number is required and must be a positive number',
         path: ['pageNumber'],
+      });
+    }
+    if (!data.numberOfCopies || isNaN(Number(data.numberOfCopies)) || Number(data.numberOfCopies) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Number of copies is required and must be a positive number',
+        path: ['numberOfCopies'],
       });
     }
   } else if (data.type === 'EBOOK') {
@@ -105,7 +112,7 @@ const formSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books-old',
+        message: 'File is required for audio books',
         path: ['fileUrl'],
       });
     }
@@ -214,6 +221,21 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
   }, [open, currentRow, isUpdate]);
 
   const watchType = form.watch('type')
+  const watchFileUrl = form.watch('fileUrl')
+
+  // When type changes, trigger form re-validation to update conditional field requirements
+  useEffect(() => {
+    form.trigger()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchType, form])
+
+  // When file changes, trigger form re-validation to update button state
+  useEffect(() => {
+    if (watchFileUrl) {
+      form.trigger(['fileUrl', 'pageNumber'])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchFileUrl, form])
 
   useEffect(() => {
     const fetchData = async () => {
