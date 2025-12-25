@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, Menu, X, ChevronDown } from 'lucide-react'
+import { BookOpen, Menu, X, ChevronDown, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -45,6 +45,10 @@ export function PublicHeader({ className }: PublicHeaderProps) {
               <nav className="flex flex-col space-y-2 px-2">
                 <Link href="/books" className="text-sm font-medium hover:text-primary">
                   Browse Books
+                </Link>
+                <Link href="/quiz" className="text-sm font-medium hover:text-primary flex items-center gap-2">
+                  <Brain className="h-4 w-4" />
+                  Quiz Game
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

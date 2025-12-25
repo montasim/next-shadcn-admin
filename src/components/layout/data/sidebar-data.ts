@@ -176,6 +176,16 @@ export const sidebarData: SidebarData = {
       ],
     },
     {
+      title: 'Games',
+      items: [
+        {
+          title: 'Quiz Game',
+          url: '/quiz',
+          icon: Brain,
+        },
+      ],
+    },
+    {
       title: 'Other',
       items: [
         {
@@ -192,11 +202,6 @@ export const sidebarData: SidebarData = {
           title: 'My Requests',
           url: '/library/my-requests',
           icon: IconBooks,
-        },
-        {
-          title: 'Quiz Game',
-          url: '/quiz',
-          icon: Brain,
         },
         {
           title: 'Settings',
