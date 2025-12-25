@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { chatWithZhipuAI } from '@/lib/ai/zhipu-chat';
 import { generatePreFilledQuery } from '@/lib/ai/query-generator';
+import { saveChatMessage, getNextMessageIndex } from '@/lib/lms/repositories/book-chat.repository';
+import { getSession } from '@/lib/auth/session';
+import { findUserById } from '@/lib/user/repositories/user.repository';
+import { crypto } from 'node:crypto';
 
 interface RouteContext {
   params: Promise<{
@@ -26,6 +30,29 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     } = body;
 
     console.log('[Chat API] Request body:', { message, generatePrefilled, historyLength: conversationHistory.length });
+
+    // Get user from session (required for chat)
+    const session = await getSession();
+    const user = session ? await findUserById(session.userId) : null;
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required for chat' },
+        { status: 401 }
+      );
+    }
+
+    // Generate or retrieve session ID for grouping messages
+    let sessionId = body.sessionId;
+    if (!sessionId) {
+      // Check if there's a recent session (within 30 minutes or today)
+      const lastChat = conversationHistory.length > 0 ? conversationHistory[0] : null;
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // If no recent session, create new one
+      sessionId = crypto.randomBytes(16).toString('hex');
+    }
 
     // Fetch book details from public API
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL || 'http://localhost:3000';
@@ -84,14 +111,34 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       content: m.content
     }));
 
+    let userMessage = '';
+
     // Generate pre-filled query for first message
     if (generatePrefilled || messages.length === 0) {
       const preFilledQuery = await generatePreFilledQuery(book);
+      userMessage = preFilledQuery;
       messages = [
-        { role: 'user', content: preFilledQuery }
+        { role: 'user', content: userMessage }
       ];
     } else if (message) {
-      messages.push({ role: 'user', content: message });
+      userMessage = message;
+      messages.push({ role: 'user', content: userMessage });
+    }
+
+    // Save user message to database
+    try {
+      const messageIndex = await getNextMessageIndex(bookId, sessionId);
+      await saveChatMessage({
+        bookId,
+        userId: user.id,
+        sessionId,
+        role: 'user',
+        content: userMessage,
+        messageIndex,
+      });
+    } catch (error) {
+      console.error('[Chat API] Failed to save user message:', error);
+      // Continue anyway - don't block chat for logging errors
     }
 
     // Call Zhipu AI
@@ -122,9 +169,26 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     // Add assistant response to history
     messages.push({ role: 'assistant', content: result.response });
 
+    // Save assistant response to database
+    try {
+      const messageIndex = await getNextMessageIndex(bookId, sessionId);
+      await saveChatMessage({
+        bookId,
+        userId: user.id,
+        sessionId,
+        role: 'assistant',
+        content: result.response,
+        messageIndex,
+      });
+    } catch (error) {
+      console.error('[Chat API] Failed to save assistant message:', error);
+      // Continue anyway - don't block chat for logging errors
+    }
+
     return NextResponse.json({
       response: result.response,
       conversationHistory: messages,
+      sessionId,
       usage: result.usage
     });
 

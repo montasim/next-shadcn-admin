@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useBook } from '@/hooks/use-book'
@@ -36,7 +36,7 @@ import {
     Calendar,
     CheckCircle,
     User as UserIcon,
-    Home, ArrowLeft,
+    Home, ArrowLeft, Sparkles, RefreshCw,
 } from 'lucide-react'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 
@@ -67,6 +67,16 @@ export default function BookDetailsPage() {
   const { data: responseData, isLoading, error } = useBook({ id: bookId })
   const book = responseData?.data?.book
   const userAccess = responseData?.data?.userAccess
+
+  // Track page view when book is loaded
+  useEffect(() => {
+    if (bookId && book) {
+      // Track view asynchronously in the background
+      fetch(`/api/books/${bookId}/view`, { method: 'POST' }).catch((err) => {
+        console.error('Failed to track view:', err)
+      })
+    }
+  }, [bookId, book])
 
   // Fetcher for SWR
   const fetcher = async (url: string) => {
@@ -498,6 +508,26 @@ export default function BookDetailsPage() {
 
               {/* Description Tab - Book Description and Author Info */}
               <TabsContent value="description" className="mt-4 space-y-4">
+                {/* AI Summary */}
+                {book.aiSummary && (
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        AI Summary
+                      </CardTitle>
+                      {book.aiSummaryGeneratedAt && (
+                        <p className="text-xs text-muted-foreground">
+                          Generated {new Date(book.aiSummaryGeneratedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <ExpandableDescription description={book.aiSummary} sectionId="ai-summary" />
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Book Summary/Description */}
                 {book.summary && (
                   <Card>
@@ -578,6 +608,43 @@ export default function BookDetailsPage() {
                           </div>
                         </div>
                       ))}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Suggested Questions */}
+                {book.suggestedQuestions && book.suggestedQuestions.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Key Questions About This Book</CardTitle>
+                      <CardDescription>
+                        Explore important questions and answers
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {book.suggestedQuestions.map((sq) => {
+                          const isExpanded = expandedSections[`sq-${sq.id}`]
+                          return (
+                            <div key={sq.id} className="border border-border rounded-lg overflow-hidden">
+                              <button
+                                onClick={() => toggleExpanded(`sq-${sq.id}`)}
+                                className="w-full text-left p-3 hover:bg-muted/50 transition-colors flex items-start justify-between gap-2"
+                              >
+                                <p className="font-medium text-sm flex-1">{sq.question}</p>
+                                <span className="text-muted-foreground text-xs mt-0.5">
+                                  {isExpanded ? '−' : '+'}
+                                </span>
+                              </button>
+                              {isExpanded && sq.answer && (
+                                <div className="px-3 pb-3 pt-0 border-t border-border/50">
+                                  <p className="text-sm text-muted-foreground mt-2">{sq.answer}</p>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
