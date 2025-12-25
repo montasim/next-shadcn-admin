@@ -409,7 +409,9 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                           value={field.value}
                           onChange={field.onChange}
                           onRemove={() => field.onChange(null)}
-                          accept={watchType === 'EBOOK' ? '.pdf,.epub' : '.mp3,.wav'}
+                          accept={watchType === 'EBOOK' ? '.pdf' : '.mp3'}
+                          directUrl={currentRow?.directFileUrl}
+                          isPdf={watchType === 'EBOOK'}
                         />
                       </FormControl>
                       <FormMessage />

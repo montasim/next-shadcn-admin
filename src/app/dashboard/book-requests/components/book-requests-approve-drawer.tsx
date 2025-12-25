@@ -268,7 +268,8 @@ export function BookRequestApproveDrawer({ open, onOpenChange, onSuccess, reques
                       value={field.value}
                       onChange={field.onChange}
                       onRemove={() => field.onChange(null)}
-                      accept={form.watch('type') === 'EBOOK' ? '.pdf,.epub' : '.mp3,.wav'}
+                      accept={form.watch('type') === 'EBOOK' ? '.pdf' : '.mp3'}
+                      isPdf={form.watch('type') === 'EBOOK'}
                     />
                   </FormControl>
                   <FormMessage />

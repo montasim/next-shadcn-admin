@@ -92,7 +92,7 @@ const bookFormSchema = z.object({
 type BookFormValues = z.infer<typeof bookFormSchema>
 
 interface BookFormProps {
-    initialData?: Partial<BookFormValues>
+    initialData?: Partial<BookFormValues> & { directFileUrl?: string | null }
     onSubmit: (data: FormData) => Promise<void>
     isEdit?: boolean
     onCancel: () => void
@@ -310,7 +310,9 @@ export function BookForm({ initialData, onSubmit, isEdit = false, onCancel }: Bo
                                         value={field.value}
                                         onChange={field.onChange}
                                         onRemove={() => field.onChange('')}
-                                        accept={watchType === 'EBOOK' ? '.pdf,.epub' : '.mp3,.wav'}
+                                        accept={watchType === 'EBOOK' ? '.pdf' : '.mp3'}
+                                        directUrl={initialData?.directFileUrl}
+                                        isPdf={watchType === 'EBOOK'}
                                     />
                                 </FormControl>
                                 <FormMessage />

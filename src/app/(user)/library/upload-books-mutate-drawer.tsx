@@ -275,7 +275,9 @@ export function UploadBooksMutateDrawer({ open, onOpenChange, onSuccess, book, p
                       value={field.value}
                       onChange={field.onChange}
                       onRemove={() => field.onChange(null)}
-                      accept={form.watch('type') === 'EBOOK' ? '.pdf,.epub' : '.mp3,.wav'}
+                      accept={form.watch('type') === 'EBOOK' ? '.pdf' : '.mp3'}
+                      directUrl={book?.directFileUrl}
+                      isPdf={form.watch('type') === 'EBOOK'}
                     />
                   </FormControl>
                   <FormMessage />
