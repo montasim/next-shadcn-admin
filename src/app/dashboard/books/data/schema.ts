@@ -4,6 +4,7 @@ export const bookSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Name is required'),
   image: z.string().optional(),
+  directImageUrl: z.string().optional().nullable(),
   type: z.enum(['HARD_COPY', 'EBOOK', 'AUDIO']),
   bindingType: z.enum(['HARDCOVER', 'PAPERBACK']).optional().nullable(),
   pageNumber: z.number().optional().nullable(),
@@ -56,7 +57,7 @@ export const createBookSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books-old',
+        message: 'Binding type is required for hard copy books',
         path: ['bindingType'],
       });
     }
@@ -68,13 +69,6 @@ export const createBookSchema = z.object({
       });
     }
   } else if (data.type === 'EBOOK') {
-    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Page number is required and must be a positive number',
-        path: ['pageNumber'],
-      });
-    }
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -86,7 +80,7 @@ export const createBookSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books-old',
+        message: 'File is required for audio books',
         path: ['fileUrl'],
       });
     }
@@ -115,7 +109,7 @@ export const updateBookSchema = z.object({
     if (!data.bindingType) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Binding type is required for hard copy books-old',
+        message: 'Binding type is required for hard copy books',
         path: ['bindingType'],
       });
     }
@@ -127,13 +121,6 @@ export const updateBookSchema = z.object({
       });
     }
   } else if (data.type === 'EBOOK') {
-    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Page number is required and must be a positive number',
-        path: ['pageNumber'],
-      });
-    }
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -145,7 +132,7 @@ export const updateBookSchema = z.object({
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'File is required for audio books-old',
+        message: 'File is required for audio books',
         path: ['fileUrl'],
       });
     }

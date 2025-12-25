@@ -94,13 +94,6 @@ const formSchema = z.object({
       });
     }
   } else if (data.type === 'EBOOK') {
-    if (!data.pageNumber || isNaN(Number(data.pageNumber)) || Number(data.pageNumber) <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Page number is required and must be a positive number',
-        path: ['pageNumber'],
-      });
-    }
     if (!data.fileUrl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -221,21 +214,12 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
   }, [open, currentRow, isUpdate]);
 
   const watchType = form.watch('type')
-  const watchFileUrl = form.watch('fileUrl')
 
   // When type changes, trigger form re-validation to update conditional field requirements
   useEffect(() => {
     form.trigger()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watchType, form])
-
-  // When file changes, trigger form re-validation to update button state
-  useEffect(() => {
-    if (watchFileUrl) {
-      form.trigger(['fileUrl', 'pageNumber'])
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchFileUrl, form])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -398,7 +382,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                 />
             )}
 
-            {(watchType === 'HARD_COPY' || watchType === 'EBOOK') && (
+            {watchType === 'HARD_COPY' && (
                 <FormField
                   control={form.control}
                   name='pageNumber'
@@ -453,6 +437,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                       value={field.value}
                       onChange={field.onChange}
                       onRemove={() => field.onChange(null)}
+                      directUrl={currentRow?.directImageUrl}
                     />
                   </FormControl>
                   <FormMessage />
