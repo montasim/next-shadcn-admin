@@ -4,6 +4,7 @@ import {
   updateBookExtractedContent
 } from '@/lib/lms/repositories/book.repository';
 import { extractBookContent } from '@/lib/ai/book-content-extractor';
+import { queueBookExtraction } from '@/lib/queue/job-handler';
 
 interface RouteContext {
   params: Promise<{
@@ -14,6 +15,7 @@ interface RouteContext {
 /**
  * POST /api/books/[id]/extract-content
  * Trigger content extraction for a book
+ * Uses job queue if available, otherwise processes synchronously
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
@@ -48,8 +50,23 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       });
     }
 
+    // Try to queue the job first (better for scalability)
+    const queueResult = await queueBookExtraction(id, book.fileUrl, book.directFileUrl);
+
+    if (queueResult.queued) {
+      console.log('[Content Extraction API] Job queued successfully:', queueResult.jobId);
+
+      return NextResponse.json({
+        message: 'Content extraction queued',
+        jobId: queueResult.jobId,
+        queued: true
+      });
+    }
+
+    // Fallback to synchronous processing if queue is not available
+    console.log('[Content Extraction API] Processing extraction synchronously...');
+
     // Extract content
-    console.log('[Content Extraction API] Extracting content...');
     const content = await extractBookContent(book);
 
     // Save to database
@@ -69,7 +86,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       wordCount: content.wordCount,
       pageCount: content.numPages,
       size: content.size,
-      version: (book.contentVersion || 0) + 1
+      version: (book.contentVersion || 0) + 1,
+      queued: false
     });
 
   } catch (error: any) {
