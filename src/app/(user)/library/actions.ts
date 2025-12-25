@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
-import { uploadFile } from '@/lib/google-drive'
+import { uploadFile, deleteFile } from '@/lib/google-drive'
 import { config } from '@/config'
 import { RequestStatus } from '@prisma/client'
 
@@ -66,6 +66,10 @@ export async function createBook(formData: FormData) {
     const image = formData.get('image') as File
     let imageUrl: string | null = null
     if (image && image.size > 0) {
+      // Validate image format (PNG only)
+      if (image.type !== 'image/png') {
+        return { success: false, message: 'Only PNG images are allowed' }
+      }
       const uploadResult = await uploadFile(image, config.google.driveFolderId)
       imageUrl = uploadResult.previewUrl
     }
@@ -164,22 +168,49 @@ export async function updateBook(id: string, formData: FormData) {
       return { success: false, message: validation.error.errors[0].message }
     }
 
-    // Handle file upload
+    // Handle file upload/deletion
     const file = formData.get('file') as File
-    let fileUrl = existingFileUrl || existingBook.fileUrl
+    let fileUrl = existingBook.fileUrl
     let directFileUrl = existingBook.directFileUrl
+
     if (file && file.size > 0) {
+      // Upload new file - delete old one first
+      if (existingBook.fileUrl) {
+        await deleteFile(existingBook.fileUrl)
+      }
       const uploadResult = await uploadFile(file, config.google.driveFolderId)
       fileUrl = uploadResult.previewUrl
       directFileUrl = uploadResult.directUrl
+    } else if (formData.get('removeFile') === 'true') {
+      // File explicitly removed
+      if (existingBook.fileUrl) {
+        await deleteFile(existingBook.fileUrl)
+      }
+      fileUrl = null
+      directFileUrl = null
     }
 
-    // Handle image upload
+    // Handle image upload/deletion
     const image = formData.get('image') as File
-    let imageUrl = existingImageUrl || existingBook.image
+    let imageUrl = existingBook.image
+
     if (image && image.size > 0) {
+      // Validate image format (PNG only)
+      if (image.type !== 'image/png') {
+        return { success: false, message: 'Only PNG images are allowed' }
+      }
+      // Upload new image - delete old one first
+      if (existingBook.image) {
+        await deleteFile(existingBook.image)
+      }
       const uploadResult = await uploadFile(image, config.google.driveFolderId)
       imageUrl = uploadResult.previewUrl
+    } else if (formData.get('removeImage') === 'true') {
+      // Image explicitly removed
+      if (existingBook.image) {
+        await deleteFile(existingBook.image)
+      }
+      imageUrl = null
     }
 
     // Find or create author
@@ -307,6 +338,10 @@ export async function createBookshelf(formData: FormData) {
         const image = formData.get('image') as File
         let imageUrl: string | null = null
         if (image && image.size > 0) {
+            // Validate image format (PNG only)
+            if (image.type !== 'image/png') {
+                return { success: false, message: 'Only PNG images are allowed' }
+            }
             const uploadResult = await uploadFile(image, config.google.driveFolderId)
             imageUrl = uploadResult.previewUrl
         }
@@ -438,11 +473,27 @@ export async function updateBookshelf(id: string, formData: FormData, bookIds: s
       return { success: false, message: 'A bookshelf with this name already exists' }
     }
 
-    // Handle image upload
+    // Handle image upload/deletion
     const image = formData.get('image') as File
     let imageUrl = existingImageUrl || existingShelf.image
+
     if (image && image.size > 0) {
-      imageUrl = await uploadFile(image, config.google.driveFolderId)
+      // Validate image format (PNG only)
+      if (image.type !== 'image/png') {
+        return { success: false, message: 'Only PNG images are allowed' }
+      }
+      // Upload new image - delete old one first
+      if (existingShelf.image) {
+        await deleteFile(existingShelf.image)
+      }
+      const uploadResult = await uploadFile(image, config.google.driveFolderId)
+      imageUrl = uploadResult.previewUrl
+    } else if (formData.get('removeImage') === 'true') {
+      // Image explicitly removed
+      if (existingShelf.image) {
+        await deleteFile(existingShelf.image)
+      }
+      imageUrl = null
     }
 
     // Update bookshelf

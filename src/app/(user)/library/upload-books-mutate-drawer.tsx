@@ -148,12 +148,18 @@ export function UploadBooksMutateDrawer({ open, onOpenChange, onSuccess, book, p
         formData.append('file', data.fileUrl)
       } else if (typeof data.fileUrl === 'string' && data.fileUrl) {
         formData.append('existingFileUrl', data.fileUrl)
+      } else if (data.fileUrl === null && isEditing && book?.fileUrl) {
+        // File was explicitly removed
+        formData.append('removeFile', 'true')
       }
 
       if (data.image instanceof File) {
         formData.append('image', data.image)
       } else if (typeof data.image === 'string' && data.image) {
         formData.append('existingImageUrl', data.image)
+      } else if (data.image === null && isEditing && book?.image) {
+        // Image was explicitly removed
+        formData.append('removeImage', 'true')
       }
 
       // Add requestId if approving a request

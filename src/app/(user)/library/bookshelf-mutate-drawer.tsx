@@ -190,6 +190,9 @@ export function BookshelfMutateDrawer({ open, onOpenChange, onSuccess, bookshelf
           formData.append('image', data.image)
         } else if (typeof data.image === 'string' && data.image) {
           formData.append('existingImageUrl', data.image)
+        } else if (data.image === null && (bookshelf?.image || fullBookshelf?.image)) {
+          // Image was explicitly removed
+          formData.append('removeImage', 'true')
         }
 
         const result = await updateBookshelf(bookshelfId, formData, Array.from(selectedBooks))
