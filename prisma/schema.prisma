@@ -47,6 +47,9 @@ model Author {
   entryBy     User         @relation("UserAuthors", fields: [entryById], references: [id])
   books       BookAuthor[]
 
+  // Analytics
+  views         AuthorView[]
+
   @@map("authors")
 }
 
@@ -63,6 +66,9 @@ model Publication {
   books       BookPublication[]
   entryBy     User              @relation("UserPublications", fields: [entryById], references: [id])
 
+  // Analytics
+  views         PublicationView[]
+
   @@map("publications")
 }
 
@@ -78,6 +84,9 @@ model Category {
   updatedAt   DateTime       @updatedAt
   books       BookCategory[]
   entryBy     User           @relation("UserCategories", fields: [entryById], references: [id])
+
+  // Analytics
+  views         CategoryView[]
 
   @@map("categories")
 }
@@ -228,6 +237,60 @@ model BookChatMessage {
   @@map("book_chat_messages")
 }
 
+model AuthorView {
+  id          String    @id @default(uuid())
+  authorId    String
+  userId      String?   // Nullable for anonymous visits
+  sessionId   String?   // For anonymous tracking
+  visitedAt   DateTime  @default(now())
+  ip          String?   // Optional IP tracking
+  userAgent   String?   // Browser info
+  referrer    String?   // Where they came from
+
+  author      Author    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([authorId, visitedAt])
+  @@index([userId, visitedAt])
+  @@map("author_views")
+}
+
+model PublicationView {
+  id          String    @id @default(uuid())
+  publicationId String
+  userId      String?   // Nullable for anonymous visits
+  sessionId   String?   // For anonymous tracking
+  visitedAt   DateTime  @default(now())
+  ip          String?   // Optional IP tracking
+  userAgent   String?   // Browser info
+  referrer    String?   // Where they came from
+
+  publication Publication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([publicationId, visitedAt])
+  @@index([userId, visitedAt])
+  @@map("publication_views")
+}
+
+model CategoryView {
+  id          String    @id @default(uuid())
+  categoryId  String
+  userId      String?   // Nullable for anonymous visits
+  sessionId   String?   // For anonymous tracking
+  visitedAt   DateTime  @default(now())
+  ip          String?   // Optional IP tracking
+  userAgent   String?   // Browser info
+  referrer    String?   // Where they came from
+
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([categoryId, visitedAt])
+  @@index([userId, visitedAt])
+  @@map("category_views")
+}
+
 model BookRequest {
   id            String        @id @default(uuid())
   bookName      String
@@ -296,6 +359,9 @@ model User {
   // Analytics and chat history
   bookViews           BookView[]
   chatMessages        BookChatMessage[]
+  authorViews         AuthorView[]
+  publicationViews    PublicationView[]
+  categoryViews       CategoryView[]
 
   @@map("users")
 }
