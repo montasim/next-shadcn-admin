@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2, Send, MessageSquare, Bot, Sparkles } from 'lucide-react'
+import { Loader2, Send, MessageSquare, Bot, Sparkles, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { Book } from '@/hooks/use-book'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,8 @@ interface Message {
   timestamp: Date
 }
 
+type ExtractionStatus = 'checking' | 'ready' | 'processing' | 'failed'
+
 interface BookChatModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -26,6 +28,7 @@ interface BookChatModalProps {
 /**
  * Chat modal for asking AI questions about a book
  * Displays conversation history and allows follow-up questions
+ * Shows progress indicator while book content is being extracted
  */
 export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) {
   const { user } = useAuth()
@@ -33,6 +36,8 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [conversationHistory, setConversationHistory] = useState<any[]>([])
+  const [extractionStatus, setExtractionStatus] = useState<ExtractionStatus>('checking')
+  const [extractionProgress, setExtractionProgress] = useState<string>('')
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -41,22 +46,78 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Reset state when modal opens/closes
+  // Check extraction status when modal opens
   useEffect(() => {
     if (!open) {
-      // Reset when closing (optional - remove if you want to persist)
-      // setMessages([])
-      // setInputValue('')
-      // setConversationHistory([])
+      // Reset state when closing
+      setExtractionStatus('checking')
+      setExtractionProgress('')
+      return
     }
-  }, [open])
 
-  // Generate pre-filled query on first open
+    // Only proceed for EBOOK and AUDIO types
+    if (book.type !== 'EBOOK' && book.type !== 'AUDIO') {
+      setExtractionStatus('failed')
+      setExtractionProgress('Chat is only available for ebooks and audiobooks.')
+      return
+    }
+
+    // Check extraction status
+    const checkExtractionStatus = async () => {
+      try {
+        const response = await fetch(`/api/books/${book.id}/extract-content`)
+        const data = await response.json()
+
+        if (data.hasContent) {
+          setExtractionStatus('ready')
+          setExtractionProgress(`Book content ready (${data.wordCount?.toLocaleString()} words, ${data.pageCount} pages)`)
+        } else {
+          setExtractionStatus('processing')
+          setExtractionProgress('Preparing book content for AI chat...')
+
+          // Poll every 2 seconds until ready
+          const pollInterval = setInterval(async () => {
+            try {
+              const pollResponse = await fetch(`/api/books/${book.id}/extract-content`)
+              const pollData = await pollResponse.json()
+
+              if (pollData.hasContent) {
+                setExtractionStatus('ready')
+                setExtractionProgress(`Book content ready! (${pollData.wordCount?.toLocaleString()} words, ${pollData.pageCount} pages)`)
+                clearInterval(pollInterval)
+
+                // Auto-start chat when ready
+                if (messages.length === 0 && user) {
+                  handleInitialChat()
+                }
+              }
+            } catch (error) {
+              console.error('Error polling extraction status:', error)
+              clearInterval(pollInterval)
+              setExtractionStatus('failed')
+              setExtractionProgress('Failed to check content status.')
+            }
+          }, 2000)
+
+          // Cleanup interval on unmount
+          return () => clearInterval(pollInterval)
+        }
+      } catch (error) {
+        console.error('Error checking extraction status:', error)
+        setExtractionStatus('failed')
+        setExtractionProgress('Unable to check book content status.')
+      }
+    }
+
+    checkExtractionStatus()
+  }, [open, book.id, book.type])
+
+  // Generate pre-filled query on first open (only when content is ready)
   useEffect(() => {
-    if (open && messages.length === 0 && user) {
+    if (open && messages.length === 0 && user && extractionStatus === 'ready') {
       handleInitialChat()
     }
-  }, [open])
+  }, [open, extractionStatus, user])
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -189,7 +250,7 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex w-full sm:max-w-2xl flex-col p-0">
-        <SheetHeader className="px-6 py-4 border-b">
+        <SheetHeader className="px-6 py-4 border-b text-left">
           <SheetTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Chat about "{book.name}"
@@ -202,6 +263,51 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
         {/* Messages Area */}
         <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
           <div className="space-y-6">
+            {/* Extraction Status Indicator */}
+            {extractionStatus !== 'ready' && (
+              <div className={cn(
+                "flex items-start gap-3 p-4 rounded-lg border",
+                extractionStatus === 'processing' && "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800",
+                extractionStatus === 'failed' && "bg-destructive/10 border-destructive/20",
+                extractionStatus === 'checking' && "bg-muted/50"
+              )}>
+                {extractionStatus === 'processing' && (
+                  <Loader2 className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                )}
+                {extractionStatus === 'failed' && (
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                )}
+                {extractionStatus === 'checking' && (
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mt-0.5 flex-shrink-0" />
+                )}
+                <div className="flex-1 space-y-1">
+                  <p className={cn(
+                    "text-sm font-medium",
+                    extractionStatus === 'processing' && "text-blue-900 dark:text-blue-100",
+                    extractionStatus === 'failed' && "text-destructive"
+                  )}>
+                    {extractionStatus === 'processing' && "Preparing Book Content"}
+                    {extractionStatus === 'failed' && "Content Preparation Failed"}
+                    {extractionStatus === 'checking' && "Checking..."}
+                  </p>
+                  {extractionProgress && (
+                    <p className={cn(
+                      "text-xs",
+                      extractionStatus === 'processing' && "text-blue-700 dark:text-blue-300",
+                      extractionStatus === 'failed' && "text-destructive/80"
+                    )}>
+                      {extractionProgress}
+                    </p>
+                  )}
+                  {extractionStatus === 'processing' && (
+                    <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-2">
+                      This one-time process may take 30-60 seconds. The book content will be cached for all users.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {messages.length === 0 && isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center space-y-4">
@@ -280,13 +386,21 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask a question about this book..."
-              disabled={isLoading}
+              placeholder={
+                extractionStatus === 'processing'
+                  ? "Please wait while book content is being prepared..."
+                  : extractionStatus === 'failed'
+                  ? "Content preparation failed. Please try again later."
+                  : extractionStatus === 'checking'
+                  ? "Checking book content..."
+                  : "Ask a question about this book..."
+              }
+              disabled={isLoading || extractionStatus !== 'ready'}
               className="flex-1"
             />
             <Button
               onClick={handleSendMessage}
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || !inputValue.trim() || extractionStatus !== 'ready'}
               size="icon"
             >
               {isLoading ? (
