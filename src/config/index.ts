@@ -23,6 +23,9 @@ const serverConfig = {
   // Image Compression (Tinify)
   tinifyApiKey: process.env.TINIFY_API_KEY,
 
+  // PDF Compression (aPDF.io)
+  apdfApiKey: process.env.APDF_API_KEY,
+
   // URLs
   baseUrl: process.env.BASE_URL,
   appUrl: process.env.NEXT_PUBLIC_APP_URL,

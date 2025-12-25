@@ -92,3 +92,31 @@ export function getPdfExcerpt(
   // Get first portion and add a note
   return text.substring(0, maxChars) + '\n\n[... Content truncated for length. The full book contains more content ...]';
 }
+
+/**
+ * Get page count from a PDF File
+ * Faster than full extraction - only gets metadata
+ * @param file - The PDF file
+ * @returns Number of pages in the PDF
+ */
+export async function getPdfPageCount(file: File): Promise<number> {
+  console.log('[PDF Downloader] Getting page count for:', file.name);
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const parser = new PDFParse({ data: buffer });
+
+    // Only get info, not full text (much faster)
+    const info = await parser.getInfo({ parsePageInfo: true });
+
+    await parser.destroy();
+
+    const pageCount = info.total || 0;
+    console.log('[PDF Downloader] Page count:', pageCount);
+
+    return pageCount;
+  } catch (error: any) {
+    console.error('[PDF Downloader] Failed to get page count:', error);
+    throw new Error(`Failed to get PDF page count: ${error.message}`);
+  }
+}

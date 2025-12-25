@@ -2,6 +2,7 @@ import { google } from 'googleapis'
 import { Readable } from 'stream'
 import { config } from '@/config'
 import { compressImage, createCompressedFile, isCompressionAvailable } from '@/lib/image/compressor'
+import { compressPdf, createCompressedPdfFile, isPdfCompressionAvailable } from '@/lib/pdf/compressor'
 
 const SCOPES = ['https://www.googleapis.com/auth/drive']
 
@@ -33,11 +34,77 @@ export async function uploadFile(file: File, folderId: string | undefined): Prom
     throw new Error('Google Drive Folder ID is not configured. Please set GOOGLE_DRIVE_FOLDER_ID in your environment variables.')
   }
 
+  const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+  const isImage = file.type.startsWith('image/');
+
   try {
-    // Compress image if it's an image file and compression is available
+    // Handle PDF compression with aPDF.io
+    if (isPdf && isPdfCompressionAvailable()) {
+      try {
+        console.log('[Google Drive] Compressing PDF before upload...');
+
+        // Step 1: Compress PDF using direct file upload
+        const compressed = await compressPdf(file);
+
+        // Step 2: Only use compressed version if it's actually smaller
+        let fileToUpload: File;
+        if (compressed.compressedSize < compressed.sourceSize) {
+          console.log('[Google Drive] Using compressed PDF (smaller size)');
+          fileToUpload = createCompressedPdfFile(compressed.buffer, file.name);
+        } else {
+          console.log('[Google Drive] Compression did not reduce size, using original PDF');
+          fileToUpload = file;
+        }
+
+        // Step 3: Upload only the chosen version (compressed or original)
+        const buffer = Buffer.from(await fileToUpload.arrayBuffer());
+        const stream = Readable.from(buffer);
+
+        const response = await drive.files.create({
+          requestBody: {
+            name: fileToUpload.name,
+            mimeType: 'application/pdf',
+            parents: [folderId],
+          },
+          media: {
+            mimeType: 'application/pdf',
+            body: stream,
+          },
+          fields: 'id',
+        });
+
+        if (!response.data.id) {
+          throw new Error('PDF uploaded but no ID was returned.');
+        }
+
+        const fileId = response.data.id;
+
+        // Make file publicly readable
+        await drive.permissions.create({
+          fileId,
+          requestBody: {
+            role: 'reader',
+            type: 'anyone',
+          },
+        });
+
+        console.log('[Google Drive] PDF upload successful');
+
+        return {
+          previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+          directUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+          fileId: fileId
+        };
+      } catch (error: any) {
+        console.warn('[Google Drive] PDF compression failed, uploading original:', error.message);
+        // Fall through to upload original PDF
+      }
+    }
+
+    // Handle image compression with Tinify
     let fileToUpload = file;
 
-    if (isCompressionAvailable() && file.type.startsWith('image/')) {
+    if (isImage && isCompressionAvailable()) {
       try {
         console.log('[Google Drive] Compressing image before upload...');
         const compressed = await compressImage(file);
@@ -49,6 +116,7 @@ export async function uploadFile(file: File, folderId: string | undefined): Prom
       }
     }
 
+    // Regular upload (no compression or compression failed)
     const buffer = Buffer.from(await fileToUpload.arrayBuffer())
     const stream = Readable.from(buffer)
 
