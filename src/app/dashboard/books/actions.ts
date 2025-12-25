@@ -436,14 +436,19 @@ export async function createBook(formData: FormData) {
     // Create book
     const createdBook = await createBookInDb(processedData)
 
-    // Trigger async content extraction for ebooks/audiobooks
+    // Trigger content extraction for ebooks/audiobooks (wait for completion)
     if ((processedData.type === 'EBOOK' || processedData.type === 'AUDIO') && processedData.fileUrl) {
-      // Fire and forget - don't await
-      triggerAsyncContentExtraction(createdBook.id)
+      console.log('[Book Actions] Waiting for content extraction...')
+      await triggerAsyncContentExtraction(createdBook.id)
     }
 
     revalidatePath('/dashboard/books-old')
-    return { message: 'Book created successfully' }
+    return {
+      message: 'Book created successfully',
+      note: (processedData.type === 'EBOOK' || processedData.type === 'AUDIO')
+        ? 'Book content is being prepared for AI chat. This may take 30-60 seconds.'
+        : undefined
+    }
   } catch (error) {
     console.error('Error creating book:', error)
     throw error || new Error('Failed to create book')
@@ -577,12 +582,18 @@ export async function updateBook(id: string, formData: FormData) {
       // Clear existing content to force re-extraction
       await clearBookExtractedContent(id)
 
-      // Trigger async extraction
-      triggerAsyncContentExtraction(id)
+      // Trigger extraction and wait for completion
+      console.log('[Book Actions] File changed, waiting for content re-extraction...')
+      await triggerAsyncContentExtraction(id)
     }
 
     revalidatePath('/dashboard/books-old')
-    return { message: 'Book updated successfully' }
+    return {
+      message: 'Book updated successfully',
+      note: fileChanged && (processedData.type === 'EBOOK' || processedData.type === 'AUDIO')
+        ? 'Book content is being re-prepared for AI chat. This may take 30-60 seconds.'
+        : undefined
+    }
   } catch (error) {
     console.error('Error updating book:', error)
     throw error || new Error('Failed to update book')
@@ -615,20 +626,50 @@ export async function deleteBook(id: string) {
 }
 
 /**
- * Trigger async content extraction for a book
+ * Trigger content extraction for a book and wait for completion
  * @param bookId - ID of the book to extract content from
+ * @param timeoutMs - Maximum time to wait for extraction (default: 2 minutes)
  */
-async function triggerAsyncContentExtraction(bookId: string) {
+async function triggerAsyncContentExtraction(bookId: string, timeoutMs: number = 120000) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BASE_URL || 'http://localhost:3000'
 
   try {
-    console.log(`[Book Actions] Triggering content extraction for book: ${bookId}`)
-    await fetch(`${baseUrl}/api/books/${bookId}/extract-content`, {
+    console.log(`[Book Actions] Starting content extraction for book: ${bookId}`)
+
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Extraction timeout')), timeoutMs)
+    )
+
+    // Start the extraction
+    const extractionPromise = fetch(`${baseUrl}/api/books/${bookId}/extract-content`, {
       method: 'POST',
+    }).then(async (res) => {
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Extraction failed')
+      }
+      return data
     })
-    console.log(`[Book Actions] Content extraction triggered successfully`)
-  } catch (error) {
-    console.error('[Book Actions] Failed to trigger content extraction:', error)
-    // Don't throw - this is a fire-and-forget operation
+
+    // Wait for either extraction to complete or timeout
+    const result = await Promise.race([extractionPromise, timeoutPromise]) as any
+
+    console.log(`[Book Actions] Content extraction completed successfully`)
+    console.log(`[Book Actions] - Word count: ${result.wordCount}`)
+    console.log(`[Book Actions] - Page count: ${result.pageCount}`)
+    console.log(`[Book Actions] - Size: ${result.size} bytes`)
+
+    return result
+  } catch (error: any) {
+    console.error('[Book Actions] Content extraction failed:', error.message)
+
+    // Log error but don't throw - book is still created, just chat won't work immediately
+    // The extraction will be triggered again when the first user opens chat
+    if (error.message === 'Extraction timeout') {
+      console.warn('[Book Actions] Extraction timed out. Will retry on first chat access.')
+    }
+
+    return null
   }
 }
