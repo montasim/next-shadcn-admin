@@ -54,30 +54,34 @@ export function NoticeTicker() {
   return (
     <div className="w-full border-b bg-primary/5 dark:bg-primary/10">
       <div className="container mx-auto px-4">
-        <Link href="/notices" className="flex items-center gap-4 overflow-hidden py-2 hover:bg-primary/10 transition-colors">
-          {/* Icon Section */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 shrink-0 rounded">
+        <div className="flex items-center gap-4 overflow-hidden py-2">
+          {/* Icon Section - Clickable to view all notices */}
+          <Link href="/notices" className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 shrink-0 rounded hover:bg-primary/20 transition-colors">
             <Megaphone className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-primary">Notices</span>
-          </div>
+          </Link>
 
           {/* Scrolling Notices */}
           <div className="flex-1 overflow-hidden">
             <div className="notice-scroll-container">
               <div className="notice-scroll-content">
                 {duplicatedNotices.map((notice, index) => (
-                  <div key={`${notice.id}-${index}`} className="notice-item inline-flex items-center gap-2">
+                  <Link
+                    key={`${notice.id}-${index}`}
+                    href={`/notices?notice=${notice.id}`}
+                    className="notice-item inline-flex items-center gap-2 hover:underline"
+                  >
                     <span className="font-semibold text-primary whitespace-nowrap">{notice.title}</span>
                     <span className="text-muted-foreground shrink-0">:</span>
                     <span className="truncate">
                       {notice.content?.trim() || notice.title}
                     </span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
           </div>
-        </Link>
+        </div>
       </div>
 
       <style jsx>{`

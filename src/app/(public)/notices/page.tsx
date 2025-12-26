@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Megaphone, Calendar, Clock } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { Megaphone, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { MDXViewer } from '@/components/ui/mdx-viewer'
@@ -9,6 +10,7 @@ import { HeaderContainer } from '@/components/ui/header-container'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { Home } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 
 interface Notice {
   id: string
@@ -30,8 +32,10 @@ interface NoticesResponse {
 }
 
 export default function NoticesPage() {
+  const searchParams = useSearchParams()
   const [notices, setNotices] = useState<Notice[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [expandedNoticeId, setExpandedNoticeId] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchNotices() {
@@ -52,6 +56,21 @@ export default function NoticesPage() {
 
     fetchNotices()
   }, [])
+
+  // Update expanded notice based on URL query param
+  useEffect(() => {
+    const noticeId = searchParams.get('notice')
+    if (noticeId) {
+      setExpandedNoticeId(noticeId)
+      // Scroll to the notice after a short delay
+      setTimeout(() => {
+        const element = document.getElementById(`notice-${noticeId}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 100)
+    }
+  }, [searchParams])
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null
@@ -127,37 +146,70 @@ export default function NoticesPage() {
           </Card>
         ) : (
           <div className="grid gap-6">
-            {validNotices.map((notice) => (
-              <Card key={notice.id} className="overflow-hidden">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl mb-2">{notice.title}</CardTitle>
-                      <CardDescription className="flex items-center gap-4 text-sm">
-                        {notice.validFrom && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            From: {formatDate(notice.validFrom)}
-                          </span>
-                        )}
-                        {notice.validTo && (
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            To: {formatDate(notice.validTo)}
-                          </span>
-                        )}
-                      </CardDescription>
+            {validNotices.map((notice) => {
+              const isExpanded = expandedNoticeId === notice.id
+              return (
+                <Card
+                  key={notice.id}
+                  id={`notice-${notice.id}`}
+                  className="overflow-hidden transition-all duration-200"
+                >
+                  <CardHeader
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      if (isExpanded) {
+                        setExpandedNoticeId(null)
+                        // Remove query param
+                        window.history.replaceState(null, '', '/notices')
+                      } else {
+                        setExpandedNoticeId(notice.id)
+                        // Add query param
+                        window.history.replaceState(null, '', `/notices?notice=${notice.id}`)
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CardTitle className="text-xl truncate">{notice.title}</CardTitle>
+                          <Button variant="ghost" size="icon" className="shrink-0">
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5" />
+                            )}
+                          </Button>
+                        </div>
+                        <CardDescription className="flex items-center gap-4 text-sm">
+                          {notice.validFrom && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              From: {formatDate(notice.validFrom)}
+                            </span>
+                          )}
+                          {notice.validTo && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              To: {formatDate(notice.validTo)}
+                            </span>
+                          )}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="default" className="shrink-0">Active</Badge>
                     </div>
-                    <Badge variant="default">Active</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <MDXViewer content={notice.content} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+
+                  {/* Expandable Content */}
+                  {isExpanded && (
+                    <CardContent>
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                        <MDXViewer content={notice.content} />
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              )
+            })}
           </div>
         )}
       </main>
