@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { BookGrid } from '@/components/books/book-grid'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { MDXViewer } from '@/components/ui/mdx-viewer'
+import { EntityDetailsSkeleton } from '@/components/entities/entity-details-skeleton'
 import { useCategory } from '@/hooks/use-category'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { getUserDisplayName } from '@/lib/utils/user'
@@ -54,14 +55,7 @@ export default function CategoryDetailsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <p>Loading category details...</p>
-        </div>
-      </div>
-    )
+    return <EntityDetailsSkeleton entityType="category" />
   }
 
   if (error || !category) {
