@@ -2,7 +2,6 @@ import React from "react";
 import { Inter } from 'next/font/google'
 import '../globals.css'
 import { AppQueryClientProvider } from '@/components/providers/query-client-provider'
-import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { PublicHeader } from '@/components/layout/public-header'
@@ -22,32 +21,21 @@ export default function PublicLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AppQueryClientProvider>
-            <div className="min-h-screen bg-background">
-              {/* Public Header/Navbar */}
-              <PublicHeader />
+    <AppQueryClientProvider>
+      <div className="min-h-screen bg-background">
+        {/* Public Header/Navbar */}
+        <PublicHeader />
 
-              <div className="relative flex min-h-screen flex-col">
-                <MDXViewerProvider>
-                  {children}
-                </MDXViewerProvider>
-              </div>
+        <div className="relative flex min-h-screen flex-col">
+          <MDXViewerProvider>
+            {children}
+          </MDXViewerProvider>
+        </div>
 
-              {/* Mobile Bottom Navigation */}
-              <MobileBottomNav />
-            </div>
-            <Toaster />
-          </AppQueryClientProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
+      </div>
+      <Toaster />
+    </AppQueryClientProvider>
   )
 }
