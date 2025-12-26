@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { StatCard } from '@/components/analytics/stat-card'
 
 interface BookRequest {
   id: string
@@ -216,38 +217,10 @@ function BookRequestsPageContent() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statusCounts.all}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statusCounts[RequestStatus.PENDING]}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statusCounts[RequestStatus.IN_PROGRESS]}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{statusCounts[RequestStatus.APPROVED]}</div>
-          </CardContent>
-        </Card>
+        <StatCard title="Total Requests" value={statusCounts.all} />
+        <StatCard title="Pending" value={statusCounts[RequestStatus.PENDING]} />
+        <StatCard title="In Progress" value={statusCounts[RequestStatus.IN_PROGRESS]} />
+        <StatCard title="Approved" value={statusCounts[RequestStatus.APPROVED]} />
       </div>
 
       {/* Filter */}

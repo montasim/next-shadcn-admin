@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import LongText from '@/components/long-text'
 import { callTypes, userTypes } from '../data/data'
 import { User } from '../data/schema'
+import { getUserDisplayName } from '@/lib/utils/user'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
 
@@ -64,8 +65,8 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title='Name' />
     ),
     cell: ({ row }) => {
-      const { firstName, lastName } = row.original
-      const fullName = `${firstName} ${lastName}`
+      const { firstName, lastName, username, name, email } = row.original
+      const fullName = getUserDisplayName({ firstName, lastName, username, name, email })
       return <LongText className='max-w-36'>{fullName}</LongText>
     },
     meta: { className: 'w-36' },

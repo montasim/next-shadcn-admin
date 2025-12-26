@@ -14,6 +14,7 @@ import {
 import { MoreHorizontal, Eye, Clock, CheckCircle, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from '@/hooks/use-toast'
+import { getUserDisplayName } from '@/lib/utils/user'
 
 const statusConfig: Record<RequestStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   [RequestStatus.PENDING]: { label: 'Pending', variant: 'secondary' },
@@ -146,7 +147,13 @@ export const columns = [
     cell: (row: BookRequest) => (
       <div>
         <div className="font-medium">
-          {row.requestedBy?.firstName || row.requestedBy?.name || 'Unknown'}
+          {getUserDisplayName({
+            firstName: row.requestedBy?.firstName,
+            lastName: row.requestedBy?.lastName,
+            username: row.requestedBy?.username,
+            name: row.requestedBy?.name,
+            email: row.requestedBy?.email || '',
+          })}
         </div>
         <div className="text-sm text-muted-foreground">{row.requestedBy?.email}</div>
       </div>
