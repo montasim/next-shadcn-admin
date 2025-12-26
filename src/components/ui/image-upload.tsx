@@ -36,8 +36,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
             setPreview(objectUrl)
             return () => URL.revokeObjectURL(objectUrl)
         } else if (typeof value === 'string') {
-            // Use direct URL for faster loading if available, otherwise use proxied URL
-            const urlToUse = directUrl || getProxiedImageUrl(value) || value
+            // Use proxied URL for Google Drive images (better compatibility)
+            // For non-Google Drive URLs, use directUrl if available
+            const proxiedUrl = getProxiedImageUrl(value)
+            const urlToUse = proxiedUrl || (directUrl && directUrl.trim() !== '' ? directUrl : value)
             setPreview(urlToUse)
         } else {
             setPreview(null)
