@@ -536,13 +536,13 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
             {/* Book Info - Desktop */}
             <div className="space-y-3">
               {/* Title */}
-              <h3 className="font-semibold line-clamp-2 text-foreground group-hover:text-primary transition-colors" title={book.name}>
+              <h3 className="font-semibold truncate text-foreground group-hover:text-primary transition-colors" title={book.name}>
                 {book.name}
               </h3>
 
               {/* Author */}
               {book.authors && book.authors.length > 0 && (
-                <p className="text-sm text-muted-foreground line-clamp-1" title={`by ${authors}`}>
+                <p className="text-sm text-muted-foreground truncate" title={`by ${authors}`}>
                   by {authors}
                 </p>
               )}
