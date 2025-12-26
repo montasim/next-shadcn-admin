@@ -170,7 +170,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       {getTypeIcon()}
                     </div>
                   )}
-                  {showLockOverlay && !book.canAccess && (
+                  {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
                       <Lock className="h-4 w-4 text-white" />
                     </div>
@@ -314,6 +314,15 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                     </div>
                   )}
 
+                  {/* Premium Badge - Bottom Left */}
+                  {showPremiumBadge && book.requiresPremium && (
+                    <div className="absolute bottom-1 left-1 z-10 pointer-events-none">
+                      <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[9px] px-1.5 py-0.5">
+                        Premium
+                      </Badge>
+                    </div>
+                  )}
+
                   {/* Edit/Delete Actions - Mobile */}
                   {showEditActions && (
                     <div className="absolute top-1 right-1 z-20 flex gap-1">
@@ -348,7 +357,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                     </div>
                   )}
 
-                  {showLockOverlay && !book.canAccess && (
+                  {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t pointer-events-none z-10">
                       <Lock className="h-6 w-6 text-white" />
                     </div>
@@ -470,9 +479,9 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                 </div>
               )}
 
-              {/* Premium Badge - Top Right (if premium) */}
+              {/* Premium Badge - Bottom Left */}
               {showPremiumBadge && book.requiresPremium && (
-                <div className="absolute top-2 right-12 z-10 pointer-events-none">
+                <div className="absolute bottom-2 left-2 z-10 pointer-events-none">
                   <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs">
                     Premium
                   </Badge>
@@ -514,7 +523,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
               )}
 
               {/* Lock Overlay */}
-              {showLockOverlay && !book.canAccess && (
+              {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg pointer-events-none">
                   <Lock className="h-8 w-8 text-white" />
                 </div>
