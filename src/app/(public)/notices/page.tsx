@@ -73,31 +73,34 @@ export default function NoticesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeaderContainer>
-        <NavigationBreadcrumb
-          className="mb-6"
-          items={[
-            { label: 'Home', href: '/', icon: <Home className="h-4 w-4" /> },
-            { label: 'Notices' },
-          ]}
-        />
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Megaphone className="h-6 w-6 text-primary" />
-              Notices & Announcements
-            </h1>
-            <p className="text-muted-foreground">
-              Stay updated with the latest news and announcements
-            </p>
-          </div>
-          <Badge variant="secondary" className="text-sm">
-            {validNotices.length} Active
-          </Badge>
-        </div>
-      </HeaderContainer>
+      <main className="container mx-auto px-4 py-8">
+        <HeaderContainer>
+          <NavigationBreadcrumb
+            className="mb-4"
+            items={[
+              { label: 'Home', href: '/', icon: <Home className="h-4 w-4" /> },
+              { label: 'Notices' },
+            ]}
+          />
+        </HeaderContainer>
 
-      <div className="container mx-auto px-4 py-8 pb-24">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <Megaphone className="h-6 w-6 text-primary" />
+                Notices & Announcements
+              </h1>
+              <p className="text-muted-foreground">
+                Stay updated with the latest news and announcements
+              </p>
+            </div>
+            <Badge variant="secondary" className="text-sm shrink-0">
+              {validNotices.length} Active
+            </Badge>
+          </div>
+        </div>
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
@@ -157,7 +160,7 @@ export default function NoticesPage() {
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }
