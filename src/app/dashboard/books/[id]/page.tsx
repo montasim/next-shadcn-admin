@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import useSWR, { mutate } from 'swr'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -62,6 +62,8 @@ export default function AdminBookDetailsPage() {
 
   // AI Summary state
   const [isRegeneratingSummary, setIsRegeneratingSummary] = useState(false)
+  const [pollCount, setPollCount] = useState(0)
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const fetcher = async (url: string) => {
     const res = await fetch(url)
@@ -116,6 +118,7 @@ export default function AdminBookDetailsPage() {
   // Handle regenerate AI summary
   const handleRegenerateSummary = async () => {
     setIsRegeneratingSummary(true)
+    setPollCount(0)
     try {
       const response = await fetch(`/api/books/${bookId}/regenerate-summary`, {
         method: 'POST',
@@ -128,23 +131,41 @@ export default function AdminBookDetailsPage() {
 
       toast({
         title: 'Summary regeneration started',
-        description: 'The AI summary is being generated. This may take a minute.',
+        description: 'The AI summary is being generated in the background. You can navigate away and come back.',
       })
 
-      // Refresh data after a delay to show the updated summary
-      setTimeout(() => {
+      // Start polling for updates
+      pollIntervalRef.current = setInterval(() => {
+        setPollCount(prev => prev + 1)
         mutate(`/api/admin/books/${bookId}/details`)
-      }, 2000)
+      }, 10000) // Poll every 10 seconds
+
+      // Auto-stop polling after 5 minutes
+      setTimeout(() => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+          setIsRegeneratingSummary(false)
+        }
+      }, 300000) // 5 minutes
     } catch (error: any) {
       toast({
         title: 'Failed to regenerate summary',
         description: error.message || 'An error occurred',
         variant: 'destructive',
       })
-    } finally {
       setIsRegeneratingSummary(false)
     }
   }
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current)
+      }
+    }
+  }, [])
 
   // Fetch book details
   const { data: bookData, isLoading, error } = useSWR(
@@ -153,6 +174,36 @@ export default function AdminBookDetailsPage() {
   )
 
   const book = bookData?.data
+
+  // Stop polling when summary is ready or failed
+  useEffect(() => {
+    if (book && isRegeneratingSummary) {
+      if (book.aiSummaryStatus === 'completed' && book.aiSummary) {
+        // Summary is ready
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+        }
+        setIsRegeneratingSummary(false)
+        toast({
+          title: 'Summary generated successfully',
+          description: 'The AI summary has been generated.',
+        })
+      } else if (book.aiSummaryStatus === 'failed') {
+        // Generation failed
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+        }
+        setIsRegeneratingSummary(false)
+        toast({
+          title: 'Summary generation failed',
+          description: 'Failed to generate the summary. Please try again.',
+          variant: 'destructive',
+        })
+      }
+    }
+  }, [book, isRegeneratingSummary])
 
   if (isLoading) {
     return (
@@ -351,10 +402,16 @@ export default function AdminBookDetailsPage() {
                     </Button>
                   </div>
                   <CardDescription>
-                    {book.aiSummaryStatus === 'pending' && 'Summary is being generated...'}
-                    {book.aiSummaryStatus === 'failed' && 'Failed to generate summary. Please try again.'}
-                    {book.aiSummaryStatus === 'completed' && `Generated on ${book.aiSummaryGeneratedAt ? new Date(book.aiSummaryGeneratedAt).toLocaleString() : 'recently'}`}
-                    {!book.aiSummaryStatus && 'Generate an AI summary of this book'}
+                    {isRegeneratingSummary && (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Generating summary... Polling {pollCount > 0 ? `(${pollCount})` : ''}
+                      </span>
+                    )}
+                    {!isRegeneratingSummary && book.aiSummaryStatus === 'pending' && 'Summary is being generated...'}
+                    {!isRegeneratingSummary && book.aiSummaryStatus === 'failed' && 'Failed to generate summary. Please try again.'}
+                    {!isRegeneratingSummary && book.aiSummaryStatus === 'completed' && `Generated on ${book.aiSummaryGeneratedAt ? new Date(book.aiSummaryGeneratedAt).toLocaleString() : 'recently'}`}
+                    {!isRegeneratingSummary && !book.aiSummaryStatus && 'Generate an AI summary of this book'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
