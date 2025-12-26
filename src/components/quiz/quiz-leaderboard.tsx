@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Trophy, Medal, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { getUserDisplayName } from '@/lib/utils/user'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -109,10 +110,13 @@ export function QuizLeaderboard() {
               {/* User Info */}
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">
-                  {entry.user.firstName && entry.user.lastName
-                    ? `${entry.user.firstName} ${entry.user.lastName}`
-                    : entry.user.username || entry.user.name || entry.user.email?.split('@')[0] || 'Anonymous'}
-                  }
+                  {getUserDisplayName({
+                    firstName: entry.user.firstName,
+                    lastName: entry.user.lastName,
+                    username: entry.user.username,
+                    name: entry.user.name,
+                    email: entry.user.email || '',
+                  })}
                 </p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>{entry.category}</span>

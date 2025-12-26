@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { StatCard } from '@/components/analytics/stat-card'
 import {
   BookOpen,
   Clock,
@@ -46,44 +47,26 @@ export default function UserDashboard() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Books Read</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.completedBooks}</div>
-              <p className="text-xs text-muted-foreground">
-                2 this month
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Books Read"
+            value={stats.completedBooks}
+            icon={BookOpen}
+            description="2 this month"
+          />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reading Time</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.readingTime}h</div>
-              <p className="text-xs text-muted-foreground">
-                Total time invested
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Reading Time"
+            value={`${stats.readingTime}h`}
+            icon={Clock}
+            description="Total time invested"
+          />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Currently Reading</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.currentlyReading}</div>
-              <p className="text-xs text-muted-foreground">
-                Active books
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Currently Reading"
+            value={stats.currentlyReading}
+            icon={TrendingUp}
+            description="Active books"
+          />
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

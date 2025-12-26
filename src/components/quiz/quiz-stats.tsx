@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { Flame, Target, Trophy, TrendingUp, Calendar, CheckCircle, Loader2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/context/auth-context'
+import { getUserDisplayName } from '@/lib/utils/user'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -75,10 +76,13 @@ export function QuizStats() {
             </Avatar>
             <div className="flex-1">
               <h3 className="text-xl font-bold">
-                {user?.firstName && user?.lastName
-                  ? `${user.firstName} ${user.lastName}`
-                  : user?.username || user?.name || user?.email?.split('@')[0] || 'Player'
-                }
+                {getUserDisplayName({
+                  firstName: user?.firstName,
+                  lastName: user?.lastName,
+                  username: user?.username,
+                  name: user?.name,
+                  email: user?.email || '',
+                })}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {stats.totalQuizzes} quiz{stats.totalQuizzes !== 1 ? 'zes' : ''} played

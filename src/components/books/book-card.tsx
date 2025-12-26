@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { calculateReadingTime } from '@/lib/utils/reading-time'
+import { getUserDisplayName } from '@/lib/utils/user'
 import { LibraryContext } from '@/app/(user)/library/context/library-context'
 import { AddToBookshelf } from '@/components/books/add-to-bookshelf'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
@@ -389,10 +390,12 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       )}
                     </div>
                     <span className="text-[9px] text-muted-foreground truncate">
-                      {book.entryBy.username?.substring(0, 8) ||
-                       (book.entryBy.firstName
-                        ? `${book.entryBy.firstName} ${book.entryBy.lastName || ''}`.trim().substring(0, 8)
-                        : 'User')}
+                      {(book.entryBy.username || getUserDisplayName({
+                        firstName: book.entryBy.firstName,
+                        lastName: book.entryBy.lastName,
+                        name: book.entryBy.name,
+                        email: '',
+                      })).substring(0, 8)}
                     </span>
                   </Link>
                 )}
@@ -573,10 +576,13 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs">
-                      {book.entryBy.username ||
-                       (book.entryBy.firstName && book.entryBy.lastName
-                        ? `${book.entryBy.firstName} ${book.entryBy.lastName}`
-                        : book.entryBy.name || 'User')}
+                      {getUserDisplayName({
+                        firstName: book.entryBy.firstName,
+                        lastName: book.entryBy.lastName,
+                        username: book.entryBy.username,
+                        name: book.entryBy.name,
+                        email: '',
+                      })}
                     </span>
                   </Link>
                 )}
