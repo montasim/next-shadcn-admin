@@ -88,7 +88,44 @@ model Category {
   // Analytics
   views         CategoryView[]
 
+  // Mood mappings
+  moodMappings MoodCategoryMapping[]
+
   @@map("categories")
+}
+
+// Mood configuration for mood-based book recommendations
+model Mood {
+  id           String               @id @default(uuid())
+  identifier   String               @unique  // e.g., 'happy', 'adventurous'
+  name         String               // Display name e.g., 'Happy'
+  emoji        String               // e.g., '😊'
+  description  String               // e.g., 'Feel-good stories...'
+  color        String               // CSS classes for styling
+  isActive     Boolean              @default(true)
+  order        Int                  @default(0) // Display order
+  entryById    String
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  entryBy      User                 @relation("UserMoods", fields: [entryById], references: [id])
+  mappings     MoodCategoryMapping[]
+
+  @@map("moods")
+}
+
+// Many-to-many mapping between moods and categories
+model MoodCategoryMapping {
+  id         String   @id @default(uuid())
+  moodId     String
+  categoryId String
+  createdAt  DateTime @default(now())
+  mood       Mood     @relation(fields: [moodId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([moodId, categoryId])
+  @@index([moodId])
+  @@index([categoryId])
+  @@map("mood_category_mappings")
 }
 
 model Book {
@@ -356,6 +393,12 @@ model User {
   quizAttempts       QuizAttempt[]
   quizStreak          QuizStreak?
 
+  // Mood management
+  moods               Mood[]             @relation("UserMoods")
+
+  // Notices management
+  notices             Notice[]           @relation("UserNotices")
+
   // Analytics and chat history
   bookViews           BookView[]
   chatMessages        BookChatMessage[]
@@ -556,4 +599,35 @@ enum RequestStatus {
   IN_PROGRESS
   APPROVED
   REJECTED
+}
+
+// System-wide settings
+model SystemSettings {
+  id                        String   @id @default(uuid())
+  underConstruction         Boolean  @default(false)
+  underConstructionMessage  String?  @default("Site is under construction. Some features may not work as expected.")
+  maintenanceMode           Boolean  @default(false)
+  maintenanceMessage        String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+// Notices/Announcements for users
+model Notice {
+  id           String    @id @default(uuid())
+  title        String
+  content      String    @db.Text
+  isActive     Boolean   @default(true)
+  validFrom    DateTime? // Optional start date
+  validTo      DateTime? // Optional end date
+  order        Int       @default(0) // Display order
+  entryById    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  entryBy      User      @relation("UserNotices", fields: [entryById], references: [id])
+
+  @@index([isActive, validFrom, validTo])
+  @@map("notices")
 }

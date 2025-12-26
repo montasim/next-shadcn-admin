@@ -2,22 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth/session'
-
-// Mood to category mapping
-const MOOD_CATEGORIES: Record<string, string[]> = {
-  happy: ['romance', 'self-help', 'comedy', 'fantasy'],
-  adventurous: ['science-fiction', 'fantasy', 'thriller', 'mystery'],
-  romantic: ['romance'],
-  mysterious: ['mystery', 'thriller'],
-  inspired: ['self-help', 'business', 'biography'],
-  nostalgic: ['history', 'classics', 'biography'],
-  relaxed: ['poetry', 'art', 'self-help'],
-  curious: ['science', 'history', 'business', 'self-help'],
-}
+import { getMoodByIdentifier } from '@/lib/lms/repositories/mood.repository'
 
 // Query schema
 const MoodQuerySchema = z.object({
-  mood: z.enum(['happy', 'adventurous', 'romantic', 'mysterious', 'inspired', 'nostalgic', 'relaxed', 'curious']),
+  mood: z.string().min(1),
   limit: z.coerce.number().min(1).max(50).default(12),
 })
 
@@ -38,26 +27,24 @@ export async function GET(request: NextRequest) {
     const userId = userSession?.userId
     const userHasPremium = userSession ? (userSession.role === 'ADMIN' || userSession.role === 'SUPER_ADMIN') : false
 
-    const { mood, limit } = validatedQuery
+    const { mood: moodIdentifier, limit } = validatedQuery
 
-    // Get categories for this mood
-    const categoryNames = MOOD_CATEGORIES[mood]
+    // Get mood from database with its category mappings
+    const mood = await getMoodByIdentifier(moodIdentifier)
 
-    // Find category IDs from names
-    const categories = await prisma.category.findMany({
-      where: {
-        name: {
-          in: categoryNames,
-          mode: 'insensitive',
+    if (!mood || !mood.isActive) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid mood',
+          message: 'The specified mood does not exist or is inactive',
         },
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    })
+        { status: 400 }
+      )
+    }
 
-    const categoryIds = categories.map((c) => c.id)
+    // Extract category IDs from mood mappings
+    const categoryIds = mood.mappings.map((m) => m.categoryId)
 
     // Build readingProgress include based on authentication
     const readingProgressInclude = userId
@@ -202,11 +189,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        mood,
+        mood: moodIdentifier,
         books: shuffledBooks,
         total: shuffledBooks.length,
       },
-      message: `Book recommendations for ${mood} mood`,
+      message: `Book recommendations for ${mood.name} mood`,
     })
   } catch (error: any) {
     console.error('Get mood-based recommendations error:', error)

@@ -24,6 +24,8 @@ import {
   IconUser,
   IconBooks,
   IconBookmark,
+  IconBuildingFactory,
+  IconMoodSmile,
 } from '@tabler/icons-react'
 import { AudioWaveform, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -61,6 +63,11 @@ export const sidebarData: SidebarData = {
           icon: IconLayoutDashboard,
         },
         {
+          title: 'Site Settings',
+          url: '/dashboard/site-settings',
+          icon: IconBuildingFactory,
+        },
+        {
           title: 'Tasks',
           url: '/dashboard/tasks',
           icon: IconChecklist,
@@ -80,6 +87,11 @@ export const sidebarData: SidebarData = {
           title: 'Users',
           url: '/dashboard/users',
           icon: IconUsers,
+        },
+        {
+          title: 'Notices',
+          url: '/dashboard/notices',
+          icon: IconNotification,
         },
       ],
     },
@@ -105,6 +117,11 @@ export const sidebarData: SidebarData = {
           title: 'Categories',
           url: '/dashboard/categories',
           icon: IconTag,
+        },
+        {
+          title: 'Moods',
+          url: '/dashboard/moods',
+          icon: IconMoodSmile,
         },
         {
           title: 'Book Requests',
