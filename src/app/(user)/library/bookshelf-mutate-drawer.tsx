@@ -118,10 +118,10 @@ export function BookshelfMutateDrawer({ open, onOpenChange, onSuccess, bookshelf
 
             // Reset form with full data
             form.reset({
-              name: bookshelfData.name || '',
-              description: bookshelfData.description || '',
-              image: bookshelfData.image || '',
-              isPublic: bookshelfData.isPublic || false,
+              name: bookshelfData?.name || '',
+              description: bookshelfData?.description || '',
+              image: bookshelfData?.image || '',
+              isPublic: bookshelfData?.isPublic || false,
             })
 
             // Fetch all books
