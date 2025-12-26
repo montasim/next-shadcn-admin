@@ -127,6 +127,11 @@ export async function GET(
             }
         })
 
+        // Get view statistics for analytics
+        const viewStats = await prisma.bookView.count({
+            where: { bookId }
+        })
+
         if (!book) {
             return NextResponse.json({
                 success: false,
@@ -437,6 +442,10 @@ export async function GET(
             statistics: {
                 totalReaders: book._count.readingProgress,
                 avgProgress: 0, // Could be calculated if needed
+            },
+            // Analytics
+            analytics: {
+                totalViews: viewStats,
             },
             // Related books
             relatedBooks: relatedBooks.map(relatedBook => ({

@@ -71,6 +71,9 @@ export interface Book {
     totalReaders: number
     avgProgress: number
   }
+  analytics?: {
+    totalViews: number
+  }
   relatedBooks?: Book[]
   recommendationReasons?: Record<string, RecommendationReason>
   entryBy?: BookUser | null

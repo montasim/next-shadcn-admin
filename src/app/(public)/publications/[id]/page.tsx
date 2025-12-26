@@ -18,6 +18,7 @@ import {
   Home,
   Building2,
   ArrowLeft,
+  Eye,
 } from 'lucide-react'
 
 export default function PublicationDetailsPage() {
@@ -139,7 +140,16 @@ export default function PublicationDetailsPage() {
           {/* Publisher Information and Books - Right Column */}
           <div className="lg:col-span-2">
             <div className="mb-8">
-              <h1 className="text-xl font-bold mb-2">{publication.name}</h1>
+              {/* Name and Visitor Count Row */}
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-xl font-bold">{publication.name}</h1>
+
+                {/* Visitor Count */}
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Eye className="h-4 w-4" />
+                  <span className="font-medium">{publication.analytics?.totalViews?.toLocaleString() || '0'} views</span>
+                </div>
+              </div>
 
               {/* Added by user */}
               {publication.entryBy && (

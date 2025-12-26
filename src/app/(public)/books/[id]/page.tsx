@@ -439,36 +439,87 @@ export default function BookDetailsPage() {
           {/* Book Information */}
           <div className="lg:col-span-2">
             <div className="mb-8">
-              <div className='flex items-center justify-between'>
-                  <h1 className="text-xl lg:text-2xl font-bold mb-2">{book.name}</h1>
+              {/* Title and Chat Button Row */}
+              <div className='flex items-center justify-between mb-3'>
+                <h1 className="text-xl lg:text-2xl font-bold">{book.name}</h1>
 
-                  {/* Chat with AI Button - Full size when accessible */}
-                  {book.canAccess && (
-                      <div className="hidden sm:block">
-                          <BookChatButton
-                              book={book}
-                              onClick={() => setIsChatModalOpen(true)}
-                          />
-                      </div>
-                  )}
+                {/* Chat with AI Button - Desktop */}
+                {book.canAccess && (
+                  <div className="hidden sm:block">
+                    <BookChatButton
+                      book={book}
+                      onClick={() => setIsChatModalOpen(true)}
+                    />
+                  </div>
+                )}
               </div>
 
-              {/* Authors */}
-              {book.authors && book.authors.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-lg text-muted-foreground">
-                    by{' '}
-                    {book.authors.map((author, index) => (
-                      <span key={author.id}>
-                        <Link href={`/authors/${author.id}`} className="hover:text-primary hover:underline transition-colors font-medium">
-                          {author.name}
-                        </Link>
-                        {index < book.authors!.length - 1 && ', '}
-                      </span>
-                    ))}
-                  </p>
+              {/* Authors and Visitor Count Row - Desktop */}
+              {(book.authors && book.authors.length > 0) || book.analytics?.totalViews ? (
+                <div className='flex items-center justify-between mb-4 hidden sm:flex'>
+                  {/* Authors */}
+                  {book.authors && book.authors.length > 0 && (
+                    <div className="text-lg text-muted-foreground">
+                      by{' '}
+                      {book.authors.map((author, index) => (
+                        <span key={author.id}>
+                          <Link href={`/authors/${author.id}`} className="hover:text-primary hover:underline transition-colors font-medium">
+                            {author.name}
+                          </Link>
+                          {index < book.authors!.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Visitor Count */}
+                  {book.analytics?.totalViews && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span className="font-medium">{book.analytics.totalViews.toLocaleString()} views</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Mobile: Chat Button */}
+              {book.canAccess && (
+                <div className="sm:hidden mb-3">
+                  <BookChatButton
+                    book={book}
+                    onClick={() => setIsChatModalOpen(true)}
+                    className="w-full"
+                  />
                 </div>
               )}
+
+              {/* Mobile: Authors and Visitor Count */}
+              {(book.authors && book.authors.length > 0) || book.analytics?.totalViews ? (
+                <div className='flex items-center justify-between gap-2 mb-4 sm:hidden'>
+                  {/* Authors */}
+                  {book.authors && book.authors.length > 0 && (
+                    <div className="text-base text-muted-foreground">
+                      by{' '}
+                      {book.authors.map((author, index) => (
+                        <span key={author.id}>
+                          <Link href={`/authors/${author.id}`} className="hover:text-primary hover:underline transition-colors font-medium">
+                            {author.name}
+                          </Link>
+                          {index < book.authors!.length - 1 && ', '}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Visitor Count */}
+                  {book.analytics?.totalViews && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span className="font-medium">{book.analytics.totalViews.toLocaleString()} views</span>
+                    </div>
+                  )}
+                </div>
+              ) : null}
 
               {/* Added by user */}
               {book.entryBy && (

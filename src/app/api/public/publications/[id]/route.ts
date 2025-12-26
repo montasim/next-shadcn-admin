@@ -130,6 +130,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       }
     })
 
+    // Get view statistics for analytics
+    const viewStats = await prisma.publicationView.count({
+      where: { publicationId }
+    })
+
     if (!publication) {
       return NextResponse.json({
         success: false,
@@ -204,6 +209,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
       statistics: {
         totalBooks: transformedBooks.length,
         totalReaders,
+      },
+      analytics: {
+        totalViews: viewStats,
       }
     }
 

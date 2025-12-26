@@ -22,6 +22,9 @@ export interface Author {
     totalBooks: number
     totalReaders: number
   }
+  analytics?: {
+    totalViews: number
+  }
 }
 
 export interface AuthorDetailResponse {

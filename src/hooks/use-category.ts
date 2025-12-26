@@ -22,6 +22,9 @@ export interface Category {
     totalBooks: number
     totalReaders: number
   }
+  analytics?: {
+    totalViews: number
+  }
 }
 
 export interface CategoryDetailResponse {
