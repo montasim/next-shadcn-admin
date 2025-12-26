@@ -1,11 +1,11 @@
 'use client'
 
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCategoriesContext } from '../context/categories-context'
 
 export function CategoriesHeader() {
-  const { setOpen } = useCategoriesContext()
+  const { setOpen, refreshCategories } = useCategoriesContext()
 
   const handleAddCategory = () => {
     setOpen('create')
@@ -22,6 +22,10 @@ export function CategoriesHeader() {
           <div className='flex gap-2'>
               <Button className='space-x-1' onClick={handleAddCategory}>
                   <span>Add Category</span> <Plus size={18} />
+              </Button>
+              <Button className='space-x-1' onClick={refreshCategories} variant='outline'>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
               </Button>
           </div>
       </>
