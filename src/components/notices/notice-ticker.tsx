@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Megaphone } from 'lucide-react'
-import { MDXViewer } from 'mdx-craft'
 
 interface Notice {
   id: string
@@ -53,10 +52,10 @@ export function NoticeTicker() {
 
   return (
     <div className="w-full border-b bg-primary/5 dark:bg-primary/10">
-      <div className="container mx-auto">
-        <div className="flex items-center gap-4 overflow-hidden">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center gap-4 overflow-hidden py-2">
           {/* Icon Section */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 shrink-0">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 shrink-0 rounded">
             <Megaphone className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-primary">Notices</span>
           </div>
@@ -66,11 +65,11 @@ export function NoticeTicker() {
             <div className="notice-scroll-container">
               <div className="notice-scroll-content">
                 {duplicatedNotices.map((notice, index) => (
-                  <div key={`${notice.id}-${index}`} className="notice-item flex items-center gap-2">
-                    <span className="font-semibold text-primary">{notice.title}</span>
-                    <span className="text-muted-foreground">:</span>
-                    <span className="inline-flex">
-                      <MDXViewer markdown={notice.content} />
+                  <div key={`${notice.id}-${index}`} className="notice-item inline-flex items-center gap-2">
+                    <span className="font-semibold text-primary whitespace-nowrap">{notice.title}</span>
+                    <span className="text-muted-foreground shrink-0">:</span>
+                    <span className="truncate">
+                      {notice.content?.trim() || notice.title}
                     </span>
                   </div>
                 ))}
@@ -96,9 +95,7 @@ export function NoticeTicker() {
         }
 
         .notice-item {
-          display: inline-flex;
-          align-items: center;
-          padding: 0.75rem 2rem;
+          padding: 0 2rem;
           font-size: 0.875rem;
         }
 

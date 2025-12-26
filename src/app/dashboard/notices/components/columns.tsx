@@ -8,7 +8,7 @@ import LongText from '@/components/long-text'
 import { Notice } from '../data/schema'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
-import { MDXViewer } from 'mdx-craft'
+import { MDXViewer } from '@/components/ui/mdx-viewer'
 
 export const columns: ColumnDef<Notice>[] = [
   {
@@ -59,9 +59,9 @@ export const columns: ColumnDef<Notice>[] = [
       const content = row.getValue('content') as string
       return (
         <div className="max-w-md">
-          {content ? (
+          {content && content.trim() ? (
             <MDXViewer
-              markdown={content}
+              content={content}
               className="text-sm line-clamp-3"
             />
           ) : (
