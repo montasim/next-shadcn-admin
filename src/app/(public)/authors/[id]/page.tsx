@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,16 @@ export default function AuthorDetailsPage() {
 
   const { data: responseData, isLoading, error } = useAuthor({ id: authorId })
   const author = responseData?.data?.author
+
+  // Track page view when author is loaded
+  useEffect(() => {
+    if (authorId && author) {
+      // Track view asynchronously in the background
+      fetch(`/api/authors/${authorId}/view`, { method: 'POST' }).catch((err) => {
+        console.error('Failed to track view:', err)
+      })
+    }
+  }, [authorId, author])
 
   // Format date for display
   const formatDate = (dateString: string | null | undefined) => {

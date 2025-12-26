@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,16 @@ export default function CategoryDetailsPage() {
 
   const { data: responseData, isLoading, error } = useCategory({ id: categoryId })
   const category = responseData?.data?.category
+
+  // Track page view when category is loaded
+  useEffect(() => {
+    if (categoryId && category) {
+      // Track view asynchronously in the background
+      fetch(`/api/categories/${categoryId}/view`, { method: 'POST' }).catch((err) => {
+        console.error('Failed to track view:', err)
+      })
+    }
+  }, [categoryId, category])
 
   // Format date for display
   const formatDate = (dateString: string | null | undefined) => {
