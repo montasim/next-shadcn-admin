@@ -9,6 +9,7 @@ import { Book } from '../data/schema'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 import { DataTableRowActions } from './data-table-row-actions'
 import { BookOpen, HardDrive, Headphones } from 'lucide-react'
+import { useState } from 'react'
 
 const bookTypeIcons = {
   HARD_COPY: HardDrive,
@@ -20,6 +21,54 @@ const bookTypeLabels = {
   HARD_COPY: 'Hard Copy',
   EBOOK: 'eBook',
   AUDIO: 'Audio',
+}
+
+// Expandable tags component
+function ExpandableTags({
+  items,
+  variant,
+  maxVisible = 1,
+}: {
+  items: Array<{ name: string }>
+  variant?: 'secondary' | 'outline' | 'default'
+  maxVisible?: number
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  if (!items || items.length === 0) {
+    return <span className='text-muted-foreground text-sm'>None</span>
+  }
+
+  const visibleItems = isExpanded ? items : items.slice(0, maxVisible)
+  const hiddenCount = items.length - maxVisible
+
+  return (
+    <div className='flex flex-wrap gap-1 max-w-48'>
+      {visibleItems.map((item, index) => (
+        <Badge key={index} variant={variant} className='text-xs'>
+          {item.name}
+        </Badge>
+      ))}
+      {!isExpanded && hiddenCount > 0 && (
+        <Badge
+          variant={variant}
+          className='text-xs cursor-pointer hover:opacity-80'
+          onClick={() => setIsExpanded(true)}
+        >
+          +{hiddenCount} more
+        </Badge>
+      )}
+      {isExpanded && items.length > maxVisible && (
+        <Badge
+          variant='ghost'
+          className='text-xs cursor-pointer hover:opacity-80'
+          onClick={() => setIsExpanded(false)}
+        >
+          Show less
+        </Badge>
+      )}
+    </div>
+  )
 }
 
 export const columns: ColumnDef<Book>[] = [
@@ -94,20 +143,7 @@ export const columns: ColumnDef<Book>[] = [
     header: 'Authors',
     cell: ({ row }) => {
       const authors = (row.original as any).authors || []
-      return (
-        <div className='flex flex-wrap gap-1 max-w-48'>
-          {authors.slice(0, 2).map((author: any, index: number) => (
-            <Badge key={index} variant='secondary' className='text-xs'>
-              {author.name}
-            </Badge>
-          ))}
-          {authors.length > 2 && (
-            <Badge variant='secondary' className='text-xs'>
-              +{authors.length - 2} more
-            </Badge>
-          )}
-        </div>
-      )
+      return <ExpandableTags items={authors} variant='secondary' maxVisible={1} />
     },
     enableSorting: false,
   },
@@ -138,20 +174,7 @@ export const columns: ColumnDef<Book>[] = [
     header: 'Categories',
     cell: ({ row }) => {
       const categories = (row.original as any).categories || []
-      return (
-        <div className='flex flex-wrap gap-1 max-w-48'>
-          {categories.slice(0, 2).map((category: any, index: number) => (
-            <Badge key={index} variant='default' className='text-xs'>
-              {category.name}
-            </Badge>
-          ))}
-          {categories.length > 2 && (
-            <Badge variant='default' className='text-xs'>
-              +{categories.length - 2} more
-            </Badge>
-          )}
-        </div>
-      )
+      return <ExpandableTags items={categories} variant='default' maxVisible={1} />
     },
     enableSorting: false,
   },
