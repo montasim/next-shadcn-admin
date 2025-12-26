@@ -87,15 +87,16 @@ export default function BookDetailsPage() {
     return json
   }
 
-  // Fetch chart data (only if logged in and book is loaded)
-  const { data: heatmapData } = useSWR(
-    user && book ? `/api/user/progress-history/${bookId}?type=heatmap&days=365` : null,
+  // Fetch chart data only when progress tab is active (lazy loading)
+  // Don't wait for book data - fetch as soon as user, bookId, and tab are ready
+  const { data: heatmapData, isLoading: isHeatmapLoading } = useSWR(
+    user && bookId && activeTab === 'progress' ? `/api/user/progress-history/${bookId}?type=heatmap&days=365` : null,
     fetcher,
     { revalidateOnFocus: false }
   )
 
-  const { data: pagesReadData } = useSWR(
-    user && book ? `/api/user/progress-history/${bookId}?type=pages-per-day&days=${chartPeriod === 'week' ? 7 : 30}` : null,
+  const { data: pagesReadData, isLoading: isPagesReadLoading } = useSWR(
+    user && bookId && activeTab === 'progress' ? `/api/user/progress-history/${bookId}?type=pages-per-day&days=${chartPeriod === 'week' ? 7 : 30}` : null,
     fetcher,
     { revalidateOnFocus: false }
   )
@@ -800,19 +801,55 @@ export default function BookDetailsPage() {
                       lastReadAt={book.readingProgress.lastReadAt || undefined}
                     />
 
-                    {/* Reading Activity Chart */}
-                    {user && (
-                      <PagesReadChart
-                        data={pagesReadData?.data || []}
-                        title="Reading Activity"
-                        period={chartPeriod}
-                        onPeriodChange={setChartPeriod}
-                      />
-                    )}
+                    {/* Loading skeleton for progress charts */}
+                    {isPagesReadLoading || isHeatmapLoading ? (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Pages Read Chart Skeleton */}
+                        <Card>
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+                              <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+                            </div>
+                            <div className="space-y-2">
+                              <div className="h-32 w-full bg-muted animate-pulse rounded" />
+                            </div>
+                          </CardContent>
+                        </Card>
 
-                    {/* Reading Heatmap */}
-                    {user && heatmapData?.data && (
-                      <ReadingHeatmap data={heatmapData.data} />
+                        {/* Heatmap Skeleton */}
+                        <Card>
+                          <CardContent className="p-6">
+                            <div className="h-6 w-40 bg-muted animate-pulse rounded mb-4" />
+                            <div className="grid grid-cols-7 gap-1">
+                              {[...Array(7)].map((_, i) => (
+                                <div key={i} className="space-y-1">
+                                  {[...Array(4)].map((_, j) => (
+                                    <div key={j} className="h-8 w-full bg-muted animate-pulse rounded" />
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Reading Activity Chart */}
+                        {user && (
+                          <PagesReadChart
+                            data={pagesReadData?.data || []}
+                            title="Reading Activity"
+                            period={chartPeriod}
+                            onPeriodChange={setChartPeriod}
+                          />
+                        )}
+
+                        {/* Reading Heatmap */}
+                        {user && heatmapData?.data && (
+                          <ReadingHeatmap data={heatmapData.data} />
+                        )}
+                      </>
                     )}
 
                     {/*<Button onClick={handleReadBook} className="w-full">*/}
