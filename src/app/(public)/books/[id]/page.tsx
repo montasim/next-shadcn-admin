@@ -41,6 +41,62 @@ import {
 } from 'lucide-react'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 
+// Expandable description component with MDX support (defined outside component to avoid recreation)
+interface ExpandableDescriptionProps {
+  description: string
+  sectionId: string
+  isExpanded: boolean
+  onToggle: (sectionId: string) => void
+}
+
+function ExpandableDescription({
+  description,
+  sectionId,
+  isExpanded,
+  onToggle,
+}: ExpandableDescriptionProps) {
+  // Estimate if text is long enough to potentially exceed 4 lines
+  const isLong = description.length > 300 || description.split('\n').length > 4
+
+  return (
+    <div className="text-sm leading-relaxed">
+      {!isExpanded && isLong ? (
+        <div className="relative max-h-[5.6rem] overflow-hidden">
+          <div
+            className="pr-16"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+            }}
+          >
+            <MDXViewer content={description} className='text-sm [&>*]:leading-relaxed' />
+          </div>
+          <button
+            onClick={() => onToggle(sectionId)}
+            className="absolute bottom-0 right-0 text-primary text-sm hover:underline bg-background"
+          >
+            View more...
+          </button>
+        </div>
+      ) : (
+        <>
+          <MDXViewer content={description} className='text-sm' />
+          {isLong && (
+            <div className="text-right">
+              <button
+                onClick={() => onToggle(sectionId)}
+                className="text-primary text-sm mt-2 hover:underline"
+              >
+                View less...
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function BookDetailsPage() {
   const params = useParams()
   const router = useRouter()
@@ -111,7 +167,7 @@ export default function BookDetailsPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Book not found</h2>
           <p className="text-muted-foreground mb-4">
-            The book you're looking for doesn't exist or has been removed.
+            The book you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Link href="/books">
             <Button>
@@ -185,57 +241,6 @@ export default function BookDetailsPage() {
       ...prev,
       [sectionId]: !prev[sectionId],
     }))
-  }
-
-  // Reusable expandable description component with MDX support
-  const ExpandableDescription = ({
-    description,
-    sectionId,
-  }: {
-    description: string
-    sectionId: string
-  }) => {
-    const isExpanded = expandedSections[sectionId]
-    // Estimate if text is long enough to potentially exceed 4 lines
-    const isLong = description.length > 300 || description.split('\n').length > 4
-
-    return (
-      <div className="text-sm leading-relaxed">
-        {!isExpanded && isLong ? (
-          <div className="relative max-h-[5.6rem] overflow-hidden">
-            <div
-              className="pr-16"
-              style={{
-                maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-              }}
-            >
-              <MDXViewer content={description} className='text-sm [&>*]:leading-relaxed' />
-            </div>
-            <button
-              onClick={() => toggleExpanded(sectionId)}
-              className="absolute bottom-0 right-0 text-primary text-sm hover:underline bg-background"
-            >
-              View more...
-            </button>
-          </div>
-        ) : (
-          <>
-            <MDXViewer content={description} className='text-sm' />
-            {isLong && (
-              <div className="text-right">
-                <button
-                  onClick={() => toggleExpanded(sectionId)}
-                  className="text-primary text-sm mt-2 hover:underline"
-                >
-                  View less...
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    )
   }
 
   return (
@@ -591,7 +596,12 @@ export default function BookDetailsPage() {
                       )}
                     </CardHeader>
                     <CardContent>
-                      <ExpandableDescription description={book.aiSummary} sectionId="ai-summary" />
+                      <ExpandableDescription
+                        description={book.aiSummary}
+                        sectionId="ai-summary"
+                        isExpanded={expandedSections['ai-summary'] || false}
+                        onToggle={toggleExpanded}
+                      />
                     </CardContent>
                   </Card>
                 )}
@@ -603,7 +613,12 @@ export default function BookDetailsPage() {
                       <CardTitle className="text-lg">About This Book</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ExpandableDescription description={book.summary} sectionId="book-summary" />
+                      <ExpandableDescription
+                        description={book.summary}
+                        sectionId="book-summary"
+                        isExpanded={expandedSections['book-summary'] || false}
+                        onToggle={toggleExpanded}
+                      />
                     </CardContent>
                   </Card>
                 )}
@@ -634,7 +649,12 @@ export default function BookDetailsPage() {
                             </Link>
                             {author.description && (
                               <div className="text-muted-foreground mt-1">
-                                <ExpandableDescription description={author.description} sectionId={`author-${author.id}`} />
+                                <ExpandableDescription
+                                  description={author.description}
+                                  sectionId={`author-${author.id}`}
+                                  isExpanded={expandedSections[`author-${author.id}`] || false}
+                                  onToggle={toggleExpanded}
+                                />
                               </div>
                             )}
                           </div>
@@ -672,7 +692,12 @@ export default function BookDetailsPage() {
                             </Link>
                             {publication.description && (
                               <div className="text-muted-foreground mt-1">
-                                <ExpandableDescription description={publication.description} sectionId={`publication-${publication.id}`} />
+                                <ExpandableDescription
+                                  description={publication.description}
+                                  sectionId={`publication-${publication.id}`}
+                                  isExpanded={expandedSections[`publication-${publication.id}`] || false}
+                                  onToggle={toggleExpanded}
+                                />
                               </div>
                             )}
                           </div>

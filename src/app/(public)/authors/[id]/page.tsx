@@ -64,7 +64,7 @@ export default function AuthorDetailsPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Author not found</h2>
           <p className="text-muted-foreground mb-4">
-            The author you're looking for doesn't exist or has been removed.
+            The author you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Link href="/books">
             <Button>
