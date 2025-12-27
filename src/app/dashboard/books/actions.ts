@@ -208,8 +208,7 @@ export async function getBooks() {
         // Handle entryBy - check if it exists and has required properties
         let entryByName = 'Unknown'
         if (book.entryBy && typeof book.entryBy === 'object') {
-            const name = `${book.entryBy.firstName || ''} ${book.entryBy.lastName || ''}`.trim()
-            entryByName = name || book.entryBy.email || 'Unknown'
+            entryByName = book.entryBy.name || book.entryBy.email || 'Unknown'
         }
 
       return {
@@ -283,8 +282,9 @@ export async function getBookById(id: string) {
       numberOfCopies: book.numberOfCopies,
       purchaseDate: book.purchaseDate?.toISOString() || null,
       isPublic: book.isPublic ?? false,
+      requiresPremium: book.requiresPremium ?? false,
       entryDate: book.entryDate.toISOString(),
-      entryBy: `${book.entryBy.firstName} ${book.entryBy.lastName}`.trim() || book.entryBy.email,
+      entryBy: book.entryBy.name || book.entryBy.email,
       entryById: book.entryBy.id,
       createdAt: book.createdAt.toISOString(),
       updatedAt: book.updatedAt.toISOString(),

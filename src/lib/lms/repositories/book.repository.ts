@@ -85,8 +85,7 @@ export async function getBooks(options: {
         entryBy: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true,
           },
         },
@@ -134,8 +133,7 @@ export async function getBookById(id: string) {
       entryBy: {
         select: {
           id: true,
-          firstName: true,
-          lastName: true,
+          name: true,
           email: true,
         },
       },
@@ -245,8 +243,7 @@ export async function createBook(data: {
         entryBy: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true,
           },
         },
@@ -380,15 +377,14 @@ export async function updateBook(
             ? (data.numberOfCopies ?? existingBook.numberOfCopies)
             : null,
           purchaseDate: data.purchaseDate,
-          isPublic: data.isPublic,
-          requiresPremium: data.requiresPremium,
+          isPublic: data.isPublic ?? undefined,
+          requiresPremium: data.requiresPremium ?? undefined,
         },
         include: {
           entryBy: {
             select: {
               id: true,
-              firstName: true,
-              lastName: true,
+              name: true,
               email: true,
             },
           },

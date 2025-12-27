@@ -117,6 +117,21 @@ export async function getAllAdmins() {
     return getAllUsers([UserRole.ADMIN, UserRole.SUPER_ADMIN])
 }
 
+/**
+ * Check if user has premium status
+ *
+ * @param {string} userId - User ID
+ * @returns {Promise<boolean>} True if user has premium status
+ */
+export async function isUserPremium(userId: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { isPremium: true }
+    })
+
+    return user?.isPremium || false
+}
+
 // ============================================================================
 // USER MUTATIONS
 // ============================================================================

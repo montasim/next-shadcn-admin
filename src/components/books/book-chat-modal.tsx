@@ -412,7 +412,7 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
                   {message.role === 'user' && (
                     <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-semibold text-primary-foreground">
-                        {user.firstName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                        {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </span>
                     </div>
                   )}
