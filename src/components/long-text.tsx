@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { cn } from '@/lib/utils'
 import {
   Popover,
@@ -27,14 +27,12 @@ export default function LongText({
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [isOverflown, setIsOverflown] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
-    if (checkOverflow(ref.current)) {
-      setIsOverflown(true)
-      return
-    }
-
-    setIsOverflown(false)
+    startTransition(() => {
+      setIsOverflown(checkOverflow(ref.current) ?? false)
+    })
   }, [])
 
   if (!isOverflown)

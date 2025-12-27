@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { File as FileIcon, Trash2, UploadCloud } from 'lucide-react'
@@ -24,54 +24,56 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   directUrl,
   isPdf,
 }) => {
-  const [isMounted, setIsMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(true)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [fileType, setFileType] = useState<string | null>(null)
-
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
     if (value instanceof File) {
       const objectUrl = URL.createObjectURL(value)
-      setPreviewUrl(objectUrl)
-      setFileType(value.type)
+      startTransition(() => {
+        setPreviewUrl(objectUrl)
+        setFileType(value.type)
+      })
       return () => URL.revokeObjectURL(objectUrl)
     } else if (typeof value === 'string' && value) {
       // Use value (preview URL) for iframe, not directUrl (which is for download)
       // For Google Drive: fileUrl has /preview (works in iframe), directFileUrl has export=download (forces download)
       const urlToUse = value
-      setPreviewUrl(urlToUse)
 
       // Determine file type
+      let determinedFileType: string | null = null
       if (isPdf) {
-        setFileType('application/pdf')
+        determinedFileType = 'application/pdf'
       } else {
         // Infer file type from URL extension or accept attribute
         const extension = value.split('.').pop()?.toLowerCase()
 
         // Check if the extension indicates a PDF
         if (extension === 'pdf') {
-          setFileType('application/pdf')
+          determinedFileType = 'application/pdf'
         } else if (['mp3', 'wav', 'ogg'].includes(extension || '')) {
-          setFileType('audio/mpeg')
+          determinedFileType = 'audio/mpeg'
         } else if (accept) {
           // Infer from accept attribute if no extension match
           if (accept.includes('.pdf') || accept.includes('application/pdf')) {
-            setFileType('application/pdf')
+            determinedFileType = 'application/pdf'
           } else if (accept.includes('audio/')) {
-            setFileType('audio/mpeg')
-          } else {
-            setFileType(null)
+            determinedFileType = 'audio/mpeg'
           }
-        } else {
-          setFileType(null)
         }
       }
+
+      startTransition(() => {
+        setPreviewUrl(urlToUse)
+        setFileType(determinedFileType)
+      })
     } else {
-      setPreviewUrl(null)
-      setFileType(null)
+      startTransition(() => {
+        setPreviewUrl(null)
+        setFileType(null)
+      })
     }
   }, [value, isPdf, accept])
 

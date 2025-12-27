@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
@@ -25,6 +25,7 @@ export function SearchBar({
 }: SearchBarProps) {
   const [localQuery, setLocalQuery] = useState(initialValue)
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
   // Use controlled value if provided, otherwise use local state
   const query = controlledValue !== undefined ? controlledValue : localQuery
@@ -32,25 +33,33 @@ export function SearchBar({
   // Update local state when initialValue changes
   useEffect(() => {
     if (controlledValue === undefined) {
-      setLocalQuery(initialValue)
+      startTransition(() => {
+        setLocalQuery(initialValue)
+      })
     }
   }, [initialValue, controlledValue])
 
+  // Store timeout in ref to avoid closure issues
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   // Debounced search callback
-  const debouncedSearch = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout | null = null
-      return (searchQuery: string) => {
-        if (timeoutId) {
-          clearTimeout(timeoutId)
-        }
-        timeoutId = setTimeout(() => {
-          onSearch?.(searchQuery.trim())
-        }, debounceMs)
+  const debouncedSearch = useCallback((searchQuery: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    timeoutRef.current = setTimeout(() => {
+      onSearch?.(searchQuery.trim())
+    }, debounceMs)
+  }, [onSearch, debounceMs])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
       }
-    })(),
-    [onSearch, debounceMs]
-  )
+    }
+  }, [])
 
   const handleChange = (newValue: string) => {
     if (controlledValue === undefined) {

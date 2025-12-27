@@ -43,7 +43,7 @@ export function QuizGame({ questions, config, onComplete }: QuizGameProps) {
     selectedAnswer: string | null
     isCorrect: boolean
   }>>([])
-  const [startTime] = useState(Date.now())
+  const [startTime] = useState(() => Date.now())
 
   const currentQuestion = questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100

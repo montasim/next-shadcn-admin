@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,12 +30,14 @@ interface QuizStats {
   totalQuestions: number
   bestScore: number
   avgAccuracy: number
+  recentAttempts: any[]
 }
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
   const [lastAttempt, setLastAttempt] = useState<any>(null)
+  const [isPending, startTransition] = useTransition()
 
   // Fetch user stats to get latest attempt info
   const { data: statsData } = useSWR('/api/user/quiz/stats', fetcher, {
@@ -47,7 +49,9 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
   useEffect(() => {
     // Get the last attempt from stats
     if (stats?.recentAttempts && stats.recentAttempts.length > 0) {
-      setLastAttempt(stats.recentAttempts[0])
+      startTransition(() => {
+        setLastAttempt(stats.recentAttempts[0])
+      })
     }
   }, [stats])
 
