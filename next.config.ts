@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
             bodySizeLimit: '30mb', // Increase from default 1mb to 30mb for pdf uploads
         },
     },
+
+    middlewareClientMaxBodySize: "30mb", // ✅ THIS is the key fix
+
     // Optimize webpack configuration
     webpack: (config, { isServer }) => {
         // Reduce memory usage by splitting chunks more aggressively
