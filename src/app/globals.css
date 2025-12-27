@@ -114,6 +114,43 @@ body {
       font-size: 16px !important;
     }
   }
+
+  /* Support for mobile safe areas (notches, home indicators) */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+
+    /* Safe area padding utilities */
+    .pb-safe {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    .pt-safe {
+      padding-top: max(1rem, env(safe-area-inset-top));
+    }
+
+    .px-safe {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
+  }
+
+  /* Ensure full viewport height on mobile */
+  html {
+    height: 100%;
+    height: -moz-available; /* Firefox */
+    height: -webkit-fill-available; /* Chrome, Safari */
+    height: fill-available;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: -moz-available; /* Firefox */
+    min-height: -webkit-fill-available; /* Chrome, Safari */
+    min-height: fill-available;
+  }
 }
 
 @layer utilities {
