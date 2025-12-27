@@ -27,8 +27,13 @@ export function getClientIp(request: NextRequest): string {
         return realIp.trim()
     }
 
-    // Fallback to request IP (may not be available in all environments)
-    return request?.ip || '127.0.0.1'
+    const cfConnectingIp = request.headers.get('cf-connecting-ip')
+    if (cfConnectingIp) {
+        return cfConnectingIp.trim()
+    }
+
+    // Fallback to localhost if IP cannot be determined
+    return '127.0.0.1'
 }
 
 /**

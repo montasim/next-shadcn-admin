@@ -80,15 +80,15 @@ export async function getProfile(): Promise<GetProfileResult> {
 }
 
 type UpdateProfileResult =
-  | { status: 'success', message: string }
-  | { status: 'error', message: string }
+  | { success: true, message: string }
+  | { success: false, message: string }
 
 export async function updateProfile(data: ProfileFormValues): Promise<UpdateProfileResult> {
   const validatedData = profileFormSchema.parse(data)
 
   try {
     const session = await requireAuth()
-    if (!session) return { status: 'error', message: 'Not authenticated' }
+    if (!session) return { success: false, message: 'Not authenticated' }
 
     // Check username availability if changed
     if (validatedData.username) {
@@ -100,7 +100,7 @@ export async function updateProfile(data: ProfileFormValues): Promise<UpdateProf
           }
         })
         if (existing) {
-          return { status: 'error', message: 'Username is already taken' }
+          return { success: false, message: 'Username is already taken' }
         }
       } catch (usernameError) {
         console.warn('Username checking not available:', usernameError)
@@ -140,11 +140,11 @@ export async function updateProfile(data: ProfileFormValues): Promise<UpdateProf
     revalidatePath('/settings/profile')
     revalidatePath('/dashboard/users') // Also revalidate users page to show updated username
 
-    return { status: 'success', message: 'Profile updated successfully' }
+    return { success: true, message: 'Profile updated successfully' }
   } catch (error) {
     console.error('updateProfile error:', error)
     return {
-      status: 'error',
+      success: false,
       message: 'Failed to update profile'
     }
   }
