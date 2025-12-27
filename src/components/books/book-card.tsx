@@ -17,6 +17,7 @@ import {
   Lock,
   Edit,
   Trash2,
+  Crown,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
@@ -148,13 +149,14 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
 
     const coverHeightClass = coverHeight === 'tall' ? 'h-64' : 'h-48'
 
-    // Compact variant (list view)
+    // Compact variant (list view) - Mobile only
     if (variant === 'compact') {
       return (
         <Card
           ref={ref}
           className={cn(
             'group transition-all duration-200 hover:shadow-md',
+            book.requiresPremium && 'shadow-md shadow-purple-500/20 border-purple-500/50',
             onClick && 'cursor-pointer',
             className
           )}
@@ -162,129 +164,234 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
           onMouseEnter={handleMouseEnter}
           {...props}
         >
-          <CardContent className="p-4">
-            <div className="flex gap-4">
-              {/* Book Cover - Compact */}
-              <div className="flex-shrink-0">
-                <div className="relative w-16 h-20 overflow-hidden rounded bg-muted">
-                  {book.image ? (
-                    <Image
-                      src={getProxiedImageUrl(book.image) || book.image}
-                      alt={book.name}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="64px"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      {getTypeIcon()}
-                    </div>
-                  )}
-                  {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
-                      <Lock className="h-4 w-4 text-white" />
-                    </div>
-                  )}
-
-                  {/* Add to Bookshelf Button - Compact */}
-                  {showAddToBookshelf && (
-                    <div className="absolute top-1 right-1 z-20">
-                      <AddToBookshelf
-                        bookId={book.id}
-                        bookName={book.name}
-                        variant="manage"
-                        triggerClassName="h-5 w-5"
-                      />
-                    </div>
-                  )}
-                </div>
+          <CardContent className="p-3">
+            {/* Unified layout for both mobile and desktop list view */}
+            <div>
+              {/* Badges - Top right of card */}
+              <div className="flex justify-end gap-1 mb-2">
+                {showTypeBadge && book.type && (
+                  <BookTypeBadge type={book.type} size="sm" showIcon={false} />
+                )}
+                {showPremiumBadge && book.requiresPremium && (
+                  <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] px-2 py-0.5">
+                    Premium
+                  </Badge>
+                )}
               </div>
 
-              {/* Book Info - Compact */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-semibold text-base line-clamp-1 text-foreground" title={book.name}>
-                    {book.name}
-                  </h3>
-
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {showTypeBadge && book.type && (
-                      <BookTypeBadge type={book.type} size="sm" />
+              <div className="flex gap-3">
+                {/* Book Cover - Larger on mobile */}
+                <div className="flex-shrink-0">
+                  <div className="relative w-24 h-32 overflow-hidden rounded bg-muted">
+                    {book.image ? (
+                      <Image
+                        src={getProxiedImageUrl(book.image) || book.image}
+                        alt={book.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="96px"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                        {getTypeIcon()}
+                      </div>
                     )}
-                    {showEditActions && (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 bg-background/50 hover:bg-background/80"
-                          onClick={handleEdit}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 bg-background/50 hover:bg-background/80 text-destructive hover:text-destructive"
-                          onClick={handleDelete}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                    {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+                        <Lock className="h-5 w-5 text-white" />
+                      </div>
+                    )}
+
+                    {/* Add to Bookshelf Button - Top right of image */}
+                    {showAddToBookshelf && (
+                      <div className="absolute top-1 right-1 z-20">
+                        <AddToBookshelf
+                          bookId={book.id}
+                          bookName={book.name}
+                          variant="manage"
+                          triggerClassName="h-6 w-6"
+                        />
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* Authors */}
-                {book.authors && book.authors.length > 0 && (
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-1" title={`by ${authors}`}>
-                    by {authors}
-                  </p>
-                )}
-
-                {/* Metadata */}
-                <div className="flex items-center gap-3 mb-2 text-xs text-muted-foreground">
-                  {showReaderCount && book.statistics?.totalReaders && book.statistics.totalReaders > 0 && (
-                    <span className="flex items-center gap-1">
+                  {/* Reader count below image */}
+                  {showReaderCount && (book.statistics?.totalReaders || book.analytics?.totalViews) && (
+                    <div className="flex items-center gap-1 mt-1.5 text-[10px] text-muted-foreground">
                       <Users className="h-3 w-3" />
-                      {book.statistics.totalReaders}
-                    </span>
+                      <span>{book.statistics?.totalReaders || book.analytics?.totalViews || 0}</span>
+                    </div>
                   )}
                 </div>
 
-                {/* Progress - Compact */}
-                {progress > 0 && (
-                  <div className="mb-2">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                      <span>{isCompleted ? 'Completed' : `${progress}%`}</span>
-                      <span className="flex items-center gap-2">
-                        Page {currentPage} of {totalPages}
-                        {estimatedReadingTime && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {estimatedReadingTime}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <Progress value={progress} className="h-1.5" />
-                  </div>
-                )}
+                {/* Book Info - Mobile */}
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm line-clamp-1 mb-1" title={book.name}>
+                      {book.name}
+                    </h3>
 
-                {/* View More Button */}
-                {viewMoreHref && (
-                  <Link
-                    href={viewMoreHref}
-                    className="inline-block"
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseEnter={handleMouseEnter}
-                  >
-                    <Button variant="outline" size="sm" className="w-full">
-                      View More
-                    </Button>
-                  </Link>
-                )}
+                    {/* Authors - Not clickable */}
+                    {book.authors && book.authors.length > 0 && (
+                      <p className="text-xs text-muted-foreground mb-1.5 line-clamp-1" title={`by ${authors}`}>
+                        by {authors}
+                      </p>
+                    )}
+
+                    {/* Uploaded by - Clickable, below author */}
+                    {showUploader && book.entryBy && typeof book.entryBy === 'object' && (
+                      <Link
+                        href={`/users/${book.entryBy.id}`}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors mb-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+                          {book.entryBy.avatar ? (
+                            <Image
+                              src={getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              sizes="16px"
+                              unoptimized
+                            />
+                          ) : (
+                            <span className="text-[8px] font-medium">
+                              {book.entryBy.username?.[0]?.toUpperCase() ||
+                               book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground truncate">
+                          <span className="font-medium">Uploaded by</span>{' '}
+                          {getUserDisplayName({
+                            firstName: book.entryBy.firstName,
+                            lastName: book.entryBy.lastName,
+                            username: book.entryBy.username,
+                            name: book.entryBy.name,
+                            email: '',
+                          })}
+                        </span>
+                      </Link>
+                    )}
+
+                    {/* Categories - Below uploader, clickable */}
+                    {showCategories && book.categories && book.categories.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap mb-2">
+                        {book.categories.slice(0, 3).map((category) => (
+                          <Link
+                            key={category.id}
+                            href={`/categories/${category.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 truncate max-w-[80px] h-5 flex items-center">
+                              {category.name}
+                            </Badge>
+                          </Link>
+                        ))}
+                        {book.categories.length > 3 && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 h-5 flex items-center">
+                            +{book.categories.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom section: Page count, read time, progress, and View More */}
+                  <div className="space-y-1.5 mt-auto">
+                    {/* Page count and read time - justify-between */}
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>Page {book.pageNumber || '?'}</span>
+                      {estimatedReadingTime && (
+                        <span className="flex items-center gap-0.5">
+                          <Clock className="h-2.5 w-2.5" />
+                          {estimatedReadingTime}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Progress bar (if any progress) */}
+                    {progress > 0 && (
+                      <div className="space-y-0.5">
+                        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                          <span>{isCompleted ? 'Completed' : `${progress}%`}</span>
+                          <span>Page {currentPage} of {totalPages}</span>
+                        </div>
+                        <Progress value={progress} className="h-1" />
+                      </div>
+                    )}
+
+                    {/* View More and Continue buttons - side by side */}
+                    <div className="flex items-center gap-2">
+                      {showProgressActions ? (
+                        <>
+                          {viewMoreHref && (
+                            <Link
+                              href={viewMoreHref}
+                              className="flex-1"
+                              onClick={(e) => e.stopPropagation()}
+                              onMouseEnter={handleMouseEnter}
+                            >
+                              <Button variant="outline" size="sm" className="w-full h-6 text-[10px] px-2">
+                                View More
+                              </Button>
+                            </Link>
+                          )}
+
+                          <Button
+                            size="sm"
+                            className="flex-1 h-6 text-[10px]"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              router.push(viewMoreHref || `/books/${book.id}`)
+                            }}
+                          >
+                            {progress === 0 ? 'Start' : isCompleted ? 'Again' : 'Continue'}
+                          </Button>
+                        </>
+                      ) : (
+                        viewMoreHref && (
+                          <Link
+                            href={viewMoreHref}
+                            className="w-full"
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseEnter={handleMouseEnter}
+                          >
+                            <Button variant="outline" size="sm" className="w-full h-6 text-[10px] px-2">
+                              View More
+                            </Button>
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Edit actions - bottom right for mobile */}
+              {showEditActions && (
+                <div className="flex justify-end gap-1 mt-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={handleEdit}
+                  >
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-destructive"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -297,6 +404,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
         ref={ref}
         className={cn(
           'group transition-all hover:shadow-lg',
+          book.requiresPremium && 'shadow-lg shadow-purple-500/20 border-purple-500/50',
           onClick && 'cursor-pointer',
           className
         )}
@@ -305,383 +413,239 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
         {...props}
       >
         <CardContent className="p-4">
-          {/* Mobile: Horizontal layout */}
-          <div className="flex gap-4 md:hidden">
-            {/* Book Cover + Metadata - Mobile */}
-            <div className="flex-shrink-0">
-              {/* Cover Image */}
-              <div className="relative mb-2">
-                <div className="w-20 h-28 bg-muted rounded-t flex items-center justify-center overflow-hidden relative">
-                  {book.image ? (
-                    <Image
-                      src={getProxiedImageUrl(book.image) || book.image}
-                      alt={book.name}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="80px"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center text-muted-foreground">
-                      <BookOpen className="h-8 w-8" />
-                    </div>
-                  )}
-
-                  {/* Type Badge - Top Left */}
-                  {showTypeBadge && book.type && (
-                    <div className="absolute top-1 left-1 z-10 pointer-events-none">
-                      <BookTypeBadge type={book.type} size="sm" />
-                    </div>
-                  )}
-
-                  {/* Premium Badge - Bottom Left */}
-                  {showPremiumBadge && book.requiresPremium && (
-                    <div className="absolute bottom-1 left-1 z-10 pointer-events-none">
-                      <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[9px] px-1.5 py-0.5">
-                        Premium
-                      </Badge>
-                    </div>
-                  )}
-
-                  {/* Edit/Delete Actions - Mobile */}
-                  {showEditActions && (
-                    <div className="absolute top-1 right-1 z-20 flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 bg-background/80 hover:bg-background/80 backdrop-blur-sm p-0"
-                        onClick={handleEdit}
-                      >
-                        <Edit className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 bg-background/80 hover:bg-background/80 text-destructive backdrop-blur-sm p-0"
-                        onClick={handleDelete}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Add to Bookshelf Button - Mobile */}
-                  {showAddToBookshelf && (
-                    <div className="absolute top-1 right-1 z-20">
-                      <AddToBookshelf
-                        bookId={book.id}
-                        bookName={book.name}
-                        variant="manage"
-                        triggerClassName="h-6 w-6"
-                      />
-                    </div>
-                  )}
-
-                  {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-t pointer-events-none z-10">
-                      <Lock className="h-6 w-6 text-white" />
-                    </div>
-                  )}
-                </div>
+          {/* Unified vertical layout for both mobile and desktop */}
+          {/* Book Cover */}
+          <div className="relative w-full bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden group" style={{ height: coverHeight === 'tall' ? '14rem' : '10rem' }}>
+            {book.image ? (
+              <Image
+                src={getProxiedImageUrl(book.image) || book.image}
+                alt={book.name}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                unoptimized
+              />
+            ) : (
+              <div className="flex items-center justify-center text-muted-foreground w-full h-full">
+                <div className="scale-150"><BookOpen className="h-12 w-12" /></div>
               </div>
+            )}
 
-              {/* Metadata below image - Mobile */}
-              <div className="w-20 space-y-1.5">
-                {/* Uploader info */}
-                {showUploader && book.entryBy && typeof book.entryBy === 'object' && (
-                  <Link
-                    href={`/users/${book.entryBy.id}`}
-                    className="flex items-center gap-1 hover:text-foreground transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-                      {book.entryBy.avatar ? (
-                        <Image
-                          src={getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="16px"
-                          unoptimized
-                        />
-                      ) : (
-                        <span className="text-[8px] font-medium">
-                          {book.entryBy.username?.[0]?.toUpperCase() ||
-                           book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[9px] text-muted-foreground truncate">
-                      {(book.entryBy.username || getUserDisplayName({
-                        firstName: book.entryBy.firstName,
-                        lastName: book.entryBy.lastName,
-                        name: book.entryBy.name,
-                        email: '',
-                      })).substring(0, 8)}
-                    </span>
-                  </Link>
-                )}
-
-                {/* Reader count */}
-                {showReaderCount && book.statistics?.totalReaders && book.statistics.totalReaders > 0 && (
-                  <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                    <Users className="h-3 w-3" />
-                    <span>{book.statistics.totalReaders}</span>
-                  </div>
-                )}
+            {/* Type Badge - Top Left */}
+            {showTypeBadge && book.type && (
+              <div className="absolute top-2 left-2 z-10 pointer-events-none">
+                <BookTypeBadge type={book.type} size="md" />
               </div>
-            </div>
+            )}
 
-            {/* Book Info - Mobile */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              <div>
-                <h3 className="font-semibold line-clamp-1 text-sm mb-1" title={book.name}>
-                  {book.name}
-                </h3>
-                <p className="text-sm text-muted-foreground truncate" title={`by ${authors}`}>
-                  by {authors}
-                </p>
+            {/* Premium Badge - Bottom Left */}
+            {showPremiumBadge && book.requiresPremium && (
+              <div className="absolute bottom-2 left-2 z-10 pointer-events-none">
+                <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs">
+                  <Crown className="h-3 w-3 mr-1 hidden sm:inline-block" />
+                  Premium
+                </Badge>
               </div>
+            )}
 
-              {/* Metadata and Actions - Mobile */}
-              <div className="space-y-2">
-                {/* Progress Section */}
-                {progress > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-muted-foreground">Progress</span>
-                      <span className="text-xs font-medium">{progress}%</span>
-                    </div>
-                    <Progress value={progress} className="h-2" />
-                    <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                      <span>Page {currentPage} of {totalPages}</span>
-                      {estimatedReadingTime && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {estimatedReadingTime}
-                        </span>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  estimatedReadingTime && (
-                    <div className="text-xs text-muted-foreground">{estimatedReadingTime}</div>
-                  )
-                )}
-
-                {/* View More Button - Mobile */}
-                {viewMoreHref && (
-                  <Link
-                    href={viewMoreHref}
-                    className="block"
-                    onClick={(e) => e.stopPropagation()}
-                    onMouseEnter={handleMouseEnter}
-                  >
-                    <Button variant="outline" size="sm" className="w-full">
-                      View More
-                    </Button>
-                  </Link>
-                )}
+            {/* Edit/Delete Actions */}
+            {showEditActions && (
+              <div className="absolute top-2 right-2 z-20 flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 bg-background/80 hover:bg-background/80 backdrop-blur-sm"
+                  onClick={handleEdit}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 bg-background/80 hover:bg-background/80 text-destructive backdrop-blur-sm"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-            </div>
+            )}
+
+            {/* Add to Bookshelf Button */}
+            {showAddToBookshelf && (
+              <div className="absolute top-2 right-2 z-20">
+                <AddToBookshelf
+                  bookId={book.id}
+                  bookName={book.name}
+                  variant="manage"
+                  triggerClassName="h-8 w-8"
+                />
+              </div>
+            )}
+
+            {/* Lock Overlay */}
+            {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg pointer-events-none">
+                <Lock className="h-8 w-8 text-white" />
+              </div>
+            )}
+
+            {/* Reader Count - Bottom Right of Image */}
+            {showReaderCount && (book.statistics?.totalReaders || book.analytics?.totalViews) && (
+              <div className="absolute bottom-2 right-2 z-10 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 pointer-events-none">
+                <Users className="h-3.5 w-3.5 text-white" />
+                <span className="text-[10px] font-medium text-white">
+                  {book.statistics?.totalReaders || book.analytics?.totalViews || 0}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Desktop: Vertical layout */}
-          <div className="hidden md:block">
-            {/* Book Cover - Desktop */}
-            <div className="relative w-full bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden group" style={{ height: coverHeight === 'tall' ? '16rem' : '12rem' }}>
-              {book.image ? (
-                <Image
-                  src={getProxiedImageUrl(book.image) || book.image}
-                  alt={book.name}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex items-center justify-center text-muted-foreground w-full h-full">
-                  <div className="scale-150"><BookOpen className="h-12 w-12" /></div>
-                </div>
-              )}
+          {/* Book Info */}
+          <div className="space-y-3">
+            {/* Title */}
+            <h3 className="font-semibold truncate text-foreground group-hover:text-primary transition-colors" title={book.name}>
+              {book.name}
+            </h3>
 
-              {/* Type Badge - Top Left */}
-              {showTypeBadge && book.type && (
-                <div className="absolute top-2 left-2 z-10 pointer-events-none">
-                  <BookTypeBadge type={book.type} size="md" />
-                </div>
-              )}
+            {/* Author */}
+            {book.authors && book.authors.length > 0 && (
+              <p className="text-sm text-muted-foreground truncate" title={`by ${authors}`}>
+                by {authors}
+              </p>
+            )}
 
-              {/* Premium Badge - Bottom Left */}
-              {showPremiumBadge && book.requiresPremium && (
-                <div className="absolute bottom-2 left-2 z-10 pointer-events-none">
-                  <Badge variant="default" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs">
-                    Premium
-                  </Badge>
-                </div>
-              )}
-
-              {/* Edit/Delete Actions - Desktop */}
-              {showEditActions && (
-                <div className="absolute top-2 right-2 z-20 flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 bg-background/80 hover:bg-background/80 backdrop-blur-sm"
-                    onClick={handleEdit}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 bg-background/80 hover:bg-background/80 text-destructive backdrop-blur-sm"
-                    onClick={handleDelete}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-
-              {/* Add to Bookshelf Button - Desktop */}
-              {showAddToBookshelf && (
-                <div className="absolute top-2 right-2 z-20">
-                  <AddToBookshelf
-                    bookId={book.id}
-                    bookName={book.name}
-                    variant="manage"
-                    triggerClassName="h-8 w-8"
-                  />
-                </div>
-              )}
-
-              {/* Lock Overlay */}
-              {showLockOverlay && (book.requiresPremium || !book.canAccess) && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg pointer-events-none">
-                  <Lock className="h-8 w-8 text-white" />
-                </div>
+            {/* Metadata */}
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              {/* Uploader */}
+              {showUploader && book.entryBy && typeof book.entryBy === 'object' && (
+                <Link
+                  href={`/users/${book.entryBy.id}`}
+                  className="flex items-center gap-1.5 hover:text-foreground transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Avatar className="h-5 w-5">
+                    {book.entryBy.avatar ? (
+                      <AvatarImage
+                        src={getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar}
+                        alt=""
+                      />
+                    ) : null}
+                    <AvatarFallback className="text-[9px] bg-primary/10">
+                      {book.entryBy.username
+                        ? book.entryBy.username[0].toUpperCase()
+                        : book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs">
+                    {getUserDisplayName({
+                      firstName: book.entryBy.firstName,
+                      lastName: book.entryBy.lastName,
+                      username: book.entryBy.username,
+                      name: book.entryBy.name,
+                      email: '',
+                    })}
+                  </span>
+                </Link>
               )}
             </div>
 
-            {/* Book Info - Desktop */}
-            <div className="space-y-3">
-              {/* Title */}
-              <h3 className="font-semibold truncate text-foreground group-hover:text-primary transition-colors" title={book.name}>
-                {book.name}
-              </h3>
-
-              {/* Author */}
-              {book.authors && book.authors.length > 0 && (
-                <p className="text-sm text-muted-foreground truncate" title={`by ${authors}`}>
-                  by {authors}
-                </p>
-              )}
-
-              {/* Metadata - Desktop */}
-              <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-                {showReaderCount && book.statistics?.totalReaders && book.statistics.totalReaders > 0 && (
-                  <span className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    {book.statistics.totalReaders} {book.statistics.totalReaders === 1 ? 'reader' : 'readers'}
+            {/* Progress */}
+            {progress > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {isCompleted ? 'Completed' : 'Progress'}
                   </span>
-                )}
-                {/* Uploader - Desktop */}
-                {showUploader && book.entryBy && typeof book.entryBy === 'object' && (
-                  <Link
-                    href={`/users/${book.entryBy.id}`}
-                    className="flex items-center gap-1.5 hover:text-foreground transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Avatar className="h-5 w-5">
-                      {book.entryBy.avatar ? (
-                        <AvatarImage
-                          src={getProxiedImageUrl(book.entryBy.avatar) || book.entryBy.avatar}
-                          alt=""
-                        />
-                      ) : null}
-                      <AvatarFallback className="text-[9px] bg-primary/10">
-                        {book.entryBy.username
-                          ? book.entryBy.username[0].toUpperCase()
-                          : book.entryBy.firstName?.[0]?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs">
-                      {getUserDisplayName({
-                        firstName: book.entryBy.firstName,
-                        lastName: book.entryBy.lastName,
-                        username: book.entryBy.username,
-                        name: book.entryBy.name,
-                        email: '',
-                      })}
-                    </span>
-                  </Link>
-                )}
-              </div>
-
-              {/* Progress - Desktop */}
-              {progress > 0 && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      {isCompleted ? 'Completed' : 'Progress'}
-                    </span>
-                    <span>{progress}%</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Page {currentPage} of {totalPages}</span>
-                    {estimatedReadingTime && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {estimatedReadingTime}
-                      </span>
-                    )}
-                  </div>
+                  <span>{progress}%</span>
                 </div>
-              )}
-
-              {/* Categories - Desktop (limit to 2) */}
-              {showCategories && book.categories && book.categories.length > 0 && (
-                <div className="flex items-center gap-1 flex-wrap overflow-hidden">
-                  {book.categories.slice(0, 2).map((category) => (
-                    <Badge key={category.id} variant="outline" className="text-xs truncate max-w-[120px]" title={category.name}>
-                      {category.name}
-                    </Badge>
-                  ))}
-                  {book.categories.length > 2 && (
-                    <Badge variant="outline" className="text-xs whitespace-nowrap">
-                      +{book.categories.length - 2} more
-                    </Badge>
+                <Progress value={progress} className="h-2" />
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Page {currentPage} of {totalPages}</span>
+                  {estimatedReadingTime && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {estimatedReadingTime}
+                    </span>
                   )}
                 </div>
-              )}
+              </div>
+            )}
 
+            {/* Categories (limit to 2) */}
+            {showCategories && book.categories && book.categories.length > 0 && (
+              <div className="flex items-center gap-1 flex-wrap overflow-hidden">
+                {book.categories.slice(0, 2).map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/categories/${category.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Badge variant="outline" className="text-xs truncate max-w-[120px]" title={category.name}>
+                      {category.name}
+                    </Badge>
+                  </Link>
+                ))}
+                {book.categories.length > 2 && (
+                  <Badge variant="outline" className="text-xs whitespace-nowrap">
+                    +{book.categories.length - 2} more
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons - Side by side */}
+            <div className="flex items-center justify-between gap-2 pt-2">
               {/* Progress Action Buttons (Library) */}
               {showProgressActions && (
-                <div className="pt-2">
+                <>
                   {progress === 0 ? (
-                    <Button className="w-full" size="sm">
+                    <Button
+                      className="flex-1"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        router.push(viewMoreHref || `/books/${book.id}`)
+                      }}
+                    >
                       Start Reading
                     </Button>
                   ) : isCompleted ? (
-                    <Button variant="outline" className="w-full" size="sm">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        router.push(viewMoreHref || `/books/${book.id}`)
+                      }}
+                    >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Read Again
                     </Button>
                   ) : (
-                    <Button className="w-full" size="sm">
+                    <Button
+                      className="flex-1"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        router.push(viewMoreHref || `/books/${book.id}`)
+                      }}
+                    >
                       <Clock className="h-4 w-4 mr-2" />
                       Continue
                     </Button>
                   )}
-                </div>
+                </>
               )}
 
-              {/* View More Button - Desktop */}
+              {/* View More Button */}
               {viewMoreHref && (
                 <Link
                   href={viewMoreHref}
-                  className="block"
+                  className={showProgressActions ? 'flex-1' : 'w-full'}
                   onClick={(e) => e.stopPropagation()}
                   onMouseEnter={handleMouseEnter}
                 >
