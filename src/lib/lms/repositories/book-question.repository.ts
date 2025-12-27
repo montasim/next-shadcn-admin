@@ -85,18 +85,23 @@ export async function createBookQuestion(
   }
 ) {
   // Get next order if not provided
-  if (!data.order) {
+  let order: number
+  if (data.order !== undefined) {
+    order = data.order
+  } else {
     const maxOrder = await prisma.bookQuestion.findFirst({
       where: { bookId },
       orderBy: { order: 'desc' },
       select: { order: true },
     })
-    data.order = (maxOrder?.order || 0) + 1
+    order = (maxOrder?.order || 0) + 1
   }
 
   return prisma.bookQuestion.create({
     data: {
-      ...data,
+      question: data.question,
+      answer: data.answer,
+      order,
       bookId,
       isAIGenerated: false,
     }

@@ -93,8 +93,16 @@ export function createBookExtractionWorker(): Worker<BookExtractionJobData, Book
         const book = await prisma.book.findUnique({
           where: { id: bookId },
           include: {
-            authors: true,
-            categories: true,
+            authors: {
+              include: {
+                author: true
+              }
+            },
+            categories: {
+              include: {
+                category: true
+              }
+            },
           }
         })
 
@@ -206,15 +214,15 @@ export function createBookExtractionWorker(): Worker<BookExtractionJobData, Book
   )
 
   // Event listeners
-  worker.on('completed', (job: Job) => {
+  worker.on('completed', (job: Job<BookExtractionJobData, BookExtractionJobResult>) => {
     console.log(`[Queue Worker] Job ${job.id} completed`)
   })
 
-  worker.on('failed', (job: Job | undefined, error: Error) => {
+  worker.on('failed', (job: Job<BookExtractionJobData, BookExtractionJobResult> | undefined, error: Error) => {
     console.error(`[Queue Worker] Job ${job?.id} failed:`, error.message)
   })
 
-  worker.on('progress', (job: Job, progress: number) => {
+  worker.on('progress', (job: Job<BookExtractionJobData, BookExtractionJobResult>, progress: any) => {
     console.log(`[Queue Worker] Job ${job.id} progress: ${progress}%`)
   })
 

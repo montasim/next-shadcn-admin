@@ -35,7 +35,7 @@ export async function createInvite({
 }: {
     email: string
     invitedBy: string
-    role: string
+    role: 'USER' | 'ADMIN' | 'SUPER_ADMIN'
     desc?: string
     expiresAt: Date
 }) {
@@ -68,7 +68,7 @@ export async function createInvite({
  * Find valid invite by token
  */
 export async function findValidInviteByToken(token: string) {
-    return prisma.invite.findUnique({
+    return prisma.invite.findFirst({
         where: {
             token,
             used: false,

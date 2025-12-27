@@ -60,7 +60,7 @@ export async function checkBookAccess(
 
     if (userId) {
         // Check premium status for specific user
-        const { isUserPremium } = await import('@/lib/user/repositories/user.repository')
+        const { isUserPremium } = await import('@/lib/auth/repositories/user.repository')
         const { hasActivePremiumSubscription } = await import('@/lib/user/repositories/subscription.repository')
 
         const [premiumFlag, hasActiveSubscription] = await Promise.all([
@@ -73,7 +73,7 @@ export async function checkBookAccess(
         // Check current user session
         try {
             userSession = await getSession()
-            userHasPremium = userSession?.role === 'USER' ? false : userSession?.role === 'ADMIN' ? true : false // Simplified premium check
+            userHasPremium = userSession?.role === 'USER' ? false : userSession?.role === 'ADMIN' // Simplified premium check
         } catch (error) {
             // User not authenticated
         }
@@ -118,7 +118,7 @@ function determineReadCapability(
         case BookType.AUDIO:
             return true // Audiobooks can always be listened to
         case BookType.HARD_COPY:
-            return numberOfCopies && numberOfCopies > 0 // Hard copies must have available copies
+            return (numberOfCopies ?? 0) > 0 // Hard copies must have available copies
         default:
             return false
     }
@@ -164,7 +164,7 @@ export async function requireBookAccess(
 
     if (!access.canAccess) {
         if (access.requiresPremium) {
-            throw new AuthenticationError(access.reason || 'Premium access required')
+            throw new AuthenticationError(access.reason || 'Premium access required', 'PREMIUM_REQUIRED', 403)
         } else {
             throw new Error(access.reason || 'Access denied')
         }
@@ -186,7 +186,7 @@ export async function requirePremium(): Promise<void> {
     const userHasPremium = userSession?.role === 'USER' ? false : userSession?.role === 'ADMIN' ? true : false
 
     if (!userHasPremium) {
-        throw new AuthenticationError('Premium subscription required to access this content')
+        throw new AuthenticationError('Premium subscription required to access this content', 'PREMIUM_REQUIRED', 403)
     }
 }
 
