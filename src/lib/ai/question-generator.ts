@@ -185,7 +185,7 @@ export async function generateBookQuestionsWithRetry(
   options: QuestionGenerationOptions,
   maxRetries: number = 3
 ): Promise<GeneratedQuestions> {
-  let lastError: Error;
+  let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -205,5 +205,5 @@ export async function generateBookQuestionsWithRetry(
   }
 
   console.error(`[Question Generator] All ${maxRetries} attempts failed`);
-  throw lastError;
+  throw lastError || new Error('Failed to generate questions after all retries');
 }

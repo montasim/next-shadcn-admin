@@ -48,7 +48,7 @@ export async function compressImage(file: File): Promise<CompressedImageResult> 
     console.log('  - Saved:', compressionRatio.toFixed(2), '%');
 
     return {
-      buffer: compressedBuffer,
+      buffer: Buffer.from(compressedBuffer),
       sourceSize,
       compressedSize,
       compressionRatio,
@@ -78,9 +78,9 @@ export async function compressImage(file: File): Promise<CompressedImageResult> 
  */
 export function createCompressedFile(buffer: Buffer, originalFilename: string): File {
   const filename = originalFilename.replace(/\.[^/.]+$/, '') + '.png';
-  const blob = new Blob([buffer], { type: 'image/png' });
+  const uint8Array = new Uint8Array(buffer);
 
-  return new File([blob], filename, { type: 'image/png' });
+  return new File([uint8Array], filename, { type: 'image/png' });
 }
 
 /**

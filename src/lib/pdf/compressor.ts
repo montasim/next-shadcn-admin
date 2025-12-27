@@ -165,9 +165,9 @@ export async function compressPdfFromUrl(
  */
 export function createCompressedPdfFile(buffer: Buffer, originalFilename: string): File {
   const filename = originalFilename.replace(/\.pdf$/i, '') + '_compressed.pdf';
-  const blob = new Blob([buffer], { type: 'application/pdf' });
+  const uint8Array = new Uint8Array(buffer);
 
-  return new File([blob], filename, { type: 'application/pdf' });
+  return new File([uint8Array], filename, { type: 'application/pdf' });
 }
 
 /**

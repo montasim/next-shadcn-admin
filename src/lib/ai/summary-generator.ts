@@ -121,7 +121,7 @@ export async function generateBookSummaryWithRetry(
   options: SummaryGenerationOptions,
   maxRetries: number = 3
 ): Promise<GeneratedSummary> {
-  let lastError: Error;
+  let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -141,5 +141,5 @@ export async function generateBookSummaryWithRetry(
   }
 
   console.error(`[Summary Generator] All ${maxRetries} attempts failed`);
-  throw lastError;
+  throw lastError || new Error('Failed to generate summary after all retries');
 }

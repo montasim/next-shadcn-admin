@@ -120,11 +120,6 @@ export async function getOtpStats() {
             },
             select: {
                 intent: true,
-                _count: {
-                    select: {
-                        id: true
-                    }
-                }
             },
             orderBy: {
                 createdAt: 'desc'
@@ -133,7 +128,7 @@ export async function getOtpStats() {
     ])
 
     const intentStats = recentOtps.reduce((acc, otp) => {
-        acc[otp.intent] = (acc[otp.intent] || 0) + otp._count.id
+        acc[otp.intent] = (acc[otp.intent] || 0) + 1
         return acc
     }, {} as Record<string, number>)
 
