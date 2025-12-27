@@ -1,6 +1,8 @@
 import ContentSection from '../components/content-section'
 import DisplayForm from './display-form'
 
+export const dynamic = 'force-dynamic'
+
 export default function SettingsDisplay() {
   return (
     <ContentSection

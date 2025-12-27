@@ -1,6 +1,8 @@
 import ContentSection from '../components/content-section'
 import AppearanceForm from './appearance-form'
 
+export const dynamic = 'force-dynamic'
+
 export default function SettingsAppearance() {
   return (
     <ContentSection
