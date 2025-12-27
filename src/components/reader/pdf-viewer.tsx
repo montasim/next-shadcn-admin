@@ -363,7 +363,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
     <div ref={containerRef} className={cn("flex flex-col bg-background w-full", className)}>
       {/* Toolbar - Hidden on mobile when hideToolbarOnMobile is true */}
       <div className={cn(
-        "flex flex-col bg-background/95 backdrop-blur flex-shrink-0 border-b",
+        "flex flex-col bg-background backdrop-blur-sm flex-shrink-0 border-b",
         hideToolbarOnMobile && "hidden sm:flex"
       )}>
         {/* Primary Toolbar Row */}
@@ -528,7 +528,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
 
         {/* Mobile Menu - Collapsible */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t bg-background px-2 py-3 space-y-3">
+          <div className="sm:hidden border-t bg-background/95 backdrop-blur-sm px-2 py-3 space-y-3">
             {/* Zoom controls for mobile */}
             <div className="flex items-center justify-between space-x-2">
               <span className="text-sm font-medium">Zoom</span>
@@ -607,7 +607,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
       </div>
 
       {/* PDF Canvas Container */}
-      <div className="flex-1 overflow-auto bg-muted/30 min-h-0 mx-2 sm:mx-4 md:mx-8 mt-3 sm:mt-4 md:mt-6 rounded-lg relative">
+      <div className="flex-1 overflow-auto bg-neutral-100 dark:bg-neutral-900 min-h-0 mx-2 sm:mx-4 md:mx-8 mt-3 sm:mt-4 md:mt-6 rounded-lg relative">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin mb-4" />
@@ -621,10 +621,10 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-center min-h-full p-4">
+          <div className="flex items-start justify-center min-h-full pt-2 pb-16 sm:py-4 md:py-6 px-2 sm:px-4 md:px-6">
             <canvas
               ref={canvasRef}
-              className="max-w-full h-auto shadow-lg rounded"
+              className="max-w-full h-auto shadow-lg rounded-md border-2 border-border"
               style={{
                 imageRendering: 'crisp-edges'
               }}
@@ -633,34 +633,30 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
         )}
 
         {/* Mobile Floating Page Navigation Buttons */}
-        <div className="sm:hidden fixed bottom-6 left-4 right-4 flex items-center justify-between gap-2 z-50 pointer-events-none">
-          <Button
-            variant="default"
-            size="lg"
+        <div className="sm:hidden fixed bottom-4 left-0 right-0 flex items-center justify-center gap-4 z-50 pointer-events-none px-4 pb-safe">
+          <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage <= 1}
-            className="h-14 w-14 rounded-full shadow-lg pointer-events-auto bg-primary/90 backdrop-blur-sm hover:bg-primary"
+            className="pointer-events-auto text-foreground/80 hover:text-foreground disabled:opacity-30 disabled:hover:text-foreground/80 transition-colors"
             aria-label="Previous page"
           >
-            <ChevronLeft className="h-6 w-6" />
-          </Button>
+            <ChevronLeft className="h-7 w-7" />
+          </button>
 
-          <div className="px-3 py-1.5 bg-background/90 backdrop-blur-sm rounded-full shadow-sm pointer-events-auto">
-            <span className="text-sm font-medium">
+          <div className="px-3 py-0.5 bg-background/95 backdrop-blur-md rounded shadow-md pointer-events-auto border border-border">
+            <span className="text-xs font-medium">
               {currentPage} / {totalPages}
             </span>
           </div>
 
-          <Button
-            variant="default"
-            size="lg"
+          <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage >= totalPages}
-            className="h-14 w-14 rounded-full shadow-lg pointer-events-auto bg-primary/90 backdrop-blur-sm hover:bg-primary"
+            className="pointer-events-auto text-foreground/80 hover:text-foreground disabled:opacity-30 disabled:hover:text-foreground/80 transition-colors"
             aria-label="Next page"
           >
-            <ChevronRight className="h-6 w-6" />
-          </Button>
+            <ChevronRight className="h-7 w-7" />
+          </button>
         </div>
       </div>
     </div>
