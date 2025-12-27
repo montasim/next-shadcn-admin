@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import useSWR from 'swr'
@@ -39,6 +39,8 @@ import {
     CheckCircle,
     User as UserIcon,
     Home, ArrowLeft, Sparkles, RefreshCw,
+    ChevronUp,
+    ChevronDown,
 } from 'lucide-react'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 
@@ -101,6 +103,7 @@ function ExpandableDescription({
 export default function BookDetailsPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const bookId = params.id as string
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
@@ -135,6 +138,21 @@ export default function BookDetailsPage() {
       })
     }
   }, [bookId, book])
+
+  // Track if we've already attempted to auto-open the reader
+  const hasAttemptedAutoOpen = useRef(false)
+
+  // Auto-open PDF reader if openReader parameter is present
+  useEffect(() => {
+    // Only attempt once
+    if (hasAttemptedAutoOpen.current) return
+
+    const shouldOpenReader = searchParams?.get('openReader') === 'true'
+    if (shouldOpenReader && book && book.type === 'EBOOK' && book.canAccess && !book.requiresPremium) {
+      hasAttemptedAutoOpen.current = true
+      setIsReaderModalOpen(true)
+    }
+  }, [book])
 
   // Fetcher for SWR
   const fetcher = async (url: string) => {
@@ -486,17 +504,6 @@ export default function BookDetailsPage() {
                 </div>
               ) : null}
 
-              {/* Mobile: Chat Button */}
-              {book.canAccess && (
-                <div className="sm:hidden mb-3">
-                  <BookChatButton
-                    book={book}
-                    onClick={() => setIsChatModalOpen(true)}
-                    className="w-full"
-                  />
-                </div>
-              )}
-
               {/* Mobile: Authors and Visitor Count */}
               {(book.authors && book.authors.length > 0) || book.analytics?.totalViews ? (
                 <div className='flex items-center justify-between gap-2 mb-4 sm:hidden'>
@@ -718,11 +725,28 @@ export default function BookDetailsPage() {
                 {book.suggestedQuestions && book.suggestedQuestions.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Key Questions About This Book</CardTitle>
-                      <CardDescription>
-                        Explore important questions and answers
-                      </CardDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">Key Questions About This Book</CardTitle>
+                          <CardDescription>
+                            Explore important questions and answers
+                          </CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleExpanded('key-questions-section')}
+                          className="shrink-0"
+                        >
+                          {expandedSections['key-questions-section'] ? (
+                              <ChevronUp className="h-4 w-4 mr-1" />
+                          ) : (
+                              <ChevronDown className="h-4 w-4 mr-1" />
+                          )}
+                        </Button>
+                      </div>
                     </CardHeader>
+                    {expandedSections['key-questions-section'] !== false && (
                     <CardContent>
                       <div className="space-y-3">
                         {book.suggestedQuestions.map((sq) => {
@@ -748,6 +772,7 @@ export default function BookDetailsPage() {
                         })}
                       </div>
                     </CardContent>
+                    )}
                   </Card>
                 )}
               </TabsContent>

@@ -355,7 +355,9 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
-                              router.push(viewMoreHref || `/books/${book.id}`)
+                              const baseUrl = viewMoreHref || `/books/${book.id}`
+                              const url = baseUrl.includes('?') ? `${baseUrl}&openReader=true` : `${baseUrl}?openReader=true`
+                              router.push(url)
                             }}
                           >
                             {progress === 0 ? 'Start' : isCompleted ? 'Again' : 'Continue'}
@@ -614,7 +616,9 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        router.push(viewMoreHref || `/books/${book.id}`)
+                        const baseUrl = viewMoreHref || `/books/${book.id}`
+                        const url = baseUrl.includes('?') ? `${baseUrl}&openReader=true` : `${baseUrl}?openReader=true`
+                        router.push(url)
                       }}
                     >
                       Start Reading
@@ -627,7 +631,9 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        router.push(viewMoreHref || `/books/${book.id}`)
+                        const baseUrl = viewMoreHref || `/books/${book.id}`
+                        const url = baseUrl.includes('?') ? `${baseUrl}&openReader=true` : `${baseUrl}?openReader=true`
+                        router.push(url)
                       }}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
@@ -640,7 +646,9 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        router.push(viewMoreHref || `/books/${book.id}`)
+                        const baseUrl = viewMoreHref || `/books/${book.id}`
+                        const url = baseUrl.includes('?') ? `${baseUrl}&openReader=true` : `${baseUrl}?openReader=true`
+                        router.push(url)
                       }}
                     >
                       <Clock className="h-4 w-4 mr-2" />
