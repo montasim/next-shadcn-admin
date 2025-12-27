@@ -6,7 +6,10 @@
       "Bash(ls:*)",
       "Bash(find:*)",
       "Bash(npm run build)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:*)"
     ]
   }
 }
