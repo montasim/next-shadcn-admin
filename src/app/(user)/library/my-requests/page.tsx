@@ -10,16 +10,7 @@ import { RequestStatus, BookType } from '@prisma/client'
 import { toast } from '@/hooks/use-toast'
 import { RequestBookDrawer } from '../request-book-drawer'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
@@ -289,58 +280,51 @@ export default function MyRequestsPage() {
         onSuccess={fetchRequests}
       />
 
-      <AlertDialog open={isCancelDialogOpen} onOpenChange={(open) => {
-        setIsCancelDialogOpen(open)
-        if (!open) {
-          setCancelReason('')
-          setReasonError('')
+      <ConfirmDialog
+        open={isCancelDialogOpen}
+        onOpenChange={(open) => {
+          setIsCancelDialogOpen(open)
+          if (!open) {
+            setCancelReason('')
+            setReasonError('')
+          }
+        }}
+        title="Cancel Request"
+        desc={
+          requestToCancel && (
+            <div>
+              Are you sure you want to cancel the request for{' '}
+              <strong>&quot;{requestToCancel.bookName}&quot;</strong> by {requestToCancel.authorName}?
+              This action cannot be undone.
+            </div>
+          )
         }
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Request</AlertDialogTitle>
-            <AlertDialogDescription>
-              {requestToCancel && (
-                <div>
-                  Are you sure you want to cancel the request for{' '}
-                  <strong>&quot;{requestToCancel.bookName}&quot;</strong> by {requestToCancel.authorName}?
-                  This action cannot be undone.
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="space-y-2 py-4">
-            <Label htmlFor="cancel-reason">
-              Reason for cancellation <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="cancel-reason"
-              placeholder="Please provide a reason for cancelling this request..."
-              value={cancelReason}
-              onChange={(e) => {
-                setCancelReason(e.target.value)
-                setReasonError('')
-              }}
-              className={reasonError ? 'border-destructive' : ''}
-            />
-            {reasonError && (
-              <p className="text-sm text-destructive">{reasonError}</p>
-            )}
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={cancellingId !== null}>
-              Keep Request
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCancelRequest}
-              disabled={cancellingId !== null}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {cancellingId ? 'Cancelling...' : 'Cancel Request'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        cancelBtnText="Keep Request"
+        confirmText={cancellingId ? 'Cancelling...' : 'Cancel Request'}
+        destructive
+        handleConfirm={handleCancelRequest}
+        disabled={cancellingId !== null}
+        isLoading={cancellingId !== null}
+      >
+        <div className="space-y-2 py-4">
+          <Label htmlFor="cancel-reason">
+            Reason for cancellation <span className="text-destructive">*</span>
+          </Label>
+          <Textarea
+            id="cancel-reason"
+            placeholder="Please provide a reason for cancelling this request..."
+            value={cancelReason}
+            onChange={(e) => {
+              setCancelReason(e.target.value)
+              setReasonError('')
+            }}
+            className={reasonError ? 'border-destructive' : ''}
+          />
+          {reasonError && (
+            <p className="text-sm text-destructive">{reasonError}</p>
+          )}
+        </div>
+      </ConfirmDialog>
     </div>
   )
 }

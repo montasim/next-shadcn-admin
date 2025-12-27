@@ -7,16 +7,7 @@ import { FolderOpen, Plus, Loader2 } from 'lucide-react'
 import { getBookshelfById, removeBookFromBookshelf } from '../actions'
 import { UploadBooksMutateDrawer } from '../upload-books-mutate-drawer'
 import { toast } from '@/hooks/use-toast'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import {BookCard} from "@/components";
 
 interface BookshelfContentProps {
@@ -187,21 +178,20 @@ export function BookshelfContent({ bookshelfId, onAddBooks }: BookshelfContentPr
       />
 
       {/* Remove from Bookshelf Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Book from &quot;{bookshelf.name}&quot; bookshelf?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove &quot;{deletingBook?.name}&quot; from the &quot;{bookshelf.name}&quot; bookshelf?
-              The book will not be deleted from your library.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeletingBook(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemoveBook}>Remove</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title={`Remove Book from "${bookshelf.name}" bookshelf?`}
+        desc={
+          <>
+            Are you sure you want to remove &quot;{deletingBook?.name}&quot; from the &quot;{bookshelf.name}&quot; bookshelf?
+            The book will not be deleted from your library.
+          </>
+        }
+        cancelBtnText="Cancel"
+        confirmText="Remove"
+        handleConfirm={confirmRemoveBook}
+      />
     </div>
   )
 }

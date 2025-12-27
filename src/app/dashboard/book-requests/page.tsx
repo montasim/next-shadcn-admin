@@ -17,16 +17,7 @@ import { toast } from '@/hooks/use-toast'
 import { useBookRequestsContext } from './context/book-requests-context'
 import { BookRequestsProvider } from './context/book-requests-context'
 import { BookRequestApproveDrawer } from './components/book-requests-approve-drawer'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { StatCard } from '@/components/analytics/stat-card'
@@ -409,58 +400,51 @@ function BookRequestsPageContent() {
         requestData={approvingRequest}
       />
 
-      <AlertDialog open={isRejectDialogOpen} onOpenChange={(open) => {
-        setIsRejectDialogOpen(open)
-        if (!open) {
-          setRejectReason('')
-          setReasonError('')
+      <ConfirmDialog
+        open={isRejectDialogOpen}
+        onOpenChange={(open) => {
+          setIsRejectDialogOpen(open)
+          if (!open) {
+            setRejectReason('')
+            setReasonError('')
+          }
+        }}
+        title="Reject Book Request"
+        desc={
+          requestToReject && (
+            <div>
+              Are you sure you want to reject the request for{' '}
+              <strong>&quot;{requestToReject.bookName}&quot;</strong> by {requestToReject.authorName}?
+              This action cannot be undone.
+            </div>
+          )
         }
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reject Book Request</AlertDialogTitle>
-            <AlertDialogDescription>
-              {requestToReject && (
-                <div>
-                  Are you sure you want to reject the request for{' '}
-                  <strong>&quot;{requestToReject.bookName}&quot;</strong> by {requestToReject.authorName}?
-                  This action cannot be undone.
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="space-y-2 py-4">
-            <Label htmlFor="reject-reason">
-              Reason for rejection <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="reject-reason"
-              placeholder="Please provide a reason for rejecting this request..."
-              value={rejectReason}
-              onChange={(e) => {
-                setRejectReason(e.target.value)
-                setReasonError('')
-              }}
-              className={reasonError ? 'border-destructive' : ''}
-            />
-            {reasonError && (
-              <p className="text-sm text-destructive">{reasonError}</p>
-            )}
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={updatingId !== null}>
-              Keep Request
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRejectConfirm}
-              disabled={updatingId !== null}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {updatingId ? 'Rejecting...' : 'Reject Request'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        cancelBtnText="Keep Request"
+        confirmText={updatingId ? 'Rejecting...' : 'Reject Request'}
+        destructive
+        handleConfirm={handleRejectConfirm}
+        disabled={updatingId !== null}
+        isLoading={updatingId !== null}
+      >
+        <div className="space-y-2 py-4">
+          <Label htmlFor="reject-reason">
+            Reason for rejection <span className="text-destructive">*</span>
+          </Label>
+          <Textarea
+            id="reject-reason"
+            placeholder="Please provide a reason for rejecting this request..."
+            value={rejectReason}
+            onChange={(e) => {
+              setRejectReason(e.target.value)
+              setReasonError('')
+            }}
+            className={reasonError ? 'border-destructive' : ''}
+          />
+          {reasonError && (
+            <p className="text-sm text-destructive">{reasonError}</p>
+          )}
+        </div>
+      </ConfirmDialog>
     </div>
   )
 }

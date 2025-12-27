@@ -32,7 +32,7 @@ import { getBookshelves, deleteBookshelf, getUserBooks } from './actions'
 import { calculateReadingTimeHours } from '@/lib/utils/reading-time'
 import LibraryContextProvider, { LibraryDialogType } from './context/library-context'
 import useDialogState from '@/hooks/use-dialog-state'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { toast } from '@/hooks/use-toast'
 
 interface LibraryStats {
@@ -342,24 +342,22 @@ function LibraryPageContent() {
         />
 
         {/* Delete Dialog */}
-        <AlertDialog open={open === 'delete'} onOpenChange={(isOpen) => setOpen(isOpen ? 'delete' : null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                {currentRow?.fileUrl ? (
-                  <>This action cannot be undone. This will permanently delete the book &quot;{currentRow?.name}&quot;.</>
-                ) : (
-                  <>This action cannot be undone. This will permanently delete the bookshelf &quot;{currentRow?.name}&quot;.</>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setCurrentRow(null)}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmDialog
+          open={open === 'delete'}
+          onOpenChange={(isOpen) => setOpen(isOpen ? 'delete' : null)}
+          title="Are you sure?"
+          desc={
+            currentRow?.fileUrl ? (
+              <>This action cannot be undone. This will permanently delete the book &quot;{currentRow?.name}&quot;.</>
+            ) : (
+              <>This action cannot be undone. This will permanently delete the bookshelf &quot;{currentRow?.name}&quot;.</>
+            )
+          }
+          cancelBtnText="Cancel"
+          confirmText="Delete"
+          destructive
+          handleConfirm={handleDelete}
+        />
       </LibraryContextProvider>
     )
   }
@@ -529,24 +527,22 @@ function LibraryPageContent() {
       />
 
       {/* Delete Dialog */}
-      <AlertDialog open={open === 'delete'} onOpenChange={(isOpen) => setOpen(isOpen ? 'delete' : null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              {currentRow?.fileUrl ? (
-                <>This action cannot be undone. This will permanently delete the book &quot;{currentRow?.name}&quot;.</>
-              ) : (
-                <>This action cannot be undone. This will permanently delete the bookshelf &quot;{currentRow?.name}&quot;.</>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setCurrentRow(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={open === 'delete'}
+        onOpenChange={(isOpen) => setOpen(isOpen ? 'delete' : null)}
+        title="Are you sure?"
+        desc={
+          currentRow?.fileUrl ? (
+            <>This action cannot be undone. This will permanently delete the book &quot;{currentRow?.name}&quot;.</>
+          ) : (
+            <>This action cannot be undone. This will permanently delete the bookshelf &quot;{currentRow?.name}&quot;.</>
+          )
+        }
+        cancelBtnText="Cancel"
+        confirmText="Delete"
+        destructive
+        handleConfirm={handleDelete}
+      />
 
       {/* PDF Reader Modal */}
       {selectedBook && selectedBook.fileUrl && (
