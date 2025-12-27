@@ -105,15 +105,14 @@ export default function BookDetailsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const bookId = params.id as string
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const [isFavorite, setIsFavorite] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
 
   // Expand/collapse state for descriptions
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
-  // PDF Reader Modal state
-  const [isReaderModalOpen, setIsReaderModalOpen] = useState(false)
+  // PDF Reader Modal state - initialize based on search params
+  const shouldAutoOpenReader = searchParams?.get('openReader') === 'true'
+  const [isReaderModalOpen, setIsReaderModalOpen] = useState(shouldAutoOpenReader)
 
   // Chat Modal state
   const [isChatModalOpen, setIsChatModalOpen] = useState(false)
@@ -139,20 +138,24 @@ export default function BookDetailsPage() {
     }
   }, [bookId, book])
 
-  // Track if we've already attempted to auto-open the reader
-  const hasAttemptedAutoOpen = useRef(false)
+  // Track if we've already validated auto-open conditions
+  const hasValidatedAutoOpen = useRef(false)
 
-  // Auto-open PDF reader if openReader parameter is present
+  // Validate auto-open conditions and close modal if requirements aren't met
   useEffect(() => {
-    // Only attempt once
-    if (hasAttemptedAutoOpen.current) return
+    // Only validate once
+    if (hasValidatedAutoOpen.current) return
 
-    const shouldOpenReader = searchParams?.get('openReader') === 'true'
-    if (shouldOpenReader && book && book.type === 'EBOOK' && book.canAccess && !book.requiresPremium) {
-      hasAttemptedAutoOpen.current = true
-      setIsReaderModalOpen(true)
+    if (shouldAutoOpenReader && book) {
+      hasValidatedAutoOpen.current = true
+
+      // Close modal if book doesn't meet requirements
+      const shouldClose = book.type !== 'EBOOK' || !book.canAccess || book.requiresPremium
+      if (shouldClose) {
+        setIsReaderModalOpen(false)
+      }
     }
-  }, [book])
+  }, [book, shouldAutoOpenReader])
 
   // Fetcher for SWR
   const fetcher = async (url: string) => {
