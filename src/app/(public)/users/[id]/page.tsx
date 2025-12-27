@@ -44,7 +44,7 @@ export default function UserProfilePage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">User not found</h2>
           <p className="text-muted-foreground mb-4">
-            The user profile you're looking for doesn't exist.
+            The user profile you&apos;re looking for doesn&apos;t exist.
           </p>
           <Link href="/books">
             <Button>
@@ -169,7 +169,7 @@ export default function UserProfilePage() {
               <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No books yet</h3>
               <p className="text-muted-foreground">
-                This user hasn't uploaded any public books yet.
+                This user hasn&apos;t uploaded any public books yet.
               </p>
             </CardContent>
           </Card>

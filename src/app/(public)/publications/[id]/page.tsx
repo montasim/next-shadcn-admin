@@ -64,7 +64,7 @@ export default function PublicationDetailsPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Publisher not found</h2>
           <p className="text-muted-foreground mb-4">
-            The publisher you're looking for doesn't exist or has been removed.
+            The publisher you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Link href="/books">
             <Button>

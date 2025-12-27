@@ -343,7 +343,7 @@ export default function PremiumPage() {
               <CardContent>
                 <p className="text-muted-foreground">
                   Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately,
-                  and we'll prorate any differences in cost.
+                  and we&apos;ll prorate any differences in cost.
                 </p>
               </CardContent>
             </Card>
@@ -379,7 +379,7 @@ export default function PremiumPage() {
               <CardContent>
                 <p className="text-muted-foreground">
                   Absolutely. You can cancel your subscription at any time with no cancellation fees.
-                  You'll continue to have access to premium features until the end of your billing period.
+                  You&apos;ll continue to have access to premium features until the end of your billing period.
                 </p>
               </CardContent>
             </Card>
