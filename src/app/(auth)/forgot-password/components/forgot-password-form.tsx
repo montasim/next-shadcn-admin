@@ -1,6 +1,6 @@
 'use client'
 
-import { HTMLAttributes, useEffect, useState } from 'react'
+import { HTMLAttributes, useEffect, useState, Suspense } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -410,3 +410,14 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
     </div>
   )
 }
+
+// Wrapper component with Suspense boundary for useSearchParams
+function ForgotFormWithSearchParams(props: ForgotFormProps) {
+  return (
+    <Suspense fallback={<div className="grid gap-6">Loading...</div>}>
+      <ForgotForm {...props} />
+    </Suspense>
+  )
+}
+
+export default ForgotFormWithSearchParams

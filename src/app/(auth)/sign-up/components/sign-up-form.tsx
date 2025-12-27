@@ -1,6 +1,6 @@
 'use client'
 
-import { HTMLAttributes, useState } from 'react'
+import { HTMLAttributes, useState, Suspense } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -508,3 +508,14 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
     </div>
   )
 }
+
+// Wrapper component with Suspense boundary for useSearchParams
+function SignUpFormWithSearchParams(props: SignUpFormProps) {
+  return (
+    <Suspense fallback={<div className="grid gap-6">Loading...</div>}>
+      <SignUpForm {...props} />
+    </Suspense>
+  )
+}
+
+export default SignUpFormWithSearchParams

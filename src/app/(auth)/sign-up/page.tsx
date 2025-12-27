@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import AuthLayout from '@/components/auth-layout'
-import { SignUpForm } from './components/sign-up-form'
+import SignUpForm from './components/sign-up-form'
 
 export default function SignUp() {
     return (

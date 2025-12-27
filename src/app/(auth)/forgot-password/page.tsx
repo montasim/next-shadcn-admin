@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import AuthLayout from '@/components/auth-layout'
-import { ForgotForm } from './components/forgot-password-form'
+import ForgotForm from './components/forgot-password-form'
 
 export default function ForgotPassword() {
   return (

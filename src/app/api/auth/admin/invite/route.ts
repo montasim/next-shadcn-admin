@@ -28,7 +28,7 @@ import { sendInvitationEmail } from '@/lib/auth/email'
 // Added inviteSchema for validation
 const inviteSchema = z.object({
     email: z.string().email(),
-    role: z.string().min(1, 'Role is required'),
+    role: z.enum(['USER', 'ADMIN', 'SUPER_ADMIN']),
     desc: z.string().optional(),
 })
 
