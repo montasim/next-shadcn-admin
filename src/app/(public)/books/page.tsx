@@ -583,7 +583,7 @@ function BooksPageContent({
             )}
 
             {/* Mood-Based Recommendations Section */}
-            <div className="mb-4 sm:mb-8">
+            <div className="mt-4 mb-4 sm:mt-8 sm:mb-8">
               <Card>
                 <CardHeader className="cursor-pointer py-3 sm:py-6 px-4 sm:px-6" onClick={() => setShowMoodPicker(!showMoodPicker)}>
                   <div className="flex items-center justify-between">
