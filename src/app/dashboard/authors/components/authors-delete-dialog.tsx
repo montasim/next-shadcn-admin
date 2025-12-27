@@ -1,14 +1,6 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Author } from '../data/schema'
 
 interface Props {
@@ -20,24 +12,20 @@ interface Props {
 
 export function AuthorsDeleteDialog({ open, onOpenChange, onConfirm, author }: Props) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Author</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete the author <strong>&quot;{author.name}&quot;</strong>?
-            This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Delete Author"
+      desc={
+        <>
+          Are you sure you want to delete the author <strong>&quot;{author.name}&quot;</strong>?
+          This action cannot be undone.
+        </>
+      }
+      cancelBtnText="Cancel"
+      confirmText="Delete"
+      destructive
+      handleConfirm={onConfirm}
+    />
   )
 }
