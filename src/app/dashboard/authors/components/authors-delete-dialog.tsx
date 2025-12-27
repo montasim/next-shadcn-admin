@@ -25,7 +25,7 @@ export function AuthorsDeleteDialog({ open, onOpenChange, onConfirm, author }: P
         <DialogHeader>
           <DialogTitle>Delete Author</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete the author <strong>"{author.name}"</strong>?
+            Are you sure you want to delete the author <strong>&quot;{author.name}&quot;</strong>?
             This action cannot be undone.
           </DialogDescription>
         </DialogHeader>

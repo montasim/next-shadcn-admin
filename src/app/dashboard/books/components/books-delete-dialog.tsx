@@ -25,7 +25,7 @@ export function BooksDeleteDialog({ open, onOpenChange, onConfirm, book }: Props
         <DialogHeader>
           <DialogTitle>Delete Book</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete the book <strong>"{book.name}"</strong>?
+            Are you sure you want to delete the book <strong>&quot;{book.name}&quot;</strong>?
             This action cannot be undone.
           </DialogDescription>
         </DialogHeader>

@@ -25,7 +25,7 @@ export function PublicationsDeleteDialog({ open, onOpenChange, onConfirm, public
         <DialogHeader>
           <DialogTitle>Delete Publication</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete the publication <strong>"{publication.name}"</strong>?
+            Are you sure you want to delete the publication <strong>&quot;{publication.name}&quot;</strong>?
             This action cannot be undone.
           </DialogDescription>
         </DialogHeader>

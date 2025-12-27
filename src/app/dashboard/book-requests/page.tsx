@@ -423,7 +423,7 @@ function BookRequestsPageContent() {
               {requestToReject && (
                 <div>
                   Are you sure you want to reject the request for{' '}
-                  <strong>"{requestToReject.bookName}"</strong> by {requestToReject.authorName}?
+                  <strong>&quot;{requestToReject.bookName}&quot;</strong> by {requestToReject.authorName}?
                   This action cannot be undone.
                 </div>
               )}

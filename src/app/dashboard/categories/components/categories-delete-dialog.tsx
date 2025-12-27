@@ -25,7 +25,7 @@ export function CategoriesDeleteDialog({ open, onOpenChange, onConfirm, category
         <DialogHeader>
           <DialogTitle>Delete Category</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete the category <strong>"{category.name}"</strong>?
+            Are you sure you want to delete the category <strong>&quot;{category.name}&quot;</strong>?
             This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
