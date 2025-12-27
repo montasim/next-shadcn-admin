@@ -36,7 +36,7 @@ export async function getBookRequests() {
   }
 }
 
-export async function updateRequestStatus(id: string, status: string) {
+export async function updateRequestStatus(id: string, status: 'PENDING' | 'APPROVED' | 'REJECTED') {
   const session = await requireAuth()
   if (!session || (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN')) {
     return { success: false, message: 'Access denied' }

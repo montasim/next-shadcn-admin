@@ -10,7 +10,6 @@ export const moodSchema = z.object({
   isActive: z.boolean(),
   order: z.number(),
   categoryIds: z.array(z.string()),
-  entryDate: z.string(),
   entryById: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),

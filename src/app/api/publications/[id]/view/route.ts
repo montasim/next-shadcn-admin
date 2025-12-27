@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // Extract request metadata
     const ip = request.headers.get('x-forwarded-for') ||
               request.headers.get('x-real-ip') ||
-              null
+              undefined
     const userAgent = request.headers.get('user-agent') || undefined
     const referrer = request.headers.get('referer') || undefined
 

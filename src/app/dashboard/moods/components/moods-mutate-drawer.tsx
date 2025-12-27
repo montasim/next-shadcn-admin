@@ -298,7 +298,6 @@ export function MoodsMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                       selected={field.value}
                       onChange={field.onChange}
                       placeholder="Select categories for this mood"
-                      maxDisplay={5}
                     />
                   </FormControl>
                   <FormDescription>
