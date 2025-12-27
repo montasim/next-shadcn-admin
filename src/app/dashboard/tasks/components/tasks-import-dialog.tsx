@@ -31,24 +31,23 @@ interface Props {
 }
 
 export function TasksImportDialog({ open, onOpenChange }: Props) {
-  const [formSchema, setFormSchema] = useState<z.ZodType<any>>(z.any())
-
-  useEffect(() => {
-    // FileListはクライアントサイドでのみ利用可能なので、useEffect内で定義
-    setFormSchema(
-      z.object({
-        file: z
-          .instanceof(FileList)
-          .refine((files) => files.length > 0, {
-            message: 'Please upload a file',
-          })
-          .refine(
-            (files) => ['text/csv'].includes(files?.[0]?.type),
-            'Please upload csv format.'
-          ),
-      })
-    )
-  }, [])
+  const [formSchema] = useState<z.ZodType<any>>(() => {
+    // Check if FileList is available (client-side only)
+    if (typeof FileList === 'undefined') {
+      return z.any()
+    }
+    return z.object({
+      file: z
+        .instanceof(FileList)
+        .refine((files) => files.length > 0, {
+          message: 'Please upload a file',
+        })
+        .refine(
+          (files) => ['text/csv'].includes(files?.[0]?.type),
+          'Please upload csv format.'
+        ),
+    })
+  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
