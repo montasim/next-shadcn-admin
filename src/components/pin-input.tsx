@@ -133,52 +133,66 @@ const PinInput = ({ className, children, ref, ...props }: PinInputProps) => {
   /* focus on first input field if autoFocus is set */
   React.useEffect(() => {
     if (!autoFocus) return
-    const node = refMap?.get(0)
+    const node = refMap?.current.get(0)
     if (node) {
       node.focus()
     }
   }, [autoFocus, refMap])
 
-  const skipRef = React.useRef(0)
-  let counter = 0
-  const clones = validChildren.map((child) => {
-    if (child.type === PinInputField) {
-      const pinIndex = counter
-      counter = counter + 1
-      return React.cloneElement(child, {
-        name,
-        inputKey: `input-${pinIndex}`,
-        value: length > pinIndex ? pins[pinIndex] : '',
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-          handlers.handleChange(e, pinIndex),
-        onFocus: (e: React.FocusEvent<HTMLInputElement>) =>
-          handlers.handleFocus(e, pinIndex),
-        onBlur: () => handlers.handleBlur(pinIndex),
-        onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) =>
-          handlers.handleKeyDown(e, pinIndex),
-        onPaste: (e: React.ClipboardEvent<HTMLInputElement>) =>
-          handlers.handlePaste(e),
-        placeholder: placeholder,
-        type: type,
-        mask: mask,
-        autoComplete: otp ? 'one-time-code' : 'off',
-        disabled: disabled,
-        readOnly: readOnly,
-        'aria-label': ariaLabel
-          ? ariaLabel
-          : `Pin input ${counter} of ${length}`,
-        ref: (node: HTMLInputElement | null) => {
-          if (node) {
-            refMap?.set(pinIndex, node)
-          } else {
-            refMap?.delete(pinIndex)
-          }
-        },
+  // Single ref callback for all pin fields
+  // We use data-pin-index to identify which field this is
+  const handlePinFieldRef = React.useCallback((node: HTMLInputElement | null) => {
+    if (!node) {
+      // When node is null, remove from map
+      // We need to find which index this node was for
+      refMap?.current.forEach((value, key) => {
+        if (value === node) {
+          refMap?.current.delete(key)
+        }
       })
+      return
     }
-    skipRef.current = skipRef.current + 1
-    return child
-  })
+
+    // Get the pin index from the data attribute
+    const pinIndex = parseInt(node.getAttribute('data-pin-index') || '0', 10)
+    refMap?.current.set(pinIndex, node)
+  }, [refMap])
+
+  const clones = React.useMemo(() => {
+    let pinIndex = 0
+    return validChildren.map((child) => {
+      if (child.type === PinInputField) {
+        const currentPinIndex = pinIndex++
+        const clonedChild = React.cloneElement(child, {
+          name,
+          inputKey: `input-${currentPinIndex}`,
+          value: length > currentPinIndex ? pins[currentPinIndex] : '',
+          onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+            handlers.handleChange(e, currentPinIndex),
+          onFocus: (e: React.FocusEvent<HTMLInputElement>) =>
+            handlers.handleFocus(e, currentPinIndex),
+          onBlur: () => handlers.handleBlur(currentPinIndex),
+          onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) =>
+            handlers.handleKeyDown(e, currentPinIndex),
+          onPaste: (e: React.ClipboardEvent<HTMLInputElement>) =>
+            handlers.handlePaste(e),
+          placeholder: placeholder,
+          type: type,
+          mask: mask,
+          autoComplete: otp ? 'one-time-code' : 'off',
+          disabled: disabled,
+          readOnly: readOnly,
+          'aria-label': ariaLabel
+            ? ariaLabel
+            : `Pin input ${currentPinIndex + 1} of ${length}`,
+          'data-pin-index': currentPinIndex,
+          ref: handlePinFieldRef,
+        })
+        return clonedChild
+      }
+      return child
+    })
+  }, [validChildren, name, length, pins, handlers, placeholder, type, mask, otp, disabled, readOnly, ariaLabel, handlePinFieldRef])
 
   return (
     <PinInputContext.Provider value={true}>
@@ -281,19 +295,11 @@ const usePinInput = ({
     setPins(pinInputs)
   }, [pinInputs])
 
-  const itemsRef = React.useRef<Map<number, HTMLInputElement> | null>(null)
-
-  function getMap() {
-    if (!itemsRef.current) {
-      // Initialize the Map on first usage.
-      itemsRef.current = new Map()
-    }
-    return itemsRef.current
-  }
+  const itemsRef = React.useRef<Map<number, HTMLInputElement>>(new Map())
 
   function getNode(index: number) {
-    const map = getMap()
-    const node = map?.get(index)
+    const map = itemsRef.current
+    const node = map.get(index)
     return node
   }
 
@@ -426,7 +432,7 @@ const usePinInput = ({
   return {
     pins,
     pinValue,
-    refMap: getMap(),
+    refMap: itemsRef,
     handleFocus,
     handleBlur,
     handleChange,
