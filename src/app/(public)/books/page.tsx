@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/context/auth-context'
@@ -36,11 +36,9 @@ import {
 } from 'lucide-react'
 import { NoticeTicker } from '@/components/notices/notice-ticker'
 
-export default function BooksPage() {
-  const searchParams = useSearchParams()
-  const { user } = useAuth()
-
-  const [filters, setFilters] = useState({
+// Helper function to derive filters from searchParams
+function deriveFiltersFromSearchParams(searchParams: ReturnType<typeof useSearchParams>) {
+  return {
     search: searchParams?.get('search') || '',
     types: searchParams?.get('types')?.split(',').filter(Boolean) || [],
     categories: searchParams?.get('categories')?.split(',').filter(Boolean) || [],
@@ -50,7 +48,19 @@ export default function BooksPage() {
     premium: 'all' as 'all' | 'free' | 'premium',
     page: 1,
     limit: 12
-  })
+  }
+}
+
+function BooksPageContent({
+  initialFilters,
+  searchParams,
+  user,
+}: {
+  initialFilters: ReturnType<typeof deriveFiltersFromSearchParams>
+  searchParams: ReturnType<typeof useSearchParams>
+  user: any
+}) {
+  const [filters, setFilters] = useState(initialFilters)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null)
@@ -69,21 +79,6 @@ export default function BooksPage() {
   // Fetch mood-based recommendations
   const { data: moodData, isLoading: isLoadingMood } = useMoodRecommendations(selectedMood?.id || null, 8)
   const moodBooks = moodData?.books || []
-
-  // Update filters when URL params change
-  useEffect(() => {
-    if (searchParams) {
-      setFilters(prev => ({
-        ...prev,
-        search: searchParams.get('search') || '',
-        types: searchParams.get('types')?.split(',').filter(Boolean) || [],
-        categories: searchParams.get('categories')?.split(',').filter(Boolean) || [],
-        author: searchParams.get('author') || '',
-        sortBy: searchParams.get('sortBy') || 'createdAt',
-        page: 1
-      }))
-    }
-  }, [searchParams])
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({
@@ -802,5 +797,24 @@ export default function BooksPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+// Wrapper component that resets state when searchParams change
+export default function BooksPage() {
+  const searchParams = useSearchParams()
+  const { user } = useAuth()
+
+  // Use a key to force re-mount when URL params change
+  const initialFilters = useMemo(() => deriveFiltersFromSearchParams(searchParams), [searchParams])
+  const key = useMemo(() => searchParams?.toString() || '', [searchParams])
+
+  return (
+    <BooksPageContent
+      key={key}
+      initialFilters={initialFilters}
+      searchParams={searchParams}
+      user={user}
+    />
   )
 }

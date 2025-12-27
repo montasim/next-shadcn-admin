@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -127,17 +127,18 @@ export default function LibraryPage() {
   const [filterProgressStatus, setFilterProgressStatus] = useState<string[]>([])
   const [filterBookCount, setFilterBookCount] = useState<string[]>([])
   const [allBookshelves, setAllBookshelves] = useState<any[]>([])
+  const hasInitialized = useRef(false)
 
-  const refreshBooks = async () => {
+  const refreshBooks = useCallback(async () => {
     const userBooks = await getUserBooks()
     setBooks(userBooks)
     setStats(calculateLibraryStats(userBooks))
-  }
+  }, [])
 
-  const refreshBookshelves = async () => {
+  const refreshBookshelves = useCallback(async () => {
     const shelves = await getBookshelves()
     setAllBookshelves(shelves)
-  }
+  }, [])
 
   const handleSuccess = () => {
     refreshBooks()
@@ -191,9 +192,12 @@ export default function LibraryPage() {
   }
 
   useEffect(() => {
-    refreshBooks()
-    refreshBookshelves()
-  }, [])
+    if (!hasInitialized.current) {
+      hasInitialized.current = true
+      refreshBooks()
+      refreshBookshelves()
+    }
+  }, [refreshBooks, refreshBookshelves])
 
   // Refresh books when page regains focus (user returns from reader)
   useEffect(() => {
@@ -339,9 +343,9 @@ export default function LibraryPage() {
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
                 {currentRow?.fileUrl ? (
-                  <>This action cannot be undone. This will permanently delete the book "{currentRow?.name}".</>
+                  <>This action cannot be undone. This will permanently delete the book &quot;{currentRow?.name}&quot;.</>
                 ) : (
-                  <>This action cannot be undone. This will permanently delete the bookshelf "{currentRow?.name}".</>
+                  <>This action cannot be undone. This will permanently delete the bookshelf &quot;{currentRow?.name}&quot;.</>
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -527,9 +531,9 @@ export default function LibraryPage() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               {currentRow?.fileUrl ? (
-                <>This action cannot be undone. This will permanently delete the book "{currentRow?.name}".</>
+                <>This action cannot be undone. This will permanently delete the book &quot;{currentRow?.name}&quot;.</>
               ) : (
-                <>This action cannot be undone. This will permanently delete the bookshelf "{currentRow?.name}".</>
+                <>This action cannot be undone. This will permanently delete the bookshelf &quot;{currentRow?.name}&quot;.</>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
