@@ -33,11 +33,11 @@ export const bookSchema = z.object({
   })).optional().nullable(),
   questionsStatus: z.string().optional().nullable(),
   readingProgress: z.array(z.object({
+    id: z.string().optional(),
     currentPage: z.number().optional().nullable(),
-    totalPages: z.number().optional().nullable(),
-    percentage: z.number().optional().nullable(),
-    progress: z.number().optional().nullable(),
-    status: z.string().optional().nullable(),
+    currentEpocha: z.number().optional().nullable(),
+    progress: z.number(),
+    isCompleted: z.boolean().optional(),
     lastReadAt: z.string().optional().nullable(),
   })).optional().nullable(),
   authors: z.array(z.object({

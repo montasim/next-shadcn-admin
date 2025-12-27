@@ -448,10 +448,23 @@ export async function createBook(formData: FormData) {
     }
 
     // Create book
-    const createdBook = await createBookInDb(processedData)
+    const createdBook = await createBookInDb({
+      ...processedData,
+      image: processedData.image ?? undefined,
+      directImageUrl: processedData.directImageUrl ?? undefined,
+      fileUrl: processedData.fileUrl ?? undefined,
+      directFileUrl: processedData.directFileUrl ?? undefined,
+      summary: processedData.summary ?? undefined,
+      bindingType: processedData.bindingType ?? undefined,
+      pageNumber: processedData.pageNumber ?? undefined,
+      buyingPrice: processedData.buyingPrice ?? undefined,
+      sellingPrice: processedData.sellingPrice ?? undefined,
+      numberOfCopies: processedData.numberOfCopies ?? undefined,
+      purchaseDate: processedData.purchaseDate ?? undefined,
+    })
 
     // Trigger content extraction for ebooks/audiobooks (wait for completion)
-    if ((processedData.type === 'EBOOK' || processedData.type === 'AUDIO') && processedData.fileUrl) {
+    if ((processedData.type === 'EBOOK' || processedData.type === 'AUDIO') && processedData.fileUrl && createdBook) {
       console.log('[Book Actions] Waiting for content extraction...')
       await triggerAsyncContentExtraction(createdBook.id)
     }
