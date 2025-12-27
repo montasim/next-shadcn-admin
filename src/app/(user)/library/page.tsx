@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -128,16 +128,21 @@ export default function LibraryPage() {
   const [filterBookCount, setFilterBookCount] = useState<string[]>([])
   const [allBookshelves, setAllBookshelves] = useState<any[]>([])
   const hasInitialized = useRef(false)
+  const [isPending, startTransition] = useTransition()
 
   const refreshBooks = useCallback(async () => {
     const userBooks = await getUserBooks()
-    setBooks(userBooks)
-    setStats(calculateLibraryStats(userBooks))
+    startTransition(() => {
+      setBooks(userBooks)
+      setStats(calculateLibraryStats(userBooks))
+    })
   }, [])
 
   const refreshBookshelves = useCallback(async () => {
     const shelves = await getBookshelves()
-    setAllBookshelves(shelves)
+    startTransition(() => {
+      setAllBookshelves(shelves)
+    })
   }, [])
 
   const handleSuccess = () => {
@@ -209,7 +214,7 @@ export default function LibraryPage() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-  }, [])
+  }, [refreshBooks])
 
   // Get unique authors from books
   const uniqueAuthors = useMemo(() => {

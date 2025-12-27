@@ -187,7 +187,7 @@ export function UsersMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
     }, 500)
 
     return () => clearTimeout(timeoutId)
-  }, [usernameValue, form, currentRow?.id, isUpdate, currentRow?.email])
+  }, [usernameValue, form, currentRow?.id, isUpdate, currentRow?.email, currentRow?.username])
 
   // Check phone number availability
   useEffect(() => {

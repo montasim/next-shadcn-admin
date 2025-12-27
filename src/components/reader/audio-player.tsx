@@ -80,7 +80,7 @@ export function AudioPlayer({
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [isPlaying, currentChapterIndex, currentTime, duration, onProgress])
+  }, [isPlaying, currentChapter, currentChapterIndex, currentTime, duration, onProgress])
 
   // Format time to mm:ss
   const formatTime = useCallback((seconds: number) => {

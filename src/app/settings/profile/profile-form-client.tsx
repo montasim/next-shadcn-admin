@@ -3,7 +3,7 @@
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 
 // Custom debounce function
 function debounce<T extends (...args: any[]) => any>(
@@ -76,44 +76,46 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
   })
 
   // Debounced username availability check
-  const debouncedUsernameCheck = useCallback(
-    debounce(async (username: string) => {
-      if (!username || username.length < 2) {
-        setUsernameAvailable(null)
-        return
-      }
+  const debouncedUsernameCheck = useMemo(
+    () =>
+      debounce(async (username: string) => {
+        if (!username || username.length < 2) {
+          setUsernameAvailable(null)
+          return
+        }
 
-      setIsCheckingUsername(true)
-      try {
-        const result = await checkUsernameAvailability(username)
-        setUsernameAvailable(result)
-      } catch (error) {
-        setUsernameAvailable(null)
-      } finally {
-        setIsCheckingUsername(false)
-      }
-    }, 500),
+        setIsCheckingUsername(true)
+        try {
+          const result = await checkUsernameAvailability(username)
+          setUsernameAvailable(result)
+        } catch (error) {
+          setUsernameAvailable(null)
+        } finally {
+          setIsCheckingUsername(false)
+        }
+      }, 500),
     []
   )
 
   // Debounced email availability check
-  const debouncedEmailCheck = useCallback(
-    debounce(async (email: string) => {
-      if (!email || !email.includes('@')) {
-        setEmailAvailable(null)
-        return
-      }
+  const debouncedEmailCheck = useMemo(
+    () =>
+      debounce(async (email: string) => {
+        if (!email || !email.includes('@')) {
+          setEmailAvailable(null)
+          return
+        }
 
-      setIsCheckingEmail(true)
-      try {
-        const result = await checkEmailAvailability(email)
-        setEmailAvailable(result)
-      } catch (error) {
-        setEmailAvailable(null)
-      } finally {
-        setIsCheckingEmail(false)
-      }
-    }, 500),
+        setIsCheckingEmail(true)
+        try {
+          const result = await checkEmailAvailability(email)
+          setEmailAvailable(result)
+        } catch (error) {
+          setEmailAvailable(null)
+        } finally {
+          setIsCheckingEmail(false)
+        }
+      }, 500),
     []
   )
 

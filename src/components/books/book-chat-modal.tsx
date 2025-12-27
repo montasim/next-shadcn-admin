@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Loader2, Send, MessageSquare, Bot, Sparkles, AlertCircle } from 'lucide-react'
+import { Loader2, Send, Bot, Sparkles, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { Book } from '@/hooks/use-book'
 import { cn } from '@/lib/utils'
@@ -41,6 +41,84 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
   const [suggestedQuestions, setSuggestedQuestions] = useState<Array<{id: string, question: string}>>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Helper functions defined first to avoid "before initialization" errors
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 100)
+  }, [])
+
+  const handleInitialChat = useCallback(async () => {
+    if (!user) return
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch(`/api/books/${book.id}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          generatePrefilled: true
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to start chat')
+      }
+
+      const data = await response.json()
+
+      // Get the actual user query that was generated
+      const userQuery = data.conversationHistory[0]?.content || 'Tell me about this book...'
+
+      setMessages([
+        {
+          role: 'user',
+          content: userQuery,
+          timestamp: new Date()
+        },
+        {
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date()
+        }
+      ])
+
+      setConversationHistory(data.conversationHistory)
+      scrollToBottom()
+    } catch (error: any) {
+      console.error('Error starting chat:', error)
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to start chat. Please try again.',
+        variant: 'destructive'
+      })
+      setMessages([
+        {
+          role: 'assistant',
+          content: 'Sorry, I couldn\'t start the chat. Please make sure you have access to this book and try again.',
+          timestamp: new Date()
+        }
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [user, book.id, scrollToBottom])
+
+  const fetchSuggestedQuestions = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/books/${book.id}/suggested-questions`)
+      const data = await response.json()
+
+      if (data.questions && data.questions.length > 0) {
+        setSuggestedQuestions(data.questions)
+      }
+    } catch (error) {
+      console.error('Failed to fetch suggested questions:', error)
+    }
+  }, [book.id])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -111,85 +189,21 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
     }
 
     checkExtractionStatus()
-  }, [open, book.id, book.type])
+  }, [open, book.id, book.type, handleInitialChat, messages.length, user])
 
   // Generate pre-filled query on first open (only when content is ready)
   useEffect(() => {
     if (open && messages.length === 0 && user && extractionStatus === 'ready') {
       handleInitialChat()
     }
-  }, [open, extractionStatus, user])
+  }, [open, extractionStatus, user, messages.length, handleInitialChat])
 
   // Fetch suggested questions when extraction is ready
   useEffect(() => {
     if (open && extractionStatus === 'ready') {
       fetchSuggestedQuestions()
     }
-  }, [open, extractionStatus])
-
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
-  }
-
-  const handleInitialChat = async () => {
-    if (!user) return
-
-    setIsLoading(true)
-
-    try {
-      const response = await fetch(`/api/books/${book.id}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          generatePrefilled: true
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to start chat')
-      }
-
-      const data = await response.json()
-
-      // Get the actual user query that was generated
-      const userQuery = data.conversationHistory[0]?.content || 'Tell me about this book...'
-
-      setMessages([
-        {
-          role: 'user',
-          content: userQuery,
-          timestamp: new Date()
-        },
-        {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date()
-        }
-      ])
-
-      setConversationHistory(data.conversationHistory)
-      scrollToBottom()
-    } catch (error: any) {
-      console.error('Error starting chat:', error)
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to start chat. Please try again.',
-        variant: 'destructive'
-      })
-      setMessages([
-        {
-          role: 'assistant',
-          content: 'Sorry, I couldn\'t start the chat. Please make sure you have access to this book and try again.',
-          timestamp: new Date()
-        }
-      ])
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  }, [open, extractionStatus, fetchSuggestedQuestions])
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
@@ -248,19 +262,6 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
-    }
-  }
-
-  const fetchSuggestedQuestions = async () => {
-    try {
-      const response = await fetch(`/api/books/${book.id}/suggested-questions`)
-      const data = await response.json()
-
-      if (data.questions && data.questions.length > 0) {
-        setSuggestedQuestions(data.questions)
-      }
-    } catch (error) {
-      console.error('Failed to fetch suggested questions:', error)
     }
   }
 
