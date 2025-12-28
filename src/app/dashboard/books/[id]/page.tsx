@@ -63,6 +63,7 @@ export default function AdminBookDetailsPage() {
 
   // AI Summary state
   const [isRegeneratingSummary, setIsRegeneratingSummary] = useState(false)
+  const [isRegeneratingQuestions, setIsRegeneratingQuestions] = useState(false)
   const [pollCount, setPollCount] = useState(0)
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -159,6 +160,49 @@ export default function AdminBookDetailsPage() {
     }
   }
 
+  // Handle regenerate AI questions
+  const handleRegenerateQuestions = async () => {
+    setIsRegeneratingQuestions(true)
+    setPollCount(0)
+    try {
+      const response = await fetch(`/api/books/${bookId}/regenerate-questions`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to regenerate questions')
+      }
+
+      toast({
+        title: 'Questions regeneration started',
+        description: 'The AI questions are being generated in the background. You can navigate away and come back.',
+      })
+
+      // Start polling for updates
+      pollIntervalRef.current = setInterval(() => {
+        setPollCount(prev => prev + 1)
+        mutate(`/api/admin/books/${bookId}/details`)
+      }, 10000) // Poll every 10 seconds
+
+      // Auto-stop polling after 5 minutes
+      setTimeout(() => {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+          setIsRegeneratingQuestions(false)
+        }
+      }, 300000) // 5 minutes
+    } catch (error: any) {
+      toast({
+        title: 'Failed to regenerate questions',
+        description: error.message || 'An error occurred',
+        variant: 'destructive',
+      })
+      setIsRegeneratingQuestions(false)
+    }
+  }
+
   // Cleanup interval on unmount
   useEffect(() => {
     return () => {
@@ -205,6 +249,36 @@ export default function AdminBookDetailsPage() {
       }
     }
   }, [book, isRegeneratingSummary])
+
+  // Stop polling when questions are ready or failed
+  useEffect(() => {
+    if (book && isRegeneratingQuestions) {
+      if (book.questionsStatus === 'completed' && book.questions && book.questions.length > 0) {
+        // Questions are ready
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+        }
+        setIsRegeneratingQuestions(false)
+        toast({
+          title: 'Questions generated successfully',
+          description: `Successfully generated ${book.questions.length} questions.`,
+        })
+      } else if (book.questionsStatus === 'failed') {
+        // Generation failed
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current)
+          pollIntervalRef.current = null
+        }
+        setIsRegeneratingQuestions(false)
+        toast({
+          title: 'Questions generation failed',
+          description: 'Failed to generate the questions. Please try again.',
+          variant: 'destructive',
+        })
+      }
+    }
+  }, [book, isRegeneratingQuestions])
 
   if (isLoading) {
     return (
@@ -263,15 +337,62 @@ export default function AdminBookDetailsPage() {
             </div>
             <div className="space-y-2">
               <h1 className="text-xl font-bold">{book.name}</h1>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <BookTypeBadge type={book.type} />
                 {book.isPublic && <Badge variant="secondary">Public</Badge>}
                 {book.requiresPremium && <Badge variant="outline">Premium</Badge>}
               </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 {book.authors?.length > 0 && (
-                  <span>By {book.authors.map((a: any) => a.author.name).join(', ')}</span>
+                  <span>
+                    By{' '}
+                    {book.authors.map((a: any, index: number) => (
+                      <span key={a.author.id}>
+                        {index > 0 && ', '}
+                        <button
+                          onClick={() => router.push(`/authors/${a.author.id}`)}
+                          className="hover:text-foreground hover:underline transition-colors"
+                        >
+                          {a.author.name}
+                        </button>
+                      </span>
+                    ))}
+                  </span>
                 )}
+              </div>
+              {book.categories?.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {book.categories.map((c: any) => (
+                    <Badge
+                      key={c.category.id}
+                      variant="secondary"
+                      className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                      onClick={() => router.push(`/categories/${c.category.id}`)}
+                    >
+                      {c.category.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                {book.pageNumber && (
+                  <div className="flex items-center gap-2">
+                    <span>Pages:</span>
+                    <span className="font-medium text-foreground">{book.pageNumber}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <span>Copies:</span>
+                  <span className="font-medium text-foreground">{book.numberOfCopies || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>Buying Price:</span>
+                  <span className="font-medium text-foreground">${book.buyingPrice || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>Selling Price:</span>
+                  <span className="font-medium text-foreground">${book.sellingPrice || 'N/A'}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -330,125 +451,101 @@ export default function AdminBookDetailsPage() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Book Information */}
-              <Card>
-                <CardHeader>
+            {/* AI Summary */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    Book Information
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    AI Summary
                   </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Type:</span>
-                      <BookTypeBadge type={book.type} />
-                    </div>
-                    {book.bindingType && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">Binding:</span>
-                        <span>{book.bindingType}</span>
-                      </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRegenerateSummary}
+                    disabled={isRegeneratingSummary}
+                  >
+                    {isRegeneratingSummary ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {book.aiSummary ? 'Regenerate' : 'Generate'} Summary
+                      </>
                     )}
-                    {book.pageNumber && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">Pages:</span>
-                        <span>{book.pageNumber}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Copies:</span>
-                      <span>{book.numberOfCopies || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Buying Price:</span>
-                      <span>${book.buyingPrice || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Selling Price:</span>
-                      <span>${book.sellingPrice || 'N/A'}</span>
-                    </div>
+                  </Button>
+                </div>
+                <CardDescription>
+                  {isRegeneratingSummary && (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Generating summary... Polling {pollCount > 0 ? `(${pollCount})` : ''}
+                    </span>
+                  )}
+                  {!isRegeneratingSummary && book.aiSummaryStatus === 'pending' && 'Summary is being generated...'}
+                  {!isRegeneratingSummary && book.aiSummaryStatus === 'failed' && 'Failed to generate summary. Please try again.'}
+                  {!isRegeneratingSummary && book.aiSummaryStatus === 'completed' && `Generated on ${book.aiSummaryGeneratedAt ? new Date(book.aiSummaryGeneratedAt).toLocaleString() : 'recently'}`}
+                  {!isRegeneratingSummary && !book.aiSummaryStatus && 'Generate an AI summary of this book'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {book.aiSummary ? (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{book.aiSummary}</p>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No AI summary available yet.</p>
+                    <p className="text-xs mt-1">Click the button above to generate one.</p>
                   </div>
-                  {book.summary && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Summary:</span>
-                      <p className="text-sm mt-1">{book.summary}</p>
-                    </div>
-                  )}
-                  {book.purchaseDate && (
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Purchase Date:</span>
-                      <span className="ml-2">{new Date(book.purchaseDate).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* AI Summary */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
-                      AI Summary
-                    </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRegenerateSummary}
-                      disabled={isRegeneratingSummary}
-                    >
-                      {isRegeneratingSummary ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          {book.aiSummary ? 'Regenerate' : 'Generate'} Summary
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <CardDescription>
-                    {isRegeneratingSummary && (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Generating summary... Polling {pollCount > 0 ? `(${pollCount})` : ''}
-                      </span>
-                    )}
-                    {!isRegeneratingSummary && book.aiSummaryStatus === 'pending' && 'Summary is being generated...'}
-                    {!isRegeneratingSummary && book.aiSummaryStatus === 'failed' && 'Failed to generate summary. Please try again.'}
-                    {!isRegeneratingSummary && book.aiSummaryStatus === 'completed' && `Generated on ${book.aiSummaryGeneratedAt ? new Date(book.aiSummaryGeneratedAt).toLocaleString() : 'recently'}`}
-                    {!isRegeneratingSummary && !book.aiSummaryStatus && 'Generate an AI summary of this book'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {book.aiSummary ? (
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{book.aiSummary}</p>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No AI summary available yet.</p>
-                      <p className="text-xs mt-1">Click the button above to generate one.</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Suggested Questions */}
-            {book.questions && book.questions.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Suggested Questions</CardTitle>
-                  <CardDescription>
-                    {book.questions.length} AI-generated questions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    Key Questions
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRegenerateQuestions}
+                    disabled={isRegeneratingQuestions}
+                  >
+                    {isRegeneratingQuestions ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {book.questions && book.questions.length > 0 ? 'Regenerate' : 'Generate'} Questions
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <CardDescription>
+                  {isRegeneratingQuestions && (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Generating questions... Polling {pollCount > 0 ? `(${pollCount})` : ''}
+                    </span>
+                  )}
+                  {!isRegeneratingQuestions && book.questionsStatus === 'pending' && 'Questions are being generated...'}
+                  {!isRegeneratingQuestions && book.questionsStatus === 'failed' && 'Failed to generate questions. Please try again.'}
+                  {!isRegeneratingQuestions && book.questionsStatus === 'completed' && `Generated ${book.questions?.length || 0} questions${book.questionsGeneratedAt ? ` on ${new Date(book.questionsGeneratedAt).toLocaleString()}` : ''}`}
+                  {!isRegeneratingQuestions && !book.questionsStatus && 'Generate AI-powered questions about this book'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {book.questions && book.questions.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {book.questions.map((q: any) => (
                       <div key={q.id} className="group relative p-3 border rounded-lg hover:border-primary/50 transition-colors">
@@ -469,9 +566,15 @@ export default function AdminBookDetailsPage() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No key questions available yet.</p>
+                    <p className="text-xs mt-1">Click the button above to generate AI-powered questions.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Content Extraction Status */}
             <Card>
