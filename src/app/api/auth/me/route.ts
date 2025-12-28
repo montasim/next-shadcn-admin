@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
                 name: displayName,
                 role: user.role,
                 isPremium: user.isPremium,
+                showMoodRecommendations: user.showMoodRecommendations,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 username: user.username,
