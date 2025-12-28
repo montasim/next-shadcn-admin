@@ -621,7 +621,7 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
             )}
           </div>
         ) : (
-          <div className="flex items-start justify-center min-h-full pt-2 pb-16 sm:py-4 md:py-6 px-2 sm:px-4 md:px-6">
+          <div className="flex items-start justify-center min-h-full pt-2 pb-16 sm:py-4 md:py-6 px-2 sm:px-4 md:px-6 relative">
             <canvas
               ref={canvasRef}
               className="max-w-full h-auto shadow-lg rounded-md border-2 border-border"
@@ -629,6 +629,30 @@ export const PDFViewer = forwardRef<PDFViewerRef, PDFViewerProps>(({
                 imageRendering: 'crisp-edges'
               }}
             />
+
+            {/* Mobile touch zones for page navigation */}
+            <div className="sm:hidden absolute inset-0 flex pointer-events-auto pt-2 pb-16 px-2 sm:px-4 md:px-6">
+              {/* Left touch zone - previous page */}
+              <button
+                onClick={() => goToPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage <= 1}
+                className="flex-1 h-full touch-manipulation disabled:pointer-events-none transition-colors"
+                aria-label="Previous page"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              />
+
+              {/* Center zone - no action (small tap zone to prevent accidental navigation) */}
+              <div className="w-8 flex-shrink-0" />
+
+              {/* Right touch zone - next page */}
+              <button
+                onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage >= totalPages}
+                className="flex-1 h-full touch-manipulation disabled:pointer-events-none transition-colors"
+                aria-label="Next page"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              />
+            </div>
           </div>
         )}
 
