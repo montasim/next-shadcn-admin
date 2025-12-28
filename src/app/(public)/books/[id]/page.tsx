@@ -41,6 +41,7 @@ import {
     Home, ArrowLeft, Sparkles, RefreshCw,
     ChevronUp,
     ChevronDown,
+    List,
 } from 'lucide-react'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 
@@ -804,6 +805,120 @@ export default function BookDetailsPage() {
                       </div>
                     </CardContent>
                     )}
+                  </Card>
+                )}
+
+                {/* Series Navigation */}
+                {book.series && book.series.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <List className="h-5 w-5 text-primary" />
+                        Series
+                      </CardTitle>
+                      <CardDescription>
+                        {book.series.length === 1
+                          ? `Book ${book.series[0].order} of ${book.series[0].totalBooks} in ${book.series[0].seriesName}`
+                          : `Part of ${book.series.length} series`
+                        }
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {book.series.map((seriesItem) => (
+                        <div key={seriesItem.seriesId} className="space-y-4">
+                          {/* Series Info */}
+                          <div>
+                            <h4 className="font-semibold text-sm mb-1">{seriesItem.seriesName}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Book {seriesItem.order} of {seriesItem.totalBooks}
+                            </p>
+                          </div>
+
+                          {/* Navigation Cards */}
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Previous Book */}
+                            {seriesItem.previousBook ? (
+                              <Link
+                                href={`/books/${seriesItem.previousBook.id}`}
+                                className="group"
+                              >
+                                <div className="p-3 border rounded-lg hover:border-primary/50 hover:bg-muted/50 transition-all">
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                                    <ArrowLeft className="h-3 w-3" />
+                                    <span>Previous</span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    {seriesItem.previousBook.image && (
+                                      <div className="relative w-full aspect-[2/3] max-w-[80px] mx-auto mb-2">
+                                        <Image
+                                          src={seriesItem.previousBook.image}
+                                          alt={seriesItem.previousBook.name}
+                                          fill
+                                          className="object-cover rounded"
+                                        />
+                                      </div>
+                                    )}
+                                    <p className="text-xs font-medium line-clamp-2 leading-tight">
+                                      {seriesItem.previousBook.name}
+                                    </p>
+                                    <div className="flex items-center gap-1">
+                                      <BookTypeBadge type={seriesItem.previousBook.type} />
+                                      {seriesItem.previousBook.requiresPremium && (
+                                        <Lock className="h-3 w-3 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </Link>
+                            ) : (
+                              <div className="p-3 border border-dashed rounded-lg flex items-center justify-center">
+                                <p className="text-xs text-muted-foreground">No previous book</p>
+                              </div>
+                            )}
+
+                            {/* Next Book */}
+                            {seriesItem.nextBook ? (
+                              <Link
+                                href={`/books/${seriesItem.nextBook.id}`}
+                                className="group"
+                              >
+                                <div className="p-3 border rounded-lg hover:border-primary/50 hover:bg-muted/50 transition-all">
+                                  <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mb-2">
+                                    <span>Next</span>
+                                    <ArrowLeft className="h-3 w-3 rotate-180" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    {seriesItem.nextBook.image && (
+                                      <div className="relative w-full aspect-[2/3] max-w-[80px] mx-auto mb-2">
+                                        <Image
+                                          src={seriesItem.nextBook.image}
+                                          alt={seriesItem.nextBook.name}
+                                          fill
+                                          className="object-cover rounded"
+                                        />
+                                      </div>
+                                    )}
+                                    <p className="text-xs font-medium line-clamp-2 leading-tight">
+                                      {seriesItem.nextBook.name}
+                                    </p>
+                                    <div className="flex items-center gap-1">
+                                      <BookTypeBadge type={seriesItem.nextBook.type} />
+                                      {seriesItem.nextBook.requiresPremium && (
+                                        <Lock className="h-3 w-3 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </Link>
+                            ) : (
+                              <div className="p-3 border border-dashed rounded-lg flex items-center justify-center">
+                                <p className="text-xs text-muted-foreground">No next book</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
                   </Card>
                 )}
               </TabsContent>

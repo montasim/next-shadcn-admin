@@ -94,6 +94,21 @@ export async function GET(
                         }
                     }
                 },
+                series: {
+                    include: {
+                        series: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                image: true,
+                            }
+                        }
+                    },
+                    orderBy: {
+                        order: 'asc'
+                    }
+                },
                 questions: {
                     select: {
                         id: true,
@@ -131,6 +146,76 @@ export async function GET(
         const viewStats = await prisma.bookView.count({
             where: { bookId }
         })
+
+        // Fetch series neighbors (previous/next books) for each series
+        const seriesNeighbors = await Promise.all(
+            book.series.map(async (bookSeries) => {
+                // Get current book's order in this series
+                const currentOrder = bookSeries.order
+
+                // Find previous book (closest order less than current)
+                const previous = await prisma.bookSeries.findFirst({
+                    where: {
+                        seriesId: bookSeries.seriesId,
+                        order: {
+                            lt: currentOrder
+                        }
+                    },
+                    include: {
+                        book: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true,
+                                type: true,
+                                requiresPremium: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        order: 'desc'
+                    }
+                })
+
+                // Find next book (closest order greater than current)
+                const next = await prisma.bookSeries.findFirst({
+                    where: {
+                        seriesId: bookSeries.seriesId,
+                        order: {
+                            gt: currentOrder
+                        }
+                    },
+                    include: {
+                        book: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true,
+                                type: true,
+                                requiresPremium: true
+                            }
+                        }
+                    },
+                    orderBy: {
+                        order: 'asc'
+                    }
+                })
+
+                return {
+                    seriesId: bookSeries.series.id,
+                    seriesName: bookSeries.series.name,
+                    seriesDescription: bookSeries.series.description,
+                    seriesImage: bookSeries.series.image,
+                    order: bookSeries.order,
+                    previousBook: previous?.book || null,
+                    nextBook: next?.book || null,
+                    // Get total books in this series
+                    totalBooks: await prisma.bookSeries.count({
+                        where: { seriesId: bookSeries.seriesId }
+                    })
+                }
+            })
+        )
 
         if (!book) {
             return NextResponse.json({
@@ -426,6 +511,31 @@ export async function GET(
                 name: bp.publication.name,
                 description: bp.publication.description,
                 image: bp.publication.image,
+            })),
+            // Series with neighbors
+            series: seriesNeighbors.map(sn => ({
+                seriesId: sn.seriesId,
+                seriesName: sn.seriesName,
+                seriesDescription: sn.seriesDescription,
+                seriesImage: sn.seriesImage,
+                order: sn.order,
+                totalBooks: sn.totalBooks,
+                previousBook: sn.previousBook ? {
+                    id: sn.previousBook.id,
+                    name: sn.previousBook.name,
+                    image: sn.previousBook.image,
+                    type: sn.previousBook.type,
+                    requiresPremium: sn.previousBook.requiresPremium,
+                    canAccess: !sn.previousBook.requiresPremium || userHasPremium,
+                } : null,
+                nextBook: sn.nextBook ? {
+                    id: sn.nextBook.id,
+                    name: sn.nextBook.name,
+                    image: sn.nextBook.image,
+                    type: sn.nextBook.type,
+                    requiresPremium: sn.nextBook.requiresPremium,
+                    canAccess: !sn.nextBook.requiresPremium || userHasPremium,
+                } : null,
             })),
             // Reading progress (only if authenticated)
             readingProgress: isAuthenticated && book.readingProgress.length > 0

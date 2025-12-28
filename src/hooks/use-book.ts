@@ -47,6 +47,26 @@ export interface RecommendationReason {
   categories: string[]
 }
 
+export interface Series {
+  seriesId: string
+  seriesName: string
+  seriesDescription?: string | null
+  seriesImage?: string | null
+  order: number
+  totalBooks: number
+  previousBook: SeriesBook | null
+  nextBook: SeriesBook | null
+}
+
+export interface SeriesBook {
+  id: string
+  name: string
+  image?: string | null
+  type: 'HARD_COPY' | 'EBOOK' | 'AUDIO'
+  requiresPremium: boolean
+  canAccess: boolean
+}
+
 export interface Book {
   id: string
   name: string
@@ -77,6 +97,7 @@ export interface Book {
   authors: Author[]
   categories: Category[]
   publications?: Publication[]
+  series?: Series[]
   readingProgress?: ReadingProgress | null
   progress?: {
     currentPage?: number
