@@ -361,6 +361,7 @@ export function getBreadcrumbRoute(url: string): BreadcrumbRoute | undefined {
 export function getBreadcrumbTrail(url: string): BreadcrumbRoute[] {
   const trail: BreadcrumbRoute[] = []
   let currentRoute = getBreadcrumbRoute(url)
+  let currentUrl = url
 
   while (currentRoute) {
     if (!currentRoute.hidden) {
@@ -370,12 +371,14 @@ export function getBreadcrumbTrail(url: string): BreadcrumbRoute[] {
     // Find parent route
     if (currentRoute.parent) {
       currentRoute = getBreadcrumbRoute(currentRoute.parent)
+      currentUrl = currentRoute?.path || currentUrl
     } else if (currentRoute.path !== '/') {
       // Try to find parent by removing the last segment
-      const segments = url.split('/').filter(Boolean)
+      const segments = currentUrl.split('/').filter(Boolean)
       segments.pop()
       const parentUrl = '/' + segments.join('/')
       currentRoute = getBreadcrumbRoute(parentUrl)
+      currentUrl = parentUrl
     } else {
       break
     }
