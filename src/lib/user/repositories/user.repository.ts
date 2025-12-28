@@ -373,6 +373,7 @@ export async function createFullUser(data: {
     font?: string
     urls?: any
     displayItems?: any
+    showMoodRecommendations?: boolean
     notificationType?: string
     mobileNotifications?: boolean
     communicationEmails?: boolean
@@ -412,6 +413,7 @@ export async function updateUserProfile(
         font?: string | null
         urls?: any
         displayItems?: any
+        showMoodRecommendations?: boolean
         notificationType?: string | null
         mobileNotifications?: boolean | null
         communicationEmails?: boolean | null

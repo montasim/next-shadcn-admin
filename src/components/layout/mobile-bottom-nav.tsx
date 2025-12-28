@@ -29,15 +29,15 @@ const navItems: NavItem[] = [
     icon: Bookmark,
   },
   {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
     label: 'Request',
     href: '/dashboard/book-requests',
     icon: Plus,
   },
+    {
+        label: 'Dashboard',
+        href: '/dashboard',
+        icon: LayoutDashboard,
+    },
   {
     label: 'Settings',
     href: '/settings',

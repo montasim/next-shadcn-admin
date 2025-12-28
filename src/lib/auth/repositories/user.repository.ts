@@ -213,6 +213,7 @@ export async function updateUser(
         font?: string | null
         urls?: any
         displayItems?: any
+        showMoodRecommendations?: boolean
         notificationType?: string | null
         mobileNotifications?: boolean | null
         communicationEmails?: boolean | null
@@ -253,6 +254,7 @@ export async function updateAdmin(
         font?: string | null
         urls?: any
         displayItems?: any
+        showMoodRecommendations?: boolean
         notificationType?: string | null
         mobileNotifications?: boolean | null
         communicationEmails?: boolean | null
