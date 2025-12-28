@@ -31,6 +31,7 @@ export const displayFormSchema = z.object({
   items: z.array(z.string()).min(1, {
     message: 'You have to select at least one item.',
   }),
+  showMoodRecommendations: z.boolean().default(true),
 })
 
 export type DisplayFormValues = z.infer<typeof displayFormSchema>

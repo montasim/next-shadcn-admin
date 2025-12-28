@@ -370,6 +370,7 @@ model User {
   notificationType    String?           @default("all")
   displayItems        Json?             @default("[\"recents\", \"home\", \"applications\", \"desktop\", \"downloads\", \"documents\"]")
   urls                Json?             @default("[]")
+  showMoodRecommendations Boolean        @default(true)
   communicationEmails Boolean?          @default(false)
   marketingEmails     Boolean?          @default(false)
   securityEmails      Boolean?          @default(true)

@@ -7,6 +7,7 @@ import { type DisplayFormValues, displayFormSchema, items } from './schema'
 import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Switch } from '@/components/ui/switch'
 import {
   Form,
   FormControl,
@@ -29,12 +30,15 @@ export function DisplayFormClient({ defaultValues }: DisplayFormClientProps) {
 
   // Watch form values to detect changes
   const currentItems = form.watch('items')
+  const showMood = form.watch('showMoodRecommendations')
 
   // Check if items have changed from default values
   const defaultItems = defaultValues.items || ["recents", "home", "applications", "desktop", "downloads", "documents"]
+  const defaultShowMood = defaultValues.showMoodRecommendations ?? true
   const itemsChanged = JSON.stringify(currentItems?.sort()) !== JSON.stringify(defaultItems.sort())
+  const moodChanged = showMood !== defaultShowMood
 
-  const hasChanges = itemsChanged
+  const hasChanges = itemsChanged || moodChanged
   const isFormValid = form.formState.isValid
   const hasValidationErrors = Object.keys(form.formState.errors).length > 0
   const isSubmitting = form.formState.isSubmitting
@@ -107,6 +111,26 @@ export function DisplayFormClient({ defaultValues }: DisplayFormClientProps) {
                 />
               ))}
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='showMoodRecommendations'
+          render={({ field }) => (
+            <FormItem className='flex flex-row items-center justify-between'>
+              <div className='space-y-0.5'>
+                <FormLabel className='text-base'>Recommended for Your Mood</FormLabel>
+                <FormDescription>
+                  Show mood-based book recommendations on the books page.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
             </FormItem>
           )}
         />

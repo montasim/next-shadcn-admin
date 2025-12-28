@@ -22,6 +22,7 @@ export async function getDisplay(): Promise<GetDisplayResult> {
       status: 'success',
       data: {
         items: (user.displayItems as any) || ["recents", "home", "applications", "desktop", "downloads", "documents"],
+        showMoodRecommendations: user.showMoodRecommendations ?? true,
       }
     }
   } catch (error) {
@@ -50,6 +51,7 @@ export async function updateDisplay(data: DisplayFormValues): Promise<UpdateDisp
     // Update user with display data
     await updateUser(session.userId, {
       displayItems: validatedData.items,
+      showMoodRecommendations: validatedData.showMoodRecommendations,
     })
 
     // Revalidate cache
