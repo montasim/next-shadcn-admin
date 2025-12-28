@@ -27,6 +27,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { BookOpen, User, Settings, LogOut, CreditCard, Brain, ChevronDown } from 'lucide-react'
 import {useAuth} from "@/context/auth-context";
 import { getUserInitials } from '@/lib/utils/user'
+import { useCategories } from '@/hooks/use-categories'
 
 interface UserTopbarProps {
   className?: string
@@ -44,6 +45,13 @@ export function UserTopbar({
   const { user, logout, isLoading } = useAuth()
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
+
+  // Fetch categories for the navigation menu
+  const { data: categoriesData, isLoading: categoriesLoading } = useCategories({
+    limit: 10, // Show top 10 categories
+    minBooks: 1, // Only show categories with at least 1 book
+  })
+  const categories = categoriesData?.data?.categories || []
 
   const handleLogout = () => {
     setIsLogoutDialogOpen(true)
@@ -120,44 +128,50 @@ export function UserTopbar({
                     <ChevronDown className="ml-auto h-4 w-4" />
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
-                    <DropdownMenuItem asChild>
-                      <Link href="/books?category=science-fiction" className="w-full cursor-pointer">
-                        <div>
-                          <div className="font-medium">Science Fiction</div>
-                          <p className="text-xs text-muted-foreground">Futuristic worlds and technology</p>
+                    {categoriesLoading ? (
+                      <div className="p-2">
+                        <div className="space-y-2">
+                          {[...Array(3)].map((_, i) => (
+                            <div key={i} className="flex items-center space-x-2">
+                              <Skeleton className="h-4 w-24" />
+                            </div>
+                          ))}
                         </div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/books?category=romance" className="w-full cursor-pointer">
-                        <div>
-                          <div className="font-medium">Romance</div>
-                          <p className="text-xs text-muted-foreground">Love stories and relationships</p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/books?category=mystery" className="w-full cursor-pointer">
-                        <div>
-                          <div className="font-medium">Mystery</div>
-                          <p className="text-xs text-muted-foreground">Thrilling mysteries and detective stories</p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/books?category=biography" className="w-full cursor-pointer">
-                        <div>
-                          <div className="font-medium">Biography</div>
-                          <p className="text-xs text-muted-foreground">Real life stories and memoirs</p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/books" className="w-full cursor-pointer font-medium">
-                        View All Categories
-                      </Link>
-                    </DropdownMenuItem>
+                      </div>
+                    ) : categories.length > 0 ? (
+                      <>
+                        {categories.slice(0, 6).map((category) => (
+                          <DropdownMenuItem key={category.id} asChild>
+                            <Link
+                              href={`/books?category=${encodeURIComponent(category.name.toLowerCase())}`}
+                              className="w-full cursor-pointer"
+                            >
+                              <div>
+                                <div className="font-medium">{category.name}</div>
+                                {category.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-1">
+                                    {category.description}
+                                  </p>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                  {category.bookCount} {category.bookCount === 1 ? 'book' : 'books'}
+                                </p>
+                              </div>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/books" className="w-full cursor-pointer font-medium">
+                            View All Categories
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    ) : (
+                      <DropdownMenuItem disabled>
+                        <p className="text-xs text-muted-foreground">No categories available</p>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
                 <DropdownMenuItem asChild>
