@@ -108,7 +108,9 @@ export default function BookDetailsPage() {
   const [activeTab, setActiveTab] = useState('description')
 
   // Expand/collapse state for descriptions
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'key-questions-section': true
+  })
 
   // PDF Reader Modal state - initialize based on search params
   const shouldAutoOpenReader = searchParams?.get('openReader') === 'true'
@@ -391,12 +393,38 @@ export default function BookDetailsPage() {
                     </>
                   ) : (
                     <>
-                      {isEbook && <Eye className="h-4 w-4 mr-2" />}
-                      {isAudio && <Play className="h-4 w-4 mr-2" />}
-                      {isHardCopy && <BookOpen className="h-4 w-4 mr-2" />}
-                      {isEbook && 'Read Now'}
-                      {isAudio && 'Listen Now'}
-                      {isHardCopy && 'View Details'}
+                      {isEbook && (
+                        book.readingProgress?.isCompleted || (book.readingProgress?.progress ?? 0) >= 100 ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Read Again
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Read Now
+                          </>
+                        )
+                      )}
+                      {isAudio && (
+                        book.readingProgress?.isCompleted || (book.readingProgress?.progress ?? 0) >= 100 ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Listen Again
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Listen Now
+                          </>
+                        )
+                      )}
+                      {isHardCopy && (
+                        <>
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          View Details
+                        </>
+                      )}
                     </>
                   )}
                 </Button>

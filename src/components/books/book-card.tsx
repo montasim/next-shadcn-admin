@@ -360,7 +360,7 @@ const BookCard = React.forwardRef<HTMLDivElement, BookCardProps>(
                               router.push(url)
                             }}
                           >
-                            {progress === 0 ? 'Start' : isCompleted ? 'Again' : 'Continue'}
+                            {progress === 0 ? 'Start' : isCompleted ? 'Read Again' : 'Continue'}
                           </Button>
                         </>
                       ) : (

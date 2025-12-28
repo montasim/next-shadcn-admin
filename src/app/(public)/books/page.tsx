@@ -270,7 +270,7 @@ function BooksPageContent({
             </div>
 
             {/* Mobile Search Bar - Below Discover Books Section */}
-            <div className="w-full">
+            <div className="w-full mb-4">
               <SearchBar
                 onSearch={handleSearch}
                 initialValue={filters.search}
