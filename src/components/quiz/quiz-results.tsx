@@ -77,14 +77,14 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
               <Trophy className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
             </div>
-            <h2 className="text-3xl font-bold">Congratulations!</h2>
+            <h2 className="text-xl font-bold">Congratulations!</h2>
             <p className="text-muted-foreground">
               You completed the {config.difficulty} quiz with flying colors!
             </p>
           </div>
         ) : (
           <div className="space-y-3">
-            <h2 className="text-3xl font-bold">Quiz Complete!</h2>
+            <h2 className="text-xl font-bold">Quiz Complete!</h2>
             <p className="text-muted-foreground">
               Good effort! Keep practicing to improve your score.
             </p>

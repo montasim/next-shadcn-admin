@@ -96,7 +96,7 @@ export function QuizStats() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+            <div className="text-xl font-bold text-orange-600 dark:text-orange-400">
               {stats.currentDailyStreak} days
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -117,7 +117,7 @@ export function QuizStats() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
               {stats.bestQuizStreak}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -135,19 +135,19 @@ export function QuizStats() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold">{stats.totalQuizzes}</div>
+              <div className="text-xl font-bold">{stats.totalQuizzes}</div>
               <p className="text-sm text-muted-foreground mt-1">Total Quizzes</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold">{stats.totalWins}</div>
+              <div className="text-xl font-bold">{stats.totalWins}</div>
               <p className="text-sm text-muted-foreground mt-1">Total Wins</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold">{Math.round(stats.avgAccuracy)}%</div>
+              <div className="text-xl font-bold">{Math.round(stats.avgAccuracy)}%</div>
               <p className="text-sm text-muted-foreground mt-1">Avg Accuracy</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold">{stats.bestScore}</div>
+              <div className="text-xl font-bold">{stats.bestScore}</div>
               <p className="text-sm text-muted-foreground mt-1">Best Score</p>
             </div>
           </div>
