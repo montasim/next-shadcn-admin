@@ -13,6 +13,7 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SearchProvider } from '@/context/search-context'
 import { cn } from '@/lib/utils'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+import { Breadcrumb } from '@/components/breadcrumb'
 
 const sidebarNavItems = [
   {
@@ -83,11 +84,15 @@ export default function SettingsLayout({
 
             <Separator className='my-4 lg:my-6' />
 
-            <div className='flex flex-1 flex-col space-y-2 md:space-y-2 overflow-hidden lg:flex-row lg:space-x-12 lg:space-y-0'>
+            <div className='mb-4'>
+              <Breadcrumb />
+            </div>
+
+            <div className='flex flex-1 flex-col space-y-2 md:space-y-2 lg:flex-row lg:space-x-12 lg:space-y-0'>
               <aside className='top-0 lg:sticky lg:w-1/5'>
                 <SidebarNav items={sidebarNavItems} />
               </aside>
-              <div className='flex w-full p-1 pr-4 overflow-y-hidden'>
+              <div className='flex w-full p-1 pr-4 overflow-y-auto'>
                 {children}
               </div>
             </div>
