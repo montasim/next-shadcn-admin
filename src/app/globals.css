@@ -167,6 +167,30 @@ body {
   .faded-bottom {
     @apply after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:hidden after:h-32 after:w-full after:bg-[linear-gradient(180deg,_transparent_10%,_hsl(var(--background))_70%)] after:md:block;
   }
+
+  /* Padding for mobile bottom navigation */
+  .pb-mobile-nav {
+    padding-bottom: 4rem; /* 64px for mobile bottom nav */
+  }
+
+  @media (min-width: 768px) {
+    .pb-mobile-nav {
+      padding-bottom: 0; /* No padding on desktop */
+    }
+  }
+
+  /* Support for mobile safe areas with bottom nav */
+  @supports (padding: max(0px)) {
+    .pb-mobile-nav-safe {
+      padding-bottom: max(4rem, env(safe-area-inset-bottom));
+    }
+
+    @media (min-width: 768px) {
+      .pb-mobile-nav-safe {
+        padding-bottom: 0;
+      }
+    }
+  }
 }
 
 @layer base {

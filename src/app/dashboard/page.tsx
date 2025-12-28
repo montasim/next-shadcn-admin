@@ -133,7 +133,7 @@ function AdminDashboard() {
           </div>
         </HeaderContainer>
 
-        <Tabs defaultValue="overview" className="space-y-4 pb-16 md:pb-4 overflow-y-auto">
+        <Tabs defaultValue="overview" className="space-y-4 overflow-y-auto">
           <div className="w-full overflow-x-auto">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -374,7 +374,7 @@ function UserDashboard() {
   }
 
   return (
-    <div className="space-y-4 pb-16 md:pb-4">
+    <div className="space-y-4">
       <HeaderContainer>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between w-full">
           <div>
