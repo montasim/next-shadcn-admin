@@ -10,6 +10,7 @@ import { UserTopbar } from "@/components/layout/user-topbar";
 import { Main } from "@/components/ui/main";
 import { MDXViewerProvider } from 'mdx-craft';
 import {MobileBottomNav} from "@/components/layout/mobile-bottom-nav";
+import { Breadcrumb } from '@/components/breadcrumb';
 import React from "react";
 
 const inter = Inter({ subsets: ['latin'] })
@@ -35,7 +36,7 @@ export default function UserLayout({
                     'transition-[width] ease-linear duration-200',
                     'h-svh flex flex-col',
                     'group-data-[scroll-locked=1]/body:h-full',
-                    'group-data-[scroll-locked=1]/body:has-[main.fixed-main]:h-svh'
+                    'group-data-[scroll-locked=1]/body:has-[main.fixed-main]):h-svh'
                   )}
                 >
                     <UserTopbar
@@ -43,6 +44,9 @@ export default function UserLayout({
                       className="border-b shadow"
                     />
                     <Main fixed>
+                      <div className="mb-4 px-6 pt-4">
+                        <Breadcrumb />
+                      </div>
                       <MDXViewerProvider>
                         {children}
                       </MDXViewerProvider>
