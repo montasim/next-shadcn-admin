@@ -26,6 +26,7 @@ import {
   IconBookmark,
   IconBuildingFactory,
   IconMoodSmile,
+  IconList,
 } from '@tabler/icons-react'
 import { AudioWaveform, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -38,9 +39,9 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: 'Next Shadcn Admin',
+      name: 'Book Heaven',
       logo: Command,
-      plan: 'Next.js + ShadcnUI',
+      plan: 'Digital Library',
     },
     {
       name: 'Acme Inc',
@@ -102,6 +103,11 @@ export const sidebarData: SidebarData = {
           title: 'Books',
           url: '/dashboard/books',
           icon: IconBook,
+        },
+        {
+          title: 'Series',
+          url: '/dashboard/series',
+          icon: IconList,
         },
         {
           title: 'Authors',
