@@ -13,6 +13,13 @@ import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { useAuth } from '@/context/auth-context'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
+import type { Book } from '@/hooks/use-book'
+
+// Extended type for books in series context
+interface BookWithSeriesOrder extends Book {
+  seriesOrder?: number
+  readersCount?: number
+}
 
 export default function SeriesDetailPage() {
   const params = useParams()
@@ -61,7 +68,13 @@ export default function SeriesDetailPage() {
       {/* Header */}
       <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-6">
-          <NavigationBreadcrumb />
+          <NavigationBreadcrumb
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Series', href: '/series' },
+              { label: series.name }
+            ]}
+          />
           <div className="mt-4">
             <Button
               variant="ghost"
@@ -75,10 +88,11 @@ export default function SeriesDetailPage() {
               {series.image && (
                 <div className="relative w-24 h-36 rounded-lg overflow-hidden border flex-shrink-0">
                   <Image
-                    src={getProxiedImageUrl(series.image)}
+                    src={getProxiedImageUrl(series.image) || series.image}
                     alt={series.name}
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                 </div>
               )}
@@ -108,7 +122,7 @@ export default function SeriesDetailPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {series.books.map((book, index) => {
+            {series.books.map((book: BookWithSeriesOrder, index: number) => {
               const canAccess = !book.requiresPremium || hasPremium
 
               return (
@@ -122,10 +136,11 @@ export default function SeriesDetailPage() {
                       <div className="relative aspect-[2/3] w-full mb-3 rounded-md overflow-hidden bg-muted">
                         {book.image ? (
                           <Image
-                            src={getProxiedImageUrl(book.image)}
+                            src={getProxiedImageUrl(book.image) || book.image}
                             alt={book.name}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform"
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -144,9 +159,11 @@ export default function SeriesDetailPage() {
                     </CardHeader>
                     <CardContent className="p-3 pt-0">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs">
-                          #{book.seriesOrder}
-                        </Badge>
+                        {book.seriesOrder !== undefined && book.seriesOrder !== null && (
+                          <Badge variant="secondary" className="text-xs">
+                            #{book.seriesOrder}
+                          </Badge>
+                        )}
                         <BookTypeBadge type={book.type} />
                         {book.requiresPremium && (
                           <Lock className="h-3 w-3 text-muted-foreground" />
@@ -154,7 +171,7 @@ export default function SeriesDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                         <Eye className="h-3 w-3" />
-                        <span>{book.readersCount} reader{book.readersCount !== 1 ? 's' : ''}</span>
+                        <span>{book.readersCount ?? 0} reader{(book.readersCount ?? 0) !== 1 ? 's' : ''}</span>
                       </div>
                     </CardContent>
                   </Card>

@@ -77,7 +77,12 @@ export default function SeriesPage() {
       {/* Header */}
       <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-6">
-          <NavigationBreadcrumb />
+          <NavigationBreadcrumb
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Series' }
+            ]}
+          />
           <div className="flex items-center justify-between mt-4">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -117,54 +122,55 @@ export default function SeriesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {series.map((series) => (
-              <Card key={series.id} className="group hover:shadow-lg transition-shadow">
+            {series.map((seriesItem: Series) => (
+              <Card key={seriesItem.id} className="group hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="group-hover:text-primary transition-colors">
-                        {series.name}
+                        {seriesItem.name}
                       </CardTitle>
                       <CardDescription className="mt-1">
-                        {series.bookCount} book{series.bookCount !== 1 ? 's' : ''}
+                        {seriesItem.bookCount} book{seriesItem.bookCount !== 1 ? 's' : ''}
                       </CardDescription>
                     </div>
                   </div>
-                  {series.description && (
+                  {seriesItem.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                      {series.description}
+                      {seriesItem.description}
                     </p>
                   )}
                 </CardHeader>
 
                 <CardContent>
-                  {series.books.length > 0 && (
+                  {seriesItem.books.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-muted-foreground">Books in this series:</p>
                       <div className="flex gap-2 overflow-x-auto pb-2">
-                        {series.books.slice(0, 5).map((book) => (
+                        {seriesItem.books.slice(0, 5).map((book) => (
                           <Link key={book.id} href={`/books/${book.id}`} className="flex-shrink-0">
                             <div className="relative w-16 h-24 rounded border overflow-hidden hover:border-primary transition-colors">
                               {book.image ? (
                                 <Image
-                                  src={getProxiedImageUrl(book.image)}
+                                  src={getProxiedImageUrl(book.image) || book.image}
                                   alt={book.name}
                                   fill
                                   className="object-cover"
+                                  unoptimized
                                 />
                               ) : (
                                 <div className="w-full h-full bg-muted flex items-center justify-center">
                                   <span className="text-xs text-muted-foreground text-center px-1">
-                                    {book.seriesOrder}
+                                    #{book.seriesOrder}
                                   </span>
                                 </div>
                               )}
                             </div>
                           </Link>
                         ))}
-                        {series.books.length > 5 && (
+                        {seriesItem.books.length > 5 && (
                           <div className="flex-shrink-0 w-16 h-24 rounded border flex items-center justify-center bg-muted">
-                            <span className="text-xs text-muted-foreground">+{series.books.length - 5}</span>
+                            <span className="text-xs text-muted-foreground">+{seriesItem.books.length - 5}</span>
                           </div>
                         )}
                       </div>
@@ -173,7 +179,7 @@ export default function SeriesPage() {
                 </CardContent>
 
                 <CardFooter>
-                  <Link href={`/series/${series.id}`} className="w-full">
+                  <Link href={`/series/${seriesItem.id}`} className="w-full">
                     <Button variant="outline" className="w-full">
                       View Series
                     </Button>

@@ -170,8 +170,8 @@ export function SeriesMutateDrawer({ open, onOpenChange, currentRow, onSuccess }
                   <FormControl>
                     <ImageUpload
                       value={field.value || ''}
-                      onChange={field.onChange}
-                      aspectRatio="wide"
+                      onChange={(file) => field.onChange(file)}
+                      onRemove={() => field.onChange(null)}
                     />
                   </FormControl>
                   <FormMessage />

@@ -6,10 +6,82 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth/session'
 import { BookType } from '@prisma/client'
+import type { Book, Author, Category, Publication, Series } from '@prisma/client'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface BookWithRelations extends Book {
+    entryBy: {
+        id: string
+        firstName: string
+        lastName: string | null
+        username: string | null
+        name: string
+        avatar: string | null
+        bio: string | null
+        role: string
+        createdAt: Date
+    }
+    authors: Array<{
+        authorId: string
+        author: Pick<Author, 'id' | 'name' | 'description' | 'image'>
+    }>
+    categories: Array<{
+        categoryId: string
+        category: Pick<Category, 'id' | 'name' | 'description' | 'image'>
+    }>
+    publications: Array<{
+        publicationId: string
+        publication: Pick<Publication, 'id' | 'name' | 'description' | 'image'>
+    }>
+    series: Array<{
+        seriesId: string
+        order: number
+        series: Pick<Series, 'id' | 'name' | 'description' | 'image'>
+    }>
+    questions: Array<{
+        id: string
+        question: string
+        answer: string
+        order: number
+        isAIGenerated: boolean
+    }>
+    readingProgress: Array<{
+        id: string
+        currentPage: number | null
+        currentEpocha: number | null
+        progress: number
+        isCompleted: boolean
+        lastReadAt: Date
+    }>
+    _count: {
+        readingProgress: number
+    }
+}
+
+interface RelatedBook {
+    id: string
+    name: string
+    type: BookType
+    image: string | null
+    requiresPremium: boolean
+    authors: Array<{ author: { id: string; name: string } }>
+    publications: Array<{ publication: { id: string; name: string } }>
+    categories: Array<{ category: { id: string; name: string } }>
+    _count: {
+        readingProgress: number
+    }
+}
+
+interface ScoredBook extends RelatedBook {
+    score: number
+    reasons: string[]
+}
 
 // ============================================================================
 // API HANDLERS
@@ -28,7 +100,7 @@ export async function GET(
         const { id: bookId } = await params
 
         // Validate book ID
-        if (!bookId || typeof bookId !== 'string') {
+        if (!bookId) {
             return NextResponse.json({
                 success: false,
                 error: 'Invalid book ID',
@@ -38,7 +110,7 @@ export async function GET(
 
         // Check user authentication and premium status
         const userSession = await getSession()
-        const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN' ? true : false) : false
+        const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN') : false
         const isAuthenticated = !!userSession
 
         // Find the book
@@ -140,12 +212,20 @@ export async function GET(
                     }
                 }
             }
-        })
+        }) as BookWithRelations | null
 
         // Get view statistics for analytics
         const viewStats = await prisma.bookView.count({
             where: { bookId }
         })
+
+        if (!book) {
+            return NextResponse.json({
+                success: false,
+                error: 'Book not found',
+                message: 'The requested book does not exist'
+            }, { status: 404 })
+        }
 
         // Fetch series neighbors (previous/next books) for each series
         const seriesNeighbors = await Promise.all(
@@ -216,14 +296,6 @@ export async function GET(
                 }
             })
         )
-
-        if (!book) {
-            return NextResponse.json({
-                success: false,
-                error: 'Book not found',
-                message: 'The requested book does not exist'
-            }, { status: 404 })
-        }
 
         // Check if book is public
         if (!book.isPublic) {
@@ -374,14 +446,19 @@ export async function GET(
         })
 
         // Score and combine related books
-        const scoreBook = (relatedBook: any, currentBookAuthors: string[], currentBookPubs: string[], currentBookCats: string[]) => {
+        const scoreBook = (
+            relatedBook: RelatedBook,
+            currentBookAuthors: string[],
+            currentBookPubs: string[],
+            currentBookCats: string[]
+        ): { score: number; reasons: string[] } => {
             let score = 0
             const reasons: string[] = []
 
             // Author matches: +3 points each
             const matchedAuthors = relatedBook.authors
-                .map((ra: any) => ra.author.id)
-                .filter((id: string) => currentBookAuthors.includes(id))
+                .map((ra) => ra.author.id)
+                .filter((id) => currentBookAuthors.includes(id))
             if (matchedAuthors.length > 0) {
                 score += matchedAuthors.length * 3
                 reasons.push('author')
@@ -389,8 +466,8 @@ export async function GET(
 
             // Publication matches: +2 points each
             const matchedPubs = relatedBook.publications
-                .map((rp: any) => rp.publication.id)
-                .filter((id: string) => currentBookPubs.includes(id))
+                .map((rp) => rp.publication.id)
+                .filter((id) => currentBookPubs.includes(id))
             if (matchedPubs.length > 0) {
                 score += matchedPubs.length * 2
                 reasons.push('publication')
@@ -398,8 +475,8 @@ export async function GET(
 
             // Category matches: +1 point each
             const matchedCats = relatedBook.categories
-                .map((rc: any) => rc.category.id)
-                .filter((id: string) => currentBookCats.includes(id))
+                .map((rc) => rc.category.id)
+                .filter((id) => currentBookCats.includes(id))
             if (matchedCats.length > 0) {
                 score += matchedCats.length
                 reasons.push('category')
@@ -413,22 +490,22 @@ export async function GET(
         }
 
         // Process and sort all matches
-        const allRelatedBooks = [...authorMatches, ...publicationMatches, ...categoryMatches]
+        const allRelatedBooks = [...authorMatches, ...publicationMatches, ...categoryMatches] as RelatedBook[]
         const scoredBooks = allRelatedBooks.map(relatedBook => ({
             ...relatedBook,
             ...scoreBook(relatedBook, currentBookAuthorIds, currentBookPublicationIds, currentBookCategoryIds)
-        }))
+        })) as ScoredBook[]
 
-        // Remove duplicates (keep highest score) and sort by score then popularity
-        const uniqueBooks = Array.from(
-            scoredBooks.reduce((map, book) => {
-                const existing = map.get(book.id)
-                if (!existing || book.score > existing.score) {
-                    map.set(book.id, book)
-                }
-                return map
-            }, new Map()).values()
-        ).sort((a, b) => {
+        // Remove duplicates (keep the highest score) and sort by score then popularity
+        const uniqueBooksMap = new Map<string, ScoredBook>()
+        scoredBooks.forEach(book => {
+            const existing = uniqueBooksMap.get(book.id)
+            if (!existing || book.score > existing.score) {
+                uniqueBooksMap.set(book.id, book)
+            }
+        })
+
+        const uniqueBooks = Array.from(uniqueBooksMap.values()).sort((a, b) => {
             // First sort by score
             if (b.score !== a.score) return b.score - a.score
             // Then by popularity
@@ -436,22 +513,22 @@ export async function GET(
         })
 
         // Take top 6
-        const relatedBooks = uniqueBooks.slice(0, 6)
+        const relatedBooks = uniqueBooks.slice(0, 6) as ScoredBook[]
 
         // Build recommendation reasons map
         const recommendationReasons: Record<string, { authors: string[], publications: string[], categories: string[] }> = {}
         relatedBooks.forEach(relatedBook => {
             const matchedAuthors = relatedBook.authors
-                .filter((ra: any) => currentBookAuthorIds.includes(ra.author.id))
-                .map((ra: any) => ra.author.name)
+                .filter((ra) => currentBookAuthorIds.includes(ra.author.id))
+                .map((ra) => ra.author.name)
 
             const matchedPublications = relatedBook.publications
-                .filter((rp: any) => currentBookPublicationIds.includes(rp.publication.id))
-                .map((rp: any) => rp.publication.name)
+                .filter((rp) => currentBookPublicationIds.includes(rp.publication.id))
+                .map((rp) => rp.publication.name)
 
             const matchedCategories = relatedBook.categories
-                .filter((rc: any) => currentBookCategoryIds.includes(rc.category.id))
-                .map((rc: any) => rc.category.name)
+                .filter((rc) => currentBookCategoryIds.includes(rc.category.id))
+                .map((rc) => rc.category.name)
 
             recommendationReasons[relatedBook.id] = {
                 authors: matchedAuthors,
@@ -566,11 +643,11 @@ export async function GET(
                 requiresPremium: relatedBook.requiresPremium,
                 canAccess: !relatedBook.requiresPremium || userHasPremium,
                 readersCount: relatedBook._count.readingProgress,
-                authors: relatedBook.authors.map((ra: any) => ({
+                authors: relatedBook.authors.map(ra => ({
                     id: ra.author.id,
                     name: ra.author.name,
                 })),
-                categories: relatedBook.categories.map((rc: any) => ({
+                categories: relatedBook.categories.map(rc => ({
                     id: rc.category.id,
                     name: rc.category.name,
                 })),
@@ -654,7 +731,7 @@ export async function POST(
             }, { status: 404 })
         }
 
-        const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN' ? true : false) : false
+        const userHasPremium = userSession ? (userSession.role === 'USER' ? false : userSession.role === 'ADMIN') : false
         const canAccess = !book.requiresPremium || userHasPremium
 
         if (!canAccess) {

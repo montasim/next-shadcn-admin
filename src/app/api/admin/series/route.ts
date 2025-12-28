@@ -6,8 +6,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getServerSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { getSession } from '@/lib/auth/session'
+import { findUserById } from '@/lib/user/repositories/user.repository'
 import * as seriesRepository from '@/lib/lms/repositories/series.repository'
 
 // ============================================================================
@@ -26,6 +26,19 @@ const UpdateSeriesSchema = z.object({
   image: z.string().optional(),
 })
 
+// Helper function to check authentication
+async function checkAuth() {
+  const session = await getSession()
+  const user = session ? await findUserById(session.userId) : null
+  if (!user) {
+    return null
+  }
+  if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+    return null
+  }
+  return user
+}
+
 // ============================================================================
 // GET HANDLER
 // ============================================================================
@@ -37,10 +50,10 @@ const UpdateSeriesSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    if (!session) {
+    const user = await checkAuth()
+    if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Authentication and admin access required' },
         { status: 401 }
       )
     }
@@ -80,10 +93,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
-    if (!session) {
+    const user = await checkAuth()
+    if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Authentication and admin access required' },
         { status: 401 }
       )
     }
@@ -93,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     const series = await seriesRepository.createSeries({
       ...validatedData,
-      entryById: session.user.id,
+      entryById: user.id,
     })
 
     return NextResponse.json({

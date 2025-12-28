@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+    if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }

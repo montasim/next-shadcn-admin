@@ -56,20 +56,6 @@ export const columns: ColumnDef<Series>[] = [
     },
   },
   {
-    accessorKey: 'entryBy',
-    header: 'Created By',
-    cell: ({ row }) => {
-      const entryBy = row.original.entryBy
-      return (
-        <div className="text-sm">
-          {entryBy?.firstName || entryBy?.lastName
-            ? `${entryBy.firstName || ''} ${entryBy.lastName || ''}`.trim()
-            : entryBy?.email || 'Unknown'}
-        </div>
-      )
-    },
-  },
-  {
     accessorKey: 'entryDate',
     header: ({ column }) => {
       return (

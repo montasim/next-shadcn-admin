@@ -5,7 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth/session'
+import { findUserById } from '@/lib/user/repositories/user.repository'
 import * as seriesRepository from '@/lib/lms/repositories/series.repository'
 
 interface RouteContext {
@@ -19,11 +20,21 @@ interface RouteContext {
  */
 export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
-    const session = await getServerSession()
-    if (!session) {
+    // Check authentication
+    const session = await getSession()
+    const user = session ? await findUserById(session.userId) : null
+    if (!user) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Authentication required' },
         { status: 401 }
+      )
+    }
+
+    // Check admin role
+    if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
       )
     }
 

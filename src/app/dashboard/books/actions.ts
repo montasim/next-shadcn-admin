@@ -17,7 +17,18 @@ import {
   getAllPublications,
   getBookTypes,
 } from '@/lib/lms/repositories/book.repository'
-import { getAllCategories } from '../categories/actions'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface ExtractionResult {
+  success: boolean
+  wordCount?: number
+  pageCount?: number
+  size?: number
+  error?: string
+}
 
 // ============================================================================
 // SCHEMAS
@@ -316,10 +327,6 @@ export async function getBookById(id: string) {
       authorIds: book.authors.map(bookAuthor => bookAuthor.author.id),
       publicationIds: book.publications.map(bookPublication => bookPublication.publication.id),
       categoryIds: book.categories.map(bookCategory => bookCategory.category.id),
-      series: book.series.map(bookSeries => ({
-        seriesId: bookSeries.series.id,
-        order: bookSeries.order,
-      })),
     }
   } catch (error) {
     console.error('Error fetching book:', error)
@@ -356,7 +363,22 @@ export async function getPublicationsForSelect() {
  */
 export async function getCategoriesForSelect() {
   try {
-    return await getAllCategories()
+    const { prisma } = await import('@/lib/prisma')
+
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    })
+
+    return categories.map(c => ({
+      id: c.id,
+      name: c.name,
+    }))
   } catch (error) {
     console.error('Error fetching categories for select:', error)
     return []
@@ -710,7 +732,7 @@ async function triggerAsyncContentExtraction(bookId: string, timeoutMs: number =
     })
 
     // Wait for either extraction to complete or timeout
-    const result = await Promise.race([extractionPromise, timeoutPromise]) as any
+    const result = await Promise.race([extractionPromise, timeoutPromise]) as ExtractionResult
 
     console.log(`[Book Actions] Content extraction completed successfully`)
     console.log(`[Book Actions] - Word count: ${result.wordCount}`)
@@ -718,12 +740,13 @@ async function triggerAsyncContentExtraction(bookId: string, timeoutMs: number =
     console.log(`[Book Actions] - Size: ${result.size} bytes`)
 
     return result
-  } catch (error: any) {
-    console.error('[Book Actions] Content extraction failed:', error.message)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('[Book Actions] Content extraction failed:', errorMessage)
 
     // Log error but don't throw - book is still created, just chat won't work immediately
     // The extraction will be triggered again when the first user opens chat
-    if (error.message === 'Extraction timeout') {
+    if (errorMessage === 'Extraction timeout') {
       console.warn('[Book Actions] Extraction timed out. Will retry on first chat access.')
     }
 

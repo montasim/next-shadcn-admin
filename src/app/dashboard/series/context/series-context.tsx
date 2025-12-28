@@ -4,11 +4,11 @@ import { createContext, useContext, ReactNode } from 'react'
 import { Series } from '../data/schema'
 import useDialogState from '@/hooks/use-dialog-state'
 
-export type SeriesDialogType = 'create' | 'edit' | 'delete' | null
+export type SeriesDialogType = 'create' | 'edit' | 'delete'
 
 interface SeriesContextValue {
-  open: SeriesDialogType
-  setOpen: (value: SeriesDialogType) => void
+  open: SeriesDialogType | null
+  setOpen: (value: SeriesDialogType | null) => void
   currentRow: Series | null
   setCurrentRow: (row: Series | null) => void
   refreshSeries: () => Promise<void>
@@ -24,6 +24,8 @@ interface SeriesProviderProps {
 export function SeriesProvider({ children, value }: SeriesProviderProps) {
   return <SeriesContext.Provider value={value}>{children}</SeriesContext.Provider>
 }
+
+export default SeriesProvider
 
 export function useSeriesContext() {
   const context = useContext(SeriesContext)
