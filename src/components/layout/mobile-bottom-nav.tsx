@@ -7,7 +7,8 @@ import {
   LayoutDashboard,
   Bookmark,
   Settings,
-  Search
+  Plus,
+  BookOpen,
 } from 'lucide-react'
 
 interface NavItem {
@@ -20,7 +21,12 @@ const navItems: NavItem[] = [
   {
     label: 'Home',
     href: '/books',
-    icon: LayoutDashboard,
+    icon: BookOpen,
+  },
+  {
+    label: 'Library',
+    href: '/library',
+    icon: Bookmark,
   },
   {
     label: 'Dashboard',
@@ -28,9 +34,9 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    label: 'Library',
-    href: '/library',
-    icon: Bookmark,
+    label: 'Request',
+    href: '/dashboard/book-requests',
+    icon: Plus,
   },
   {
     label: 'Settings',
