@@ -10,7 +10,15 @@
       "Bash(npm run lint)",
       "Bash(npm run lint:*)",
       "Bash(pnpm lint:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

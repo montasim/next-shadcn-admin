@@ -32,8 +32,9 @@ import {
   IconTag as IconTagOffer,
   IconStar,
   IconHistory,
+  IconTrophy,
 } from '@tabler/icons-react'
-import { AudioWaveform, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
+import { AudioWaveform, BookOpen as BookOpenIcon, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
 
 export const sidebarData: SidebarData = {
@@ -45,7 +46,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: 'Book Heaven',
-      logo: Command,
+      logo: BookOpenIcon,
       plan: 'Digital Library',
     },
     {
@@ -222,6 +223,11 @@ export const sidebarData: SidebarData = {
           title: 'Activity',
           url: '/dashboard/activity',
           icon: IconHistory,
+        },
+        {
+          title: 'Achievements',
+          url: '/dashboard/achievements',
+          icon: IconTrophy,
         },
         {
           title: 'Settings',

@@ -10,7 +10,6 @@ import { UserTopbar } from "@/components/layout/user-topbar";
 import { Main } from "@/components/ui/main";
 import { MDXViewerProvider } from 'mdx-craft';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
-import { Breadcrumb } from '@/components/breadcrumb';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -43,9 +42,6 @@ export default function DashboardLayout({
                     className="border-b shadow"
                   />
                   <Main fixed>
-                    <div className="mb-4 px-6 pt-4">
-                      <Breadcrumb />
-                    </div>
                     <MDXViewerProvider>
                       {children}
                     </MDXViewerProvider>

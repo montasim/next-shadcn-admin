@@ -12,12 +12,13 @@ import { ReadingHeatmap } from '@/components/reading/reading-heatmap'
 import { PagesReadChart } from '@/components/reading/pages-read-chart'
 import { UserProfileSkeleton } from '@/components/users/user-profile-skeleton'
 import { useUserProfile, useUserBookshelves, useUserReadingActivity } from '@/hooks/use-user-profile'
-import {BookOpen, LibraryBig, Calendar, Bookmark, Users, Home, ArrowLeft} from 'lucide-react'
+import { BookOpen, LibraryBig, Calendar, Bookmark, Users, Home, ArrowLeft, Trophy } from 'lucide-react'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { getUserDisplayName } from '@/lib/utils/user'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { UserAchievementsBadges } from '@/components/achievements/user-achievements-badges'
 
 export default function UserProfilePage() {
   const params = useParams()
@@ -133,6 +134,15 @@ export default function UserProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Achievements Section */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Trophy className="h-5 w-5" />
+            Achievements
+          </h2>
+          <UserAchievementsBadges userId={userId} />
+        </div>
 
         {/* Reading Activity Section */}
         <div className="mb-4 mt-8">

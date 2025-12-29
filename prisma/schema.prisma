@@ -447,6 +447,7 @@ model User {
   progressHistory     ProgressHistory[]
   publishedBooks      Publication[]     @relation("UserPublications")
   readingProgress     ReadingProgress[]
+  achievements        UserAchievement[]  @relation("UserAchievements")
   subscription        Subscription?
   sessions            UserSession[]
   quizAttempts       QuizAttempt[]
@@ -1085,6 +1086,78 @@ enum ActivityResourceType {
   REVIEW
   NOTICE
   SYSTEM_SETTINGS
+  ACHIEVEMENT_UNLOCKED
+}
+
+// ============================================================================
+// ACHIEVEMENTS SYSTEM
+// ============================================================================
+
+model Achievement {
+  id                String              @id @default(uuid())
+  code              String              @unique  // e.g., 'FIRST_BOOK', 'READER_10'
+  name              String              // Display name
+  description       String              @db.Text
+  icon              String?             // Emoji or icon name
+  category          AchievementCategory
+  tier              AchievementTier     @default(BRONZE)
+  xp                Int                 @default(0)  // Experience points rewarded
+
+  // Requirements (stored as JSON for flexibility)
+  requirements      Json                // { type: 'BOOKS_READ', count: 10, etc. }
+
+  // Stats
+  unlockCount       Int                 @default(0)  // How many users unlocked this
+  isVisible         Boolean             @default(true)
+
+  // Metadata
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  entryById         String
+
+  userAchievements  UserAchievement[]
+
+  @@index([category, tier])
+  @@index([code])
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id              String              @id @default(uuid())
+  userId          String
+  achievementId   String
+  unlockedAt      DateTime            @default(now())
+
+  // Progress tracking (for incremental achievements)
+  progress        Int                 @default(0)
+  maxProgress     Int                 @default(1)
+
+  user            User                @relation("UserAchievements", fields: [userId], references: [id], onDelete: Cascade)
+  achievement     Achievement         @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId, unlockedAt(sort: Desc)])
+  @@index([achievementId])
+  @@map("user_achievements")
+}
+
+enum AchievementCategory {
+  READING           // Books completed, pages read
+  COLLECTION        // Books added, authors, categories
+  QUIZ              // Quiz scores, streaks, wins
+  MARKETPLACE       // Sell posts, offers, reviews
+  SOCIAL            // Reviews, ratings, conversations
+  ENGAGEMENT        // Logins, consistency, streaks
+  SPECIAL           // Limited time, unique achievements
+}
+
+enum AchievementTier {
+  BRONZE            // Entry level
+  SILVER            // Intermediate
+  GOLD              // Advanced
+  PLATINUM          // Expert
+  DIAMOND           // Master
+  LEGENDARY         // Ultra rare
 }
 
 model ActivityLog {
