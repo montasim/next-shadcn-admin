@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
 import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { displayFormSchema, type DisplayFormValues } from './schema'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 type GetDisplayResult =
   | { status: 'success', data: DisplayFormValues }
@@ -53,6 +55,22 @@ export async function updateDisplay(data: DisplayFormValues): Promise<UpdateDisp
       displayItems: validatedData.items,
       showMoodRecommendations: validatedData.showMoodRecommendations,
     })
+
+    // Log display settings update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PROFILE_UPDATED,
+      resourceType: ActivityResourceType.USER,
+      resourceId: session.userId,
+      resourceName: currentUser.name || 'User',
+      description: `Updated display settings (Mood Recommendations: ${validatedData.showMoodRecommendations})`,
+      metadata: {
+        displayItemsCount: validatedData.items?.length || 0,
+        showMoodRecommendations: validatedData.showMoodRecommendations,
+      },
+      endpoint: '/settings/display/actions',
+    }).catch(console.error)
 
     // Revalidate cache
     revalidatePath('/settings/display')
