@@ -11,6 +11,8 @@ import {
     getSellPostById,
 } from '@/lib/marketplace/repositories'
 import { notifyNewOffer } from '@/lib/notifications/notifications.repository'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -102,8 +104,28 @@ export async function POST(
 
         const offer = await createOffer(offerData)
 
-        // Broadcast new offer to socket server (for real-time notification)
+        // Get sell post for logging and notification
         const sellPost = await getSellPostById(id)
+
+        // Log offer creation activity (non-blocking)
+        if (sellPost) {
+            logActivity({
+                userId: session.userId,
+                userRole: session.role as any,
+                action: ActivityAction.OFFER_CREATED,
+                resourceType: ActivityResourceType.OFFER,
+                resourceId: offer.id,
+                resourceName: sellPost.title,
+                description: `Made offer of $${data.offeredPrice} on "${sellPost.title || 'listing'}"`,
+                metadata: {
+                    offeredPrice: data.offeredPrice,
+                    sellPostId: id,
+                },
+                endpoint: '/api/user/sell-posts/[id]/offers',
+            }).catch(console.error)
+        }
+
+        // Broadcast new offer to socket server (for real-time notification)
         if (sellPost) {
             // Broadcast to socket server for real-time delivery
             const socketUrl = process.env.WEBSOCKET_SERVER_URL || process.env.NEXT_PUBLIC_WS_URL

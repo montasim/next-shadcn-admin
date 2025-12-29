@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // Repository imports
 import {
@@ -137,12 +139,24 @@ export async function createNotice(data: CreateNoticeData) {
     const validTo = validatedData.validTo ? new Date(validatedData.validTo) : null
 
     // Create notice
-    await createNoticeInDb({
+    const createdNotice = await createNoticeInDb({
       ...validatedData,
       validFrom,
       validTo,
       entryById: session.userId,
     })
+
+    // Log notice creation activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.NOTICE_CREATED,
+      resourceType: ActivityResourceType.NOTICE,
+      resourceId: createdNotice.id,
+      resourceName: validatedData.title,
+      description: `Created notice "${validatedData.title}"`,
+      endpoint: '/dashboard/notices/actions',
+    }).catch(console.error)
 
     revalidatePath('/dashboard/notices')
     return { message: 'Notice created successfully' }
@@ -158,7 +172,7 @@ export async function createNotice(data: CreateNoticeData) {
 export async function updateNotice(id: string, data: UpdateNoticeData) {
   try {
     // Get authenticated admin
-    await requireAuth()
+    const session = await requireAuth()
 
     // Validate data
     const validatedData = updateNoticeSchema.parse(data)
@@ -174,6 +188,18 @@ export async function updateNotice(id: string, data: UpdateNoticeData) {
       validTo,
     })
 
+    // Log notice update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.NOTICE_UPDATED,
+      resourceType: ActivityResourceType.NOTICE,
+      resourceId: id,
+      resourceName: validatedData.title,
+      description: `Updated notice "${validatedData.title}"`,
+      endpoint: '/dashboard/notices/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/notices')
     return { message: 'Notice updated successfully' }
   } catch (error) {
@@ -187,9 +213,21 @@ export async function updateNotice(id: string, data: UpdateNoticeData) {
  */
 export async function deleteNotice(id: string) {
   try {
-    await requireAuth()
+    const session = await requireAuth()
 
     await deleteNoticeFromDb(id)
+
+    // Log notice deletion activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.NOTICE_DELETED,
+      resourceType: ActivityResourceType.NOTICE,
+      resourceId: id,
+      description: `Deleted notice with ID: ${id}`,
+      endpoint: '/dashboard/notices/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/notices')
     return { message: 'Notice deleted successfully' }
   } catch (error) {

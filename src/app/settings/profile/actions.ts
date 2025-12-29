@@ -5,6 +5,8 @@ import { profileFormSchema, type ProfileFormValues } from './schema'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth/session'
 import { createHash } from 'crypto'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 type GetProfileResult =
   | { status: 'success', data: ProfileFormValues }
@@ -135,6 +137,23 @@ export async function updateProfile(data: ProfileFormValues): Promise<UpdateProf
         where: { id: session.userId },
         data: updateData
       })
+
+      // Log profile update activity (non-blocking)
+      logActivity({
+        userId: session.userId,
+        userRole: session.role as any,
+        action: ActivityAction.PROFILE_UPDATED,
+        resourceType: ActivityResourceType.USER,
+        resourceId: session.userId,
+        resourceName: validatedData.username || session.name || 'User',
+        description: `Updated profile settings`,
+        metadata: {
+          fields: Object.keys(updateData),
+          hasBio: !!validatedData.bio,
+          urlsCount: validatedData.urls?.length || 0,
+        },
+        endpoint: '/settings/profile/actions',
+      }).catch(console.error)
     }
 
     revalidatePath('/settings/profile')
@@ -261,6 +280,19 @@ export async function verifyEmailChangeOtp(newEmail: string, code: string): Prom
       where: { id: session.userId },
       data: { email: newEmail }
     })
+
+    // Log email change activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PROFILE_UPDATED,
+      resourceType: ActivityResourceType.USER,
+      resourceId: session.userId,
+      resourceName: session.name || 'User',
+      description: `Changed email address`,
+      metadata: { newEmail },
+      endpoint: '/settings/profile/actions',
+    }).catch(console.error)
 
     revalidatePath('/settings/profile')
 

@@ -9,6 +9,8 @@ import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { createQuizAttempt } from '@/lib/user/repositories/quiz.repository'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 const QuizAttemptSchema = z.object({
   category: z.string(),
@@ -36,6 +38,27 @@ export async function POST(request: NextRequest) {
       userId: session.userId,
       ...validated,
     })
+
+    // Log quiz attempt activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.QUIZ_ATTEMPTED,
+      resourceType: ActivityResourceType.QUIZ_ATTEMPT,
+      resourceId: attempt.id,
+      resourceName: `${validated.category} - ${validated.difficulty}`,
+      description: `Completed ${validated.difficulty} ${validated.category} quiz with score: ${validated.score}/${validated.totalQuestions}`,
+      metadata: {
+        category: validated.category,
+        difficulty: validated.difficulty,
+        score: validated.score,
+        totalQuestions: validated.totalQuestions,
+        questionCount: validated.questionCount,
+        quizStreak: validated.quizStreak,
+        timeTaken: validated.timeTaken,
+      },
+      endpoint: '/api/user/quiz/attempt',
+    }).catch(console.error)
 
     revalidatePath('/quiz')
 

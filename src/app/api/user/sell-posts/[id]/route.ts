@@ -11,6 +11,8 @@ import {
     markSellPostAsSold,
 } from '@/lib/marketplace/repositories'
 import { BookCondition, SellPostStatus } from '@prisma/client'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -128,6 +130,23 @@ export async function PATCH(
 
         const post = await updateSellPost(id, session.userId, updateData)
 
+        // Log sell post update activity (non-blocking)
+        logActivity({
+            userId: session.userId,
+            userRole: session.role as any,
+            action: ActivityAction.SELL_POST_UPDATED,
+            resourceType: ActivityResourceType.SELL_POST,
+            resourceId: post.id,
+            resourceName: post.title,
+            description: `Updated sell post "${post.title}"`,
+            metadata: {
+                updatedFields: Object.keys(updateData),
+                price: updateData.price,
+                status: updateData.status,
+            },
+            endpoint: '/api/user/sell-posts/[id]',
+        }).catch(console.error)
+
         revalidatePath('/marketplace/my-posts')
         revalidatePath(`/marketplace/${id}`)
 
@@ -179,7 +198,28 @@ export async function DELETE(
 
         const { id } = await params
 
+        // Get post details before deleting for logging
+        const post = await getSellPostById(id)
         await deleteSellPost(id, session.userId)
+
+        // Log sell post deletion activity (non-blocking)
+        if (post) {
+            logActivity({
+                userId: session.userId,
+                userRole: session.role as any,
+                action: ActivityAction.SELL_POST_DELETED,
+                resourceType: ActivityResourceType.SELL_POST,
+                resourceId: id,
+                resourceName: post.title,
+                description: `Deleted sell post "${post.title}"`,
+                metadata: {
+                    price: post.price,
+                    status: post.status,
+                    condition: post.condition,
+                },
+                endpoint: '/api/user/sell-posts/[id]',
+            }).catch(console.error)
+        }
 
         revalidatePath('/marketplace/my-posts')
         revalidatePath('/marketplace')
@@ -234,7 +274,28 @@ export async function POST(
         const action = body.action
 
         if (action === 'mark_sold') {
+            // Get post details before marking as sold for logging
+            const post = await getSellPostById(id)
             await markSellPostAsSold(id, session.userId)
+
+            // Log sell post marked as sold activity (non-blocking)
+            if (post) {
+                logActivity({
+                    userId: session.userId,
+                    userRole: session.role as any,
+                    action: ActivityAction.SELL_POST_UPDATED,
+                    resourceType: ActivityResourceType.SELL_POST,
+                    resourceId: id,
+                    resourceName: post.title,
+                    description: `Marked "${post.title}" as sold`,
+                    metadata: {
+                        price: post.price,
+                        condition: post.condition,
+                        newStatus: 'SOLD',
+                    },
+                    endpoint: '/api/user/sell-posts/[id]',
+                }).catch(console.error)
+            }
 
             revalidatePath('/marketplace/my-posts')
             revalidatePath('/marketplace')

@@ -482,6 +482,9 @@ model User {
   onlineStatus           OnlineStatus?              @relation("UserOnlineStatus")
   typingIndicators       TypingIndicator[]          @relation("UserTypingIndicators")
 
+  // Activity tracking
+  activities             ActivityLog[]              @relation("UserActivities")
+
   @@map("users")
 }
 
@@ -1001,4 +1004,125 @@ model Notice {
 
   @@index([isActive, validFrom, validTo])
   @@map("notices")
+}
+
+// ============================================================================
+// ACTIVITY & AUDIT LOGGING
+// ============================================================================
+
+enum ActivityAction {
+  // CRUD
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+
+  // Auth
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  PASSWORD_CHANGED
+  ROLE_CHANGED
+
+  // Books
+  BOOK_CREATED
+  BOOK_UPDATED
+  BOOK_DELETED
+  BOOK_VIEWED
+  AUTHOR_CREATED
+  AUTHOR_UPDATED
+  AUTHOR_DELETED
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
+  PUBLICATION_CREATED
+  PUBLICATION_UPDATED
+  PUBLICATION_DELETED
+  SERIES_CREATED
+  SERIES_UPDATED
+  SERIES_DELETED
+
+  // Marketplace
+  SELL_POST_CREATED
+  SELL_POST_UPDATED
+  SELL_POST_DELETED
+  OFFER_CREATED
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  MESSAGE_SENT
+  REVIEW_POSTED
+
+  // User
+  PROFILE_UPDATED
+  BOOKSHELF_CREATED
+  BOOK_ADDED_TO_BOOKSHELF
+  READING_PROGRESS_UPDATED
+  QUIZ_ATTEMPTED
+
+  // System
+  SYSTEM_SETTINGS_UPDATED
+  NOTICE_CREATED
+  NOTICE_UPDATED
+  NOTICE_DELETED
+  USER_BANNED
+  USER_PROMOTED
+}
+
+enum ActivityResourceType {
+  BOOK
+  AUTHOR
+  PUBLICATION
+  CATEGORY
+  SERIES
+  USER
+  BOOKSHELF
+  READING_PROGRESS
+  QUIZ_ATTEMPT
+  SELL_POST
+  OFFER
+  MESSAGE
+  CONVERSATION
+  REVIEW
+  NOTICE
+  SYSTEM_SETTINGS
+}
+
+model ActivityLog {
+  id                String              @id @default(uuid())
+
+  // Who
+  userId            String?
+  user              User?               @relation("UserActivities", fields: [userId], references: [id], onDelete: SetNull)
+  userRole          UserRole?
+
+  // What
+  action            ActivityAction
+  resourceType      ActivityResourceType
+  resourceId        String?
+  resourceName      String?             @db.Text
+
+  // Details
+  description       String?             @db.Text
+  metadata          Json?
+  ipAddress         String?
+  userAgent         String?             @db.Text
+
+  // Context
+  endpoint          String?
+
+  // Result
+  success           Boolean             @default(true)
+  errorMessage      String?             @db.Text
+
+  // Performance
+  duration          Int?                // ms
+
+  // Timestamp
+  createdAt         DateTime            @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([resourceType, resourceId, createdAt])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("activity_logs")
 }

@@ -5,6 +5,8 @@ import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
 import { uploadFile, deleteFile } from '@/lib/google-drive'
 import { config } from '@/config'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // Repository imports
 import {
@@ -179,12 +181,24 @@ export async function createAuthor(formData: FormData) {
     }
 
     // Create author
-    await createAuthorInDb({
+    const createdAuthor = await createAuthorInDb({
       name: validatedData.name,
       description: validatedData.description,
       image: imageUrl || undefined,
       entryById: session.userId,
     })
+
+    // Log author creation activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.AUTHOR_CREATED,
+      resourceType: ActivityResourceType.AUTHOR,
+      resourceId: createdAuthor.id,
+      resourceName: validatedData.name,
+      description: `Created author "${validatedData.name}"`,
+      endpoint: '/dashboard/authors/actions',
+    }).catch(console.error)
 
     revalidatePath('/dashboard/authors')
     return { message: 'Author created successfully' }
@@ -251,6 +265,18 @@ export async function updateAuthor(id: string, formData: FormData) {
       image: imageUrl || undefined,
     })
 
+    // Log author update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.AUTHOR_UPDATED,
+      resourceType: ActivityResourceType.AUTHOR,
+      resourceId: id,
+      resourceName: validatedData.name,
+      description: `Updated author "${validatedData.name}"`,
+      endpoint: '/dashboard/authors/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/authors')
     return { message: 'Author updated successfully' }
   } catch (error) {
@@ -264,10 +290,27 @@ export async function updateAuthor(id: string, formData: FormData) {
  */
 export async function deleteAuthor(id: string) {
   try {
+    // Get authenticated user
+    const session = await requireAuth()
+
     // Get existing author to handle file deletions
     const existingAuthor = await getAuthorByIdFromDb(id)
-    if (existingAuthor && existingAuthor.image) {
-      await deleteFile(existingAuthor.image)
+    if (existingAuthor) {
+      if (existingAuthor.image) {
+        await deleteFile(existingAuthor.image)
+      }
+
+      // Log author deletion activity (non-blocking)
+      logActivity({
+        userId: session.userId,
+        userRole: session.role as any,
+        action: ActivityAction.AUTHOR_DELETED,
+        resourceType: ActivityResourceType.AUTHOR,
+        resourceId: id,
+        resourceName: existingAuthor.name,
+        description: `Deleted author "${existingAuthor.name}"`,
+        endpoint: '/dashboard/authors/actions',
+      }).catch(console.error)
     }
 
     await deleteAuthorFromDb(id)

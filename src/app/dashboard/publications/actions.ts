@@ -5,6 +5,8 @@ import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
 import { uploadFile, deleteFile } from '@/lib/google-drive'
 import { config } from '@/config'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // Repository imports
 import {
@@ -183,12 +185,24 @@ export async function createPublication(formData: FormData) {
     }
 
     // Create publication
-    await createPublicationInDb({
+    const createdPublication = await createPublicationInDb({
       name: validatedData.name,
       description: validatedData.description,
       image: imageUrl || undefined,
       entryById: session.userId,
     })
+
+    // Log publication creation activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PUBLICATION_CREATED,
+      resourceType: ActivityResourceType.PUBLICATION,
+      resourceId: createdPublication.id,
+      resourceName: validatedData.name,
+      description: `Created publication "${validatedData.name}"`,
+      endpoint: '/dashboard/publications/actions',
+    }).catch(console.error)
 
     revalidatePath('/dashboard/publications')
     return { message: 'Publication created successfully' }
@@ -255,6 +269,18 @@ export async function updatePublication(id: string, formData: FormData) {
       image: imageUrl || undefined,
     })
 
+    // Log publication update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PUBLICATION_UPDATED,
+      resourceType: ActivityResourceType.PUBLICATION,
+      resourceId: id,
+      resourceName: validatedData.name,
+      description: `Updated publication "${validatedData.name}"`,
+      endpoint: '/dashboard/publications/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/publications')
     return { message: 'Publication updated successfully' }
   } catch (error) {
@@ -268,10 +294,27 @@ export async function updatePublication(id: string, formData: FormData) {
  */
 export async function deletePublication(id: string) {
   try {
+    // Get authenticated user
+    const session = await requireAuth()
+
     // Get existing publication to handle file deletions
     const existingPublication = await getPublicationByIdFromDb(id)
-    if (existingPublication && existingPublication.image) {
-      await deleteFile(existingPublication.image)
+    if (existingPublication) {
+      if (existingPublication.image) {
+        await deleteFile(existingPublication.image)
+      }
+
+      // Log publication deletion activity (non-blocking)
+      logActivity({
+        userId: session.userId,
+        userRole: session.role as any,
+        action: ActivityAction.PUBLICATION_DELETED,
+        resourceType: ActivityResourceType.PUBLICATION,
+        resourceId: id,
+        resourceName: existingPublication.name,
+        description: `Deleted publication "${existingPublication.name}"`,
+        endpoint: '/dashboard/publications/actions',
+      }).catch(console.error)
     }
 
     await deletePublicationFromDb(id)

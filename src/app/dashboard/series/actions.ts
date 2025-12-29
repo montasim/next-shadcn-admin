@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // SCHEMAS
@@ -212,6 +214,18 @@ export async function createSeries(formData: FormData) {
       },
     })
 
+    // Log series creation activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.SERIES_CREATED,
+      resourceType: ActivityResourceType.SERIES,
+      resourceId: series.id,
+      resourceName: validatedData.name,
+      description: `Created series "${validatedData.name}"`,
+      endpoint: '/dashboard/series/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/series')
     return {
       message: 'Series created successfully',
@@ -260,6 +274,18 @@ export async function updateSeries(id: string, formData: FormData) {
       },
     })
 
+    // Log series update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.SERIES_UPDATED,
+      resourceType: ActivityResourceType.SERIES,
+      resourceId: id,
+      resourceName: validatedData.name,
+      description: `Updated series "${validatedData.name}"`,
+      endpoint: '/dashboard/series/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/series')
     return {
       message: 'Series updated successfully',
@@ -277,9 +303,28 @@ export async function deleteSeries(id: string) {
   try {
     const session = await requireAuth()
 
+    // Get series before deleting for logging
+    const existingSeries = await prisma.series.findUnique({
+      where: { id },
+    })
+
     await prisma.series.delete({
       where: { id },
     })
+
+    // Log series deletion activity (non-blocking)
+    if (existingSeries) {
+      logActivity({
+        userId: session.userId,
+        userRole: session.role as any,
+        action: ActivityAction.SERIES_DELETED,
+        resourceType: ActivityResourceType.SERIES,
+        resourceId: id,
+        resourceName: existingSeries.name,
+        description: `Deleted series "${existingSeries.name}"`,
+        endpoint: '/dashboard/series/actions',
+      }).catch(console.error)
+    }
 
     revalidatePath('/dashboard/series')
     return {

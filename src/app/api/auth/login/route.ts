@@ -32,6 +32,8 @@ import {
     successResponse,
 } from '@/lib/auth/request-utils'
 import { LoginResponse } from '@/lib/auth/types'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
     try {
@@ -78,6 +80,27 @@ export async function POST(request: NextRequest) {
 
         // Check authentication result
         if (!user || !isValidPassword || !user.isActive) {
+            // Log failed login attempt (non-blocking)
+            if (user) {
+                logActivity({
+                    userId: user.id,
+                    userRole: user.role,
+                    action: ActivityAction.LOGIN_FAILED,
+                    resourceType: ActivityResourceType.USER,
+                    resourceId: user.id,
+                    description: 'Failed login attempt: Invalid password or inactive account',
+                    endpoint: '/api/auth/login',
+                }).catch(console.error)
+            } else {
+                logActivity({
+                    action: ActivityAction.LOGIN_FAILED,
+                    resourceType: ActivityResourceType.USER,
+                    description: `Failed login attempt for email: ${email}`,
+                    metadata: { email },
+                    endpoint: '/api/auth/login',
+                }).catch(console.error)
+            }
+
             // Generic error message - no hint about which field is wrong
             return errorResponse('Invalid email or password', 401)
         }
@@ -97,6 +120,18 @@ export async function POST(request: NextRequest) {
             user.isPremium || false,
             user.avatar || null
         )
+
+        // Log login activity (non-blocking)
+        logActivity({
+            userId: user.id,
+            userRole: user.role,
+            action: ActivityAction.LOGIN,
+            resourceType: ActivityResourceType.USER,
+            resourceId: user.id,
+            resourceName: displayName,
+            description: `User logged in as ${user.role}`,
+            endpoint: '/api/auth/login',
+        }).catch(console.error)
 
         // Return success response with user data including role
         const response: LoginResponse = {

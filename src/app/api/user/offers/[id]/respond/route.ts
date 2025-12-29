@@ -6,6 +6,8 @@ import { requireAuth } from '@/lib/auth/session'
 import { revalidatePath } from 'next/cache'
 import { respondToOffer } from '@/lib/marketplace/repositories'
 import { notifyOfferStatusChange } from '@/lib/notifications/notifications.repository'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -65,6 +67,34 @@ export async function POST(
         }
 
         const offer = await respondToOffer(id, session.userId, responseData)
+
+        // Log offer response activity (non-blocking)
+        const action = data.status === 'ACCEPTED'
+            ? ActivityAction.OFFER_ACCEPTED
+            : ActivityAction.OFFER_REJECTED
+
+        const description = data.status === 'ACCEPTED'
+            ? `Accepted offer on "${offer.sellPost.title}"`
+            : data.status === 'REJECTED'
+                ? `Rejected offer on "${offer.sellPost.title}"`
+                : `Countered offer on "${offer.sellPost.title}"`
+
+        logActivity({
+            userId: session.userId,
+            userRole: session.role as any,
+            action,
+            resourceType: ActivityResourceType.OFFER,
+            resourceId: offer.id,
+            resourceName: offer.sellPost.title,
+            description,
+            metadata: {
+                offerStatus: data.status,
+                counterPrice: data.counterPrice,
+                sellPostId: offer.sellPostId,
+                buyerId: offer.buyerId,
+            },
+            endpoint: '/api/user/offers/[id]/respond',
+        }).catch(console.error)
 
         // Notify the buyer about the offer status change
         await notifyOfferStatusChange(

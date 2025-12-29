@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
 import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { notificationsFormSchema, type NotificationsFormValues } from './schema'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 type GetNotificationsResult =
   | { status: 'success', data: NotificationsFormValues }
@@ -61,6 +63,22 @@ export async function updateNotifications(data: NotificationsFormValues): Promis
       marketingEmails: validatedData.marketingEmails,
       securityEmails: validatedData.securityEmails,
     })
+
+    // Log notification settings update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PROFILE_UPDATED,
+      resourceType: ActivityResourceType.USER,
+      resourceId: session.userId,
+      resourceName: currentUser.name || 'User',
+      description: `Updated notification settings`,
+      metadata: {
+        notificationType: validatedData.notificationType,
+        mobileNotifications: validatedData.mobileNotifications,
+      },
+      endpoint: '/settings/notifications/actions',
+    }).catch(console.error)
 
     // Revalidate cache
     revalidatePath('/settings/notifications')

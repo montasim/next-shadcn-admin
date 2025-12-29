@@ -5,6 +5,8 @@ import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
 import { uploadFile, deleteFile } from '@/lib/google-drive'
 import { config } from '@/config'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // Repository imports
 import {
@@ -192,12 +194,24 @@ export async function createCategory(formData: FormData) {
     }
 
     // Create category
-    await createCategoryInDb({
+    const createdCategory = await createCategoryInDb({
       name: validatedData.name,
       description: validatedData.description,
       image: imageUrl || undefined,
       entryById: session.userId,
     })
+
+    // Log category creation activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.CATEGORY_CREATED,
+      resourceType: ActivityResourceType.CATEGORY,
+      resourceId: createdCategory.id,
+      resourceName: validatedData.name,
+      description: `Created category "${validatedData.name}"`,
+      endpoint: '/dashboard/categories/actions',
+    }).catch(console.error)
 
     revalidatePath('/dashboard/categories')
     return { message: 'Category created successfully' }
@@ -264,6 +278,18 @@ export async function updateCategory(id: string, formData: FormData) {
       image: imageUrl || undefined,
     })
 
+    // Log category update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.CATEGORY_UPDATED,
+      resourceType: ActivityResourceType.CATEGORY,
+      resourceId: id,
+      resourceName: validatedData.name,
+      description: `Updated category "${validatedData.name}"`,
+      endpoint: '/dashboard/categories/actions',
+    }).catch(console.error)
+
     revalidatePath('/dashboard/categories')
     return { message: 'Category updated successfully' }
   } catch (error) {
@@ -277,10 +303,27 @@ export async function updateCategory(id: string, formData: FormData) {
  */
 export async function deleteCategory(id: string) {
   try {
+    // Get authenticated user
+    const session = await requireAuth()
+
     // Get existing category to handle file deletions
     const existingCategory = await getCategoryByIdFromDb(id)
-    if (existingCategory && existingCategory.image) {
-      await deleteFile(existingCategory.image)
+    if (existingCategory) {
+      if (existingCategory.image) {
+        await deleteFile(existingCategory.image)
+      }
+
+      // Log category deletion activity (non-blocking)
+      logActivity({
+        userId: session.userId,
+        userRole: session.role as any,
+        action: ActivityAction.CATEGORY_DELETED,
+        resourceType: ActivityResourceType.CATEGORY,
+        resourceId: id,
+        resourceName: existingCategory.name,
+        description: `Deleted category "${existingCategory.name}"`,
+        endpoint: '/dashboard/categories/actions',
+      }).catch(console.error)
     }
 
     await deleteCategoryFromDb(id)

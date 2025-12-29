@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
 import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { appearanceFormSchema, type AppearanceFormValues } from './schema'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 type GetAppearanceResult =
   | { status: 'success', data: AppearanceFormValues }
@@ -53,6 +55,22 @@ export async function updateAppearance(data: AppearanceFormValues): Promise<Upda
       theme: validatedData.theme,
       font: validatedData.font,
     })
+
+    // Log appearance update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PROFILE_UPDATED,
+      resourceType: ActivityResourceType.USER,
+      resourceId: session.userId,
+      resourceName: currentUser.name || 'User',
+      description: `Updated appearance settings`,
+      metadata: {
+        theme: validatedData.theme,
+        font: validatedData.font,
+      },
+      endpoint: '/settings/appearance/actions',
+    }).catch(console.error)
 
     // Revalidate cache
     revalidatePath('/settings/appearance')

@@ -10,6 +10,8 @@ import {
     type CreateSellPostData,
 } from '@/lib/marketplace/repositories'
 import { BookCondition } from '@prisma/client'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -131,6 +133,23 @@ export async function POST(request: NextRequest) {
         }
 
         const post = await createSellPost(sellPostData)
+
+        // Log sell post creation activity (non-blocking)
+        logActivity({
+            userId: session.userId,
+            userRole: session.role as any,
+            action: ActivityAction.SELL_POST_CREATED,
+            resourceType: ActivityResourceType.SELL_POST,
+            resourceId: post.id,
+            resourceName: data.title,
+            description: `Created sell post "${data.title}"`,
+            metadata: {
+                price: data.price,
+                condition: data.condition,
+                bookId: data.bookId,
+            },
+            endpoint: '/api/user/sell-posts',
+        }).catch(console.error)
 
         revalidatePath('/marketplace/my-posts')
         revalidatePath('/marketplace')

@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/session'
 import { revalidatePath } from 'next/cache'
 import { createReview, getReviewByConversation, getSellerStats } from '@/lib/marketplace/repositories'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // VALIDATION SCHEMAS
@@ -73,6 +75,26 @@ export async function POST(
             meetupRating: data.meetupRating || 0,
             comment: data.comment,
         })
+
+        // Log review creation activity (non-blocking)
+        logActivity({
+            userId: session.userId,
+            userRole: session.role as any,
+            action: ActivityAction.REVIEW_POSTED,
+            resourceType: ActivityResourceType.REVIEW,
+            resourceId: review.id,
+            resourceName: `Review for seller ${body.sellerId}`,
+            description: `Posted ${data.rating}-star review for seller`,
+            metadata: {
+                rating: data.rating,
+                communicationRating: data.communicationRating,
+                descriptionAccuracyRating: data.descriptionAccuracyRating,
+                meetupRating: data.meetupRating,
+                hasComment: !!data.comment,
+                conversationId: id,
+            },
+            endpoint: '/api/user/conversations/[id]/review',
+        }).catch(console.error)
 
         revalidatePath('/messages')
         revalidatePath(`/messages/${id}`)

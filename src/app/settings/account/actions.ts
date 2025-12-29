@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth/session'
 import { findUserById, updateUser } from '@/lib/auth/repositories/user.repository'
 import { accountFormSchema, type AccountFormValues } from './schema'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 type GetAccountResult =
   | { status: 'success', data: AccountFormValues }
@@ -57,6 +59,21 @@ export async function updateAccount(data: AccountFormValues): Promise<UpdateAcco
       dob: validatedData.dob,
       language: validatedData.language,
     })
+
+    // Log account update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.PROFILE_UPDATED,
+      resourceType: ActivityResourceType.USER,
+      resourceId: session.userId,
+      resourceName: `${validatedData.firstName} ${validatedData.lastName}`.trim() || 'User',
+      description: `Updated account information`,
+      metadata: {
+        fields: ['firstName', 'lastName', 'dob', 'language'],
+      },
+      endpoint: '/settings/account/actions',
+    }).catch(console.error)
 
     // Revalidate cache
     revalidatePath('/settings/account')

@@ -5,6 +5,8 @@ import { requireAuth } from '@/lib/auth/session'
 import { z } from 'zod'
 import { uploadFile, deleteFile } from '@/lib/google-drive'
 import { config } from '@/config'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // Repository imports
 import {
@@ -503,6 +505,27 @@ export async function createBook(formData: FormData) {
       purchaseDate: processedData.purchaseDate ?? undefined,
     })
 
+    if (!createdBook) {
+      return { error: 'Failed to create book' }
+    }
+
+    // Log book creation activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.BOOK_CREATED,
+      resourceType: ActivityResourceType.BOOK,
+      resourceId: createdBook.id,
+      resourceName: processedData.name,
+      description: `Created book "${processedData.name}"`,
+      metadata: {
+        type: processedData.type,
+        authorCount: processedData.authorIds?.length || 0,
+        categoryCount: processedData.categoryIds?.length || 0,
+      },
+      endpoint: '/dashboard/books/actions',
+    }).catch(console.error)
+
     // Trigger content extraction for ebooks/audiobooks (wait for completion)
     if ((processedData.type === 'EBOOK' || processedData.type === 'AUDIO') && processedData.fileUrl && createdBook) {
       console.log('[Book Actions] Waiting for content extraction...')
@@ -653,6 +676,22 @@ export async function updateBook(id: string, formData: FormData) {
     // Update book
     await updateBookInDb(id, processedData)
 
+    // Log book update activity (non-blocking)
+    logActivity({
+      userId: session.userId,
+      userRole: session.role as any,
+      action: ActivityAction.BOOK_UPDATED,
+      resourceType: ActivityResourceType.BOOK,
+      resourceId: id,
+      resourceName: processedData.name,
+      description: `Updated book "${processedData.name}"`,
+      metadata: {
+        type: processedData.type,
+        fileChanged,
+      },
+      endpoint: '/dashboard/books/actions',
+    }).catch(console.error)
+
     // Clear content cache and trigger re-extraction if file changed
     if (fileChanged && (processedData.type === 'EBOOK' || processedData.type === 'AUDIO') && processedData.fileUrl) {
       // Import repository functions
@@ -684,6 +723,9 @@ export async function updateBook(id: string, formData: FormData) {
  */
 export async function deleteBook(id: string) {
   try {
+    // Get authenticated user
+    const session = await requireAuth()
+
     // Get existing book to handle file deletions
     const existingBook = await getBookByIdFromDb(id)
     if (existingBook) {
@@ -693,6 +735,21 @@ export async function deleteBook(id: string) {
       if (existingBook.fileUrl) {
         await deleteFile(existingBook.fileUrl)
       }
+
+      // Log book deletion activity (non-blocking)
+      logActivity({
+        userId: session.userId,
+        userRole: session.role as any,
+        action: ActivityAction.BOOK_DELETED,
+        resourceType: ActivityResourceType.BOOK,
+        resourceId: id,
+        resourceName: existingBook.name,
+        description: `Deleted book "${existingBook.name}"`,
+        metadata: {
+          type: existingBook.type,
+        },
+        endpoint: '/dashboard/books/actions',
+      }).catch(console.error)
     }
 
     await deleteBookFromDb(id)

@@ -14,6 +14,8 @@ import {
     getCurrentlyReading,
     getCompletedBooks
 } from '@/lib/user/repositories/reading-progress.repository'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // REQUEST VALIDATION & CONFIGURATION
@@ -155,6 +157,27 @@ export async function POST(request: NextRequest) {
             progress,
             isCompleted,
         })
+
+        // Log reading progress update activity (non-blocking)
+        logActivity({
+            userId: userSession.userId,
+            userRole: userSession.role as any,
+            action: ActivityAction.READING_PROGRESS_UPDATED,
+            resourceType: ActivityResourceType.READING_PROGRESS,
+            resourceId: readingProgress.id,
+            resourceName: readingProgress.book?.name || bookId,
+            description: isCompleted
+                ? `Completed reading "${readingProgress.book?.name || 'book'}"`
+                : `Updated reading progress for "${readingProgress.book?.name || 'book'}" to ${progress || 0}%`,
+            metadata: {
+                bookId,
+                currentPage,
+                currentEpocha,
+                progress,
+                isCompleted,
+            },
+            endpoint: '/api/user/progress',
+        }).catch(console.error)
 
         return NextResponse.json({
             success: true,

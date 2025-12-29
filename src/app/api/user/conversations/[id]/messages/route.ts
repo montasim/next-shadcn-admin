@@ -6,6 +6,8 @@ import { requireAuth } from '@/lib/auth/session'
 import { createMessage } from '@/lib/marketplace/repositories'
 import { getConversationWithMessages } from '@/lib/marketplace/repositories'
 import { notifyNewMessage } from '@/lib/notifications/notifications.repository'
+import { logActivity } from '@/lib/activity/logger'
+import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 // ============================================================================
 // SOCKET.IO WEBHOOK HELPER
@@ -109,6 +111,22 @@ export async function POST(
             senderId: session.userId,
             content,
         })
+
+        // Log message activity (non-blocking)
+        logActivity({
+            userId: session.userId,
+            userRole: session.role as any,
+            action: ActivityAction.MESSAGE_SENT,
+            resourceType: ActivityResourceType.MESSAGE,
+            resourceId: message.id,
+            resourceName: `Message in conversation ${id}`,
+            description: `Sent message in conversation`,
+            metadata: {
+                conversationId: id,
+                contentLength: content.length,
+            },
+            endpoint: '/api/user/conversations/[id]/messages',
+        }).catch(console.error)
 
         // Broadcast to Socket.io server for real-time delivery
         // This is non-blocking and won't affect the response
