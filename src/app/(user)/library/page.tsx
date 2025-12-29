@@ -4,10 +4,12 @@ import { useState, useEffect, useMemo, useRef, useCallback, useTransition, Suspe
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/context/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
 import {
     Plus,
     Upload,
@@ -17,6 +19,10 @@ import {
     Target,
     ChevronUp,
     ChevronDown,
+    FileText,
+    Calendar,
+    X,
+    MessageCircle,
 } from 'lucide-react'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { BookList } from './book-list'
@@ -27,6 +33,7 @@ import { BookshelfMutateDrawer } from './bookshelf-mutate-drawer'
 import { UploadBooksMutateDrawer } from './upload-books-mutate-drawer'
 import { LibraryFilterToolbar } from './components/library-filter-toolbar'
 import { BookshelfFilterToolbar } from './components/bookshelf-filter-toolbar'
+import { RequestBookDrawer } from './request-book-drawer'
 import { Book } from '@/app/dashboard/books/data/schema'
 import { deleteBook } from '@/app/dashboard/books/actions'
 import { getBookshelves, deleteBookshelf, getUserBooks } from './actions'
@@ -35,6 +42,9 @@ import LibraryContextProvider, { LibraryDialogType } from './context/library-con
 import useDialogState from '@/hooks/use-dialog-state'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { toast } from '@/hooks/use-toast'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { RequestStatus, BookType } from '@prisma/client'
 
 interface LibraryStats {
   completedBooks: number
@@ -43,6 +53,41 @@ interface LibraryStats {
   currentlyReading: number
   totalPages: number
   totalPagesRead: number
+}
+
+interface BookRequest {
+  id: string
+  bookName: string
+  authorName: string
+  type: BookType
+  edition: string | null
+  publisher: string | null
+  isbn: string | null
+  description: string | null
+  status: RequestStatus
+  cancelReason: string | null
+  cancelledById: string | null
+  createdAt: string
+  cancelledBy: {
+    id: string
+    firstName: string
+    lastName: string | null
+    name: string
+    role: string
+  } | null
+}
+
+const statusConfig: Record<RequestStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  [RequestStatus.PENDING]: { label: 'Pending', variant: 'secondary' },
+  [RequestStatus.IN_PROGRESS]: { label: 'In Progress', variant: 'default' },
+  [RequestStatus.APPROVED]: { label: 'Approved', variant: 'default' },
+  [RequestStatus.REJECTED]: { label: 'Rejected', variant: 'destructive' },
+}
+
+const typeLabels: Record<BookType, string> = {
+  [BookType.HARD_COPY]: 'Hard Copy',
+  [BookType.EBOOK]: 'E-Book',
+  [BookType.AUDIO]: 'Audio Book',
 }
 
 // Calculate library statistics from books data
@@ -89,13 +134,23 @@ function LibraryPageContent() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { user } = useAuth()
   const bookshelfId = searchParams.get('bookshelfId')
   // Determine active tab from pathname or fallback to query param
   const activeTab = pathname.includes('/bookshelves') ? 'bookshelves' :
   pathname.includes('/my-uploads') ? 'my-uploads' :
+  pathname.includes('/my-requests') ? 'my-requests' :
   searchParams.get('tab') || 'my-uploads'
 
   const [books, setBooks] = useState<Book[]>([])
+  const [requests, setRequests] = useState<BookRequest[]>([])
+  const [requestsLoading, setRequestsLoading] = useState(true)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [isRequestDrawerOpen, setIsRequestDrawerOpen] = useState(false)
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+  const [requestToCancel, setRequestToCancel] = useState<BookRequest | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [reasonError, setReasonError] = useState('')
   const [currentRow, setCurrentRow] = useState<Book | null>(null)
   const [open, setOpen] = useDialogState<LibraryDialogType>(null)
   const [isBookDrawerOpen, setIsBookDrawerOpen] = useState(false)
@@ -111,7 +166,6 @@ function LibraryPageContent() {
     totalPages: 0,
     totalPagesRead: 0,
   })
-  const [showSummary, setShowSummary] = useState(true)
 
   // Reader modal state
   const [isReaderModalOpen, setIsReaderModalOpen] = useState(false)
@@ -175,6 +229,70 @@ function LibraryPageContent() {
     setOpen('delete')
   }
 
+  const fetchRequests = async () => {
+    try {
+      setRequestsLoading(true)
+      const response = await fetch('/api/user/book-requests')
+      const result = await response.json()
+
+      if (result.success) {
+        setRequests(result.data)
+      } else {
+        toast({ title: 'Failed to load requests', variant: 'destructive' })
+      }
+    } catch (error) {
+      console.error('Error fetching requests:', error)
+      toast({ title: 'Failed to load requests', variant: 'destructive' })
+    } finally {
+      setRequestsLoading(false)
+    }
+  }
+
+  const handleCancelRequest = async () => {
+    if (!requestToCancel) return
+
+    if (!cancelReason.trim()) {
+      setReasonError('Please provide a reason for cancelling this request')
+      return
+    }
+
+    try {
+      setCancellingId(requestToCancel.id)
+      const response = await fetch(`/api/user/book-requests/${requestToCancel.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'REJECTED', cancelReason }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast({ title: 'Request cancelled' })
+        fetchRequests()
+        setIsCancelDialogOpen(false)
+        setRequestToCancel(null)
+        setCancelReason('')
+        setReasonError('')
+      } else {
+        toast({ title: result.message, variant: 'destructive' })
+      }
+    } catch (error) {
+      console.error('Error cancelling request:', error)
+      toast({ title: 'Failed to cancel request', variant: 'destructive' })
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
+  const openCancelDialog = (request: BookRequest) => {
+    setRequestToCancel(request)
+    setCancelReason('')
+    setReasonError('')
+    setIsCancelDialogOpen(true)
+  }
+
   const handleDelete = async () => {
     if (!currentRow) return
     try {
@@ -202,8 +320,9 @@ function LibraryPageContent() {
       hasInitialized.current = true
       refreshBooks()
       refreshBookshelves()
+      fetchRequests()
     }
-  }, [refreshBooks, refreshBookshelves])
+  }, [refreshBooks, refreshBookshelves, fetchRequests])
 
   // Refresh books when page regains focus (user returns from reader)
   useEffect(() => {
@@ -385,78 +504,98 @@ function LibraryPageContent() {
           </div>
         </div>
 
-        <Tabs value={activeTab} className="space-y-4" onValueChange={(value) => router.push(`/library/${value === 'my-uploads' ? 'my-uploads' : 'bookshelves'}`)}>
-          <TabsList>
-            <Link href="/library/my-uploads">
-              <TabsTrigger value="my-uploads">My Uploads</TabsTrigger>
-            </Link>
-            <Link href="/library/bookshelves">
-              <TabsTrigger value="bookshelves">Bookshelves</TabsTrigger>
-            </Link>
-          </TabsList>
-          <TabsContent value="my-uploads" className="space-y-6 md:overflow-y-visible md:max-h-none">
-            {/* Stats Overview - Fixed position on mobile */}
-            {/* Mobile toggle button */}
-            <div className="flex items-center justify-between md:hidden mb-2">
-              <h2 className="text-lg font-semibold">Summary</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSummary(!showSummary)}
-              >
-                {showSummary ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
-            </div>
+        {/* Dashboard Summary - Always visible at top */}
+        <DashboardSummary
+          summaries={[
+            {
+              title: 'Books Read',
+              value: stats.completedBooks,
+              description: stats.completedThisMonth > 0 ? `${stats.completedThisMonth} this month` : 'Start reading to track',
+              icon: BookOpen,
+            },
+            {
+              title: 'Reading Time',
+              value: `${stats.readingTimeHours}h`,
+              description: stats.totalPagesRead > 0 ? `${stats.totalPagesRead} pages read` : 'Start reading to track',
+              icon: Clock,
+            },
+            {
+              title: 'Currently Reading',
+              value: stats.currentlyReading,
+              description: stats.currentlyReading > 0 ? 'Books in progress' : 'No books started',
+              icon: TrendingUp,
+            },
+            {
+              title: 'Total Progress',
+              value: books.length > 0 ? `${Math.round((stats.completedBooks / books.length) * 100)}%` : '0%',
+              description: `${stats.completedBooks} of ${books.length} books completed`,
+              icon: Target,
+              additionalContent: (
+                <Progress value={books.length > 0 ? (stats.completedBooks / books.length) * 100 : 0} className="h-2" />
+              ),
+            },
+          ]}
+        />
 
-            {showSummary && (
-              <DashboardSummary
-                summaries={[
-                  {
-                    title: 'Books Read',
-                    value: stats.completedBooks,
-                    description: stats.completedThisMonth > 0 ? `${stats.completedThisMonth} this month` : 'Start reading to track',
-                    icon: BookOpen,
-                  },
-                  {
-                    title: 'Reading Time',
-                    value: `${stats.readingTimeHours}h`,
-                    description: stats.totalPagesRead > 0 ? `${stats.totalPagesRead} pages read` : 'Start reading to track',
-                    icon: Clock,
-                  },
-                  {
-                    title: 'Currently Reading',
-                    value: stats.currentlyReading,
-                    description: stats.currentlyReading > 0 ? 'Books in progress' : 'No books started',
-                    icon: TrendingUp,
-                  },
-                  {
-                    title: 'Total Progress',
-                    value: books.length > 0 ? `${Math.round((stats.completedBooks / books.length) * 100)}%` : '0%',
-                    description: `${stats.completedBooks} of ${books.length} books completed`,
-                    icon: Target,
-                    additionalContent: (
-                      <Progress value={books.length > 0 ? (stats.completedBooks / books.length) * 100 : 0} className="h-2" />
-                    ),
-                  },
-                ]}
+        <Tabs value={activeTab} className="space-y-4" onValueChange={(value) => router.push(`/library/${value === 'my-uploads' ? 'my-uploads' : value === 'my-requests' ? 'my-requests' : 'bookshelves'}`)}>
+          {/* Tabs List with Filter Toolbar - Side by Side */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <TabsList>
+              <Link href="/library/my-uploads">
+                <TabsTrigger value="my-uploads">My Uploads</TabsTrigger>
+              </Link>
+              <Link href="/library/bookshelves">
+                <TabsTrigger value="bookshelves">Bookshelves</TabsTrigger>
+              </Link>
+              <Link href="/library/my-requests">
+                <TabsTrigger value="my-requests">My Requests</TabsTrigger>
+              </Link>
+            </TabsList>
+
+            {/* Filter Toolbar - Shows based on active tab */}
+            {activeTab === 'my-uploads' && (
+              <LibraryFilterToolbar
+                searchValue={searchQuery}
+                onSearchChange={setSearchQuery}
+                readingStatus={filterReadingStatus}
+                onReadingStatusChange={setFilterReadingStatus}
+                authors={uniqueAuthors}
+                selectedAuthors={filterAuthors}
+                onAuthorsChange={setFilterAuthors}
+                onReset={resetFilters}
+                bookCount={filteredBooks.length}
               />
             )}
+            {activeTab === 'bookshelves' && (
+              <BookshelfFilterToolbar
+                searchValue={bookshelfSearchQuery}
+                onSearchChange={setBookshelfSearchQuery}
+                visibility={filterVisibility}
+                onVisibilityChange={setFilterVisibility}
+                progressStatus={filterProgressStatus}
+                onProgressStatusChange={setFilterProgressStatus}
+                bookCount={filterBookCount}
+                onBookCountChange={setFilterBookCount}
+                onReset={resetBookshelfFilters}
+                bookshelfCount={filteredBookshelves.length}
+              />
+            )}
+            {activeTab === 'my-requests' && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {requests.length} request{requests.length !== 1 ? 's' : ''}
+                </span>
+                <Button onClick={() => setIsRequestDrawerOpen(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Request Book
+                </Button>
+              </div>
+            )}
+          </div>
 
-            {/* Filter Toolbar */}
-            <LibraryFilterToolbar
-              searchValue={searchQuery}
-              onSearchChange={setSearchQuery}
-              readingStatus={filterReadingStatus}
-              onReadingStatusChange={setFilterReadingStatus}
-              authors={uniqueAuthors}
-              selectedAuthors={filterAuthors}
-              onAuthorsChange={setFilterAuthors}
-              onReset={resetFilters}
-              bookCount={filteredBooks.length}
-            />
-
+          <TabsContent value="my-uploads" className="space-y-6 md:overflow-y-visible md:max-h-none">
             {/* Scrollable book list - only this scrolls on mobile */}
-            <div className={`overflow-y-auto pb-24 md:overflow-y-visible md:max-h-none md:pb-0 ${showSummary ? 'max-h-[calc(100vh-46rem)]' : 'max-h-[calc(100vh-28rem)]'}`}>
+            <div className="overflow-y-auto pb-24 md:overflow-y-visible md:max-h-none md:pb-0 max-h-[calc(100vh-28rem)]">
               <BookList
                 books={filteredBooks}
                 onEditAction={handleEditBook}
@@ -465,20 +604,6 @@ function LibraryPageContent() {
             </div>
           </TabsContent>
           <TabsContent value="bookshelves" className="space-y-4 md:overflow-y-visible md:max-h-none">
-            {/* Filter Toolbar */}
-            <BookshelfFilterToolbar
-              searchValue={bookshelfSearchQuery}
-              onSearchChange={setBookshelfSearchQuery}
-              visibility={filterVisibility}
-              onVisibilityChange={setFilterVisibility}
-              progressStatus={filterProgressStatus}
-              onProgressStatusChange={setFilterProgressStatus}
-              bookCount={filterBookCount}
-              onBookCountChange={setFilterBookCount}
-              onReset={resetBookshelfFilters}
-              bookshelfCount={filteredBookshelves.length}
-            />
-
             <div className="overflow-y-auto max-h-[calc(100vh-24rem)] pb-24 md:overflow-y-visible md:max-h-none md:pb-0">
               <Bookshelves
                 key={bookshelfKey}
@@ -489,6 +614,114 @@ function LibraryPageContent() {
                 onRefresh={refreshBookshelves}
               />
             </div>
+          </TabsContent>
+          <TabsContent value="my-requests" className="space-y-6 md:overflow-y-visible md:max-h-none">
+            {requestsLoading ? (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-muted-foreground">Loading requests...</div>
+              </div>
+            ) : requests.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+                <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No requests yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  You haven&apos;t requested any books yet.
+                </p>
+                <Button onClick={() => setIsRequestDrawerOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Request Book
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {requests.map((request) => {
+                    const config = statusConfig[request.status]
+                    const canCancel = request.status === RequestStatus.PENDING
+
+                    return (
+                      <Card key={request.id}>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg line-clamp-2">
+                                {request.bookName}
+                              </CardTitle>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                by {request.authorName}
+                              </p>
+                            </div>
+                            <Badge variant={config.variant}>{config.label}</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <BookOpen className="h-4 w-4 text-muted-foreground" />
+                            <span>{typeLabels[request.type]}</span>
+                          </div>
+
+                          {(request.edition || request.publisher || request.isbn) && (
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              {request.edition && <div>Edition: {request.edition}</div>}
+                              {request.publisher && <div>Publisher: {request.publisher}</div>}
+                              {request.isbn && <div>ISBN: {request.isbn}</div>}
+                            </div>
+                          )}
+
+                          {request.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {request.description}
+                            </p>
+                          )}
+
+                          {request.cancelReason && (
+                            <div className="text-sm bg-destructive/10 text-destructive border border-destructive/20 rounded-md p-2 mt-2">
+                              <div className="flex items-start gap-2">
+                                <MessageCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <div className="font-medium text-xs">
+                                    Cancelled by: {request.cancelledById === user?.id
+                                      ? 'You'
+                                      : `${request.cancelledBy?.firstName || request.cancelledBy?.name || 'Unknown'} (${request.cancelledBy?.role || 'Unknown'})`}
+                                  </div>
+                                  <div className="text-xs mt-1">
+                                    <span className="font-medium">Reason:</span> {request.cancelReason}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
+                            <Calendar className="h-3 w-3" />
+                            <span>
+                              Requested on {new Date(request.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+
+                          {canCancel && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full mt-2"
+                              onClick={() => openCancelDialog(request)}
+                              disabled={cancellingId === request.id}
+                            >
+                              {cancellingId === request.id ? (
+                                'Cancelling...'
+                              ) : (
+                                <>
+                                  <X className="h-4 w-4 mr-2" />
+                                  Cancel Request
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -543,6 +776,60 @@ function LibraryPageContent() {
           initialPage={selectedBook.readingProgress?.[0]?.currentPage}
         />
       )}
+
+      {/* Request Book Drawer */}
+      <RequestBookDrawer
+        open={isRequestDrawerOpen}
+        onOpenChange={setIsRequestDrawerOpen}
+        onSuccess={fetchRequests}
+      />
+
+      {/* Cancel Request Dialog */}
+      <ConfirmDialog
+        open={isCancelDialogOpen}
+        onOpenChange={(open) => {
+          setIsCancelDialogOpen(open)
+          if (!open) {
+            setCancelReason('')
+            setReasonError('')
+          }
+        }}
+        title="Cancel Request"
+        desc={
+          requestToCancel && (
+            <div>
+              Are you sure you want to cancel the request for{' '}
+              <strong>&quot;{requestToCancel.bookName}&quot;</strong> by {requestToCancel.authorName}?
+              This action cannot be undone.
+            </div>
+          )
+        }
+        cancelBtnText="Keep Request"
+        confirmText={cancellingId ? 'Cancelling...' : 'Cancel Request'}
+        destructive
+        handleConfirm={handleCancelRequest}
+        disabled={cancellingId !== null}
+        isLoading={cancellingId !== null}
+      >
+        <div className="space-y-2 py-4">
+          <Label htmlFor="cancel-reason">
+            Reason for cancellation <span className="text-destructive">*</span>
+          </Label>
+          <Textarea
+            id="cancel-reason"
+            placeholder="Please provide a reason for cancelling this request..."
+            value={cancelReason}
+            onChange={(e) => {
+              setCancelReason(e.target.value)
+              setReasonError('')
+            }}
+            className={reasonError ? 'border-destructive' : ''}
+          />
+          {reasonError && (
+            <p className="text-sm text-destructive">{reasonError}</p>
+          )}
+        </div>
+      </ConfirmDialog>
     </LibraryContextProvider>
   )
 }

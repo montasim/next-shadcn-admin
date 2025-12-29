@@ -31,6 +31,7 @@ import {
   IconMessageCircle,
   IconTag as IconTagOffer,
   IconStar,
+  IconHistory,
 } from '@tabler/icons-react'
 import { AudioWaveform, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -81,6 +82,11 @@ export const sidebarData: SidebarData = {
           title: 'Notices',
           url: '/dashboard/notices',
           icon: IconNotification,
+        },
+        {
+          title: 'Activity Logs',
+          url: '/dashboard/admin/activities',
+          icon: IconHistory,
         },
       ],
     },
@@ -208,14 +214,14 @@ export const sidebarData: SidebarData = {
           icon: IconLayoutDashboard,
         },
         {
-          title: 'Continue Reading',
+          title: 'Library',
           url: '/library',
           icon: IconBookmark,
         },
         {
-          title: 'My Requests',
-          url: '/library/my-requests',
-          icon: IconBooks,
+          title: 'Activity',
+          url: '/dashboard/activity',
+          icon: IconHistory,
         },
         {
           title: 'Settings',
