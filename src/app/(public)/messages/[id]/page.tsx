@@ -138,7 +138,6 @@ function ConversationViewPageContent() {
     const {
         isConnected: wsConnected,
         isTyping: otherUserTyping,
-        sendMessage: wsSendMessage,
         markAsRead: wsMarkAsRead,
         sendTypingStart: wsSendTypingStart,
         sendTypingStop: wsSendTypingStop
@@ -170,38 +169,68 @@ function ConversationViewPageContent() {
         }
     })
 
-    // Initial conversation fetch with fallback
+    // Initial conversation fetch with polling for new messages
     useEffect(() => {
-        const fetchConversation = async () => {
-            setIsLoading(true)
+        let isMounted = true
+        let pollInterval: NodeJS.Timeout | null = null
+
+        const fetchConversation = async (isPoll = false) => {
+            if (!isMounted) return
+
+            if (!isPoll) {
+                setIsLoading(true)
+            }
             setError(null)
 
             try {
                 const response = await fetch(`/api/user/conversations/${conversationId}`)
                 const result: ConversationResponse = await response.json()
 
-                if (result.success) {
-                    setConversation(result.data)
+                if (isMounted && result.success) {
+                    // For initial fetch, always set. For polls, check if there are new messages
+                    const shouldUpdate = isPoll
+                        ? result.data.messages.length > (conversation?.messages?.length || 0)
+                        : true
+
+                    if (shouldUpdate) {
+                        setConversation(result.data)
+                    }
+
                     // Mark messages as read via WebSocket or fallback to HTTP
                     if (wsConnected) {
                         wsMarkAsRead()
                     } else {
-                        // Fallback to HTTP API
                         await fetch(`/api/user/conversations/${conversationId}/read`, {
                             method: 'POST',
                         })
                     }
-                } else {
+
+                    // Start polling only after successful initial load
+                    if (!isPoll && !pollInterval) {
+                        pollInterval = setInterval(() => fetchConversation(true), 3000) // Poll every 3 seconds
+                    }
+                } else if (isMounted && !isPoll) {
                     setError(result.message || 'Failed to load conversation')
                 }
             } catch (err: any) {
-                setError(err.message || 'Failed to load conversation')
+                if (isMounted && !isPoll) {
+                    setError(err.message || 'Failed to load conversation')
+                }
             } finally {
-                setIsLoading(false)
+                if (!isPoll) {
+                    setIsLoading(false)
+                }
             }
         }
 
         fetchConversation()
+
+        return () => {
+            isMounted = false
+            if (pollInterval) {
+                clearInterval(pollInterval)
+            }
+        }
     }, [conversationId, wsConnected, wsMarkAsRead])
 
     useEffect(() => {
@@ -218,59 +247,27 @@ function ConversationViewPageContent() {
         try {
             const content = messageText.trim()
 
-            // Try WebSocket first if connected
-            if (wsConnected) {
-                try {
-                    await wsSendMessage(content)
-                } catch (wsError: any) {
-                    // If WebSocket fails, fall back to HTTP
-                    console.log('WebSocket send failed, using HTTP fallback:', wsError.message)
-                    const response = await fetch(`/api/user/conversations/${conversationId}/messages`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content }),
-                    })
+            // Always use HTTP API to send messages (ensures database persistence)
+            const response = await fetch(`/api/user/conversations/${conversationId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            })
 
-                    const result = await response.json()
+            const result = await response.json()
 
-                    if (!result.success) {
-                        throw new Error(result.message || 'Failed to send message')
-                    }
-
-                    // Optimistically update messages
-                    setConversation(prev => prev ? {
-                        ...prev,
-                        messages: [...prev.messages, result.data],
-                        updatedAt: new Date(),
-                    } : null)
-                }
-            } else {
-                // Use HTTP API directly when WebSocket is not connected
-                const response = await fetch(`/api/user/conversations/${conversationId}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content }),
-                })
-
-                const result = await response.json()
-
-                if (!result.success) {
-                    throw new Error(result.message || 'Failed to send message')
-                }
-
-                // Optimistically update messages
-                setConversation(prev => prev ? {
-                    ...prev,
-                    messages: [...prev.messages, result.data],
-                    updatedAt: new Date(),
-                } : null)
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to send message')
             }
+
+            // Optimistically update messages
+            setConversation(prev => prev ? {
+                ...prev,
+                messages: [...prev.messages, result.data],
+                updatedAt: new Date(),
+            } : null)
 
             setMessageText('')
-            // Only send typing stop if WebSocket is connected
-            if (wsConnected) {
-                wsSendTypingStop()
-            }
         } catch (err: any) {
             setError(err.message || 'Failed to send message')
         } finally {
