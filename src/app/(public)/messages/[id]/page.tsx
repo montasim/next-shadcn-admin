@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
+import { useConversationSocket } from '@/hooks/use-conversation-socket'
 
 // ============================================================================
 // TYPES
@@ -133,58 +134,75 @@ function ConversationViewPageContent() {
     const otherUserId = isSeller ? conversation?.buyerId : conversation?.sellerId
     const canLeaveReview = !isSeller && conversation?.transactionCompleted && !conversation?.review
 
-    // Poll for new messages every 5 seconds
+    // WebSocket hook for real-time messaging with external Render server
+    const {
+        isConnected: wsConnected,
+        isTyping: otherUserTyping,
+        sendMessage: wsSendMessage,
+        markAsRead: wsMarkAsRead,
+        sendTypingStart: wsSendTypingStart,
+        sendTypingStop: wsSendTypingStop
+    } = useConversationSocket({
+        conversationId,
+        onNewMessage: (message) => {
+            setConversation(prev => prev ? {
+                ...prev,
+                messages: [...prev.messages, message],
+                updatedAt: new Date(),
+            } : null)
+        },
+        onMessageRead: (data) => {
+            setConversation(prev => {
+                if (!prev) return null
+                return {
+                    ...prev,
+                    messages: prev.messages.map(m =>
+                        m.senderId === user?.id && !m.readAt
+                            ? { ...m, readAt: new Date() as any }
+                            : m
+                    )
+                }
+            })
+        },
+        onTypingChange: (typing) => {
+            // Could show typing indicator in UI
+            console.log('User typing:', typing)
+        }
+    })
+
+    // Initial conversation fetch with fallback
     useEffect(() => {
-        let isMounted = true
-        let pollInterval: NodeJS.Timeout | null = null
-
-        const fetchConversation = async (isPoll = false) => {
-            if (!isMounted) return
-
-            if (!isPoll) {
-                setIsLoading(true)
-            }
+        const fetchConversation = async () => {
+            setIsLoading(true)
             setError(null)
 
             try {
                 const response = await fetch(`/api/user/conversations/${conversationId}`)
                 const result: ConversationResponse = await response.json()
 
-                if (isMounted && result.success) {
+                if (result.success) {
                     setConversation(result.data)
-
-                    // Mark messages as read
-                    await fetch(`/api/user/conversations/${conversationId}/read`, {
-                        method: 'POST',
-                    })
-
-                    // Start polling only after successful initial load
-                    if (!isPoll && !pollInterval) {
-                        pollInterval = setInterval(() => fetchConversation(true), 5000)
+                    // Mark messages as read via WebSocket or fallback to HTTP
+                    if (wsConnected) {
+                        wsMarkAsRead()
+                    } else {
+                        // Fallback to HTTP API
+                        await fetch(`/api/user/conversations/${conversationId}/read`, {
+                            method: 'POST',
+                        })
                     }
-                } else if (isMounted && !isPoll) {
+                } else {
                     setError(result.message || 'Failed to load conversation')
                 }
             } catch (err: any) {
-                if (isMounted && !isPoll) {
-                    setError(err.message || 'Failed to load conversation')
-                }
+                setError(err.message || 'Failed to load conversation')
             } finally {
-                if (!isPoll) {
-                    setIsLoading(false)
-                }
+                setIsLoading(false)
             }
         }
 
         fetchConversation()
-
-        return () => {
-            isMounted = false
-            if (pollInterval) {
-                clearInterval(pollInterval)
-            }
-        }
-    }, [conversationId])
+    }, [conversationId, wsConnected, wsMarkAsRead])
 
     useEffect(() => {
         // Scroll to bottom when messages change
@@ -198,30 +216,77 @@ function ConversationViewPageContent() {
         setError(null)
 
         try {
-            const response = await fetch(`/api/user/conversations/${conversationId}/messages`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: messageText.trim() }),
-            })
+            const content = messageText.trim()
 
-            const result = await response.json()
+            // Try WebSocket first if connected
+            if (wsConnected) {
+                try {
+                    await wsSendMessage(content)
+                } catch (wsError: any) {
+                    // If WebSocket fails, fall back to HTTP
+                    console.log('WebSocket send failed, using HTTP fallback:', wsError.message)
+                    const response = await fetch(`/api/user/conversations/${conversationId}/messages`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content }),
+                    })
 
-            if (!result.success) {
-                throw new Error(result.message || 'Failed to send message')
+                    const result = await response.json()
+
+                    if (!result.success) {
+                        throw new Error(result.message || 'Failed to send message')
+                    }
+
+                    // Optimistically update messages
+                    setConversation(prev => prev ? {
+                        ...prev,
+                        messages: [...prev.messages, result.data],
+                        updatedAt: new Date(),
+                    } : null)
+                }
+            } else {
+                // Use HTTP API directly when WebSocket is not connected
+                const response = await fetch(`/api/user/conversations/${conversationId}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content }),
+                })
+
+                const result = await response.json()
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to send message')
+                }
+
+                // Optimistically update messages
+                setConversation(prev => prev ? {
+                    ...prev,
+                    messages: [...prev.messages, result.data],
+                    updatedAt: new Date(),
+                } : null)
             }
 
-            // Optimistically update messages
-            setConversation(prev => prev ? {
-                ...prev,
-                messages: [...prev.messages, result.data],
-                updatedAt: new Date(),
-            } : null)
-
             setMessageText('')
+            // Only send typing stop if WebSocket is connected
+            if (wsConnected) {
+                wsSendTypingStop()
+            }
         } catch (err: any) {
             setError(err.message || 'Failed to send message')
         } finally {
             setIsSending(false)
+        }
+    }
+
+    const handleMessageChange = (value: string) => {
+        setMessageText(value)
+        // Only send typing indicators via WebSocket when connected
+        if (wsConnected) {
+            if (value.trim()) {
+                wsSendTypingStart()
+            } else {
+                wsSendTypingStop()
+            }
         }
     }
 
@@ -348,6 +413,13 @@ function ConversationViewPageContent() {
                             ${conversation.sellPost.price} • {CONDITION_LABELS[conversation.sellPost.condition]}
                         </p>
                     </div>
+                    {/* Connection Status Indicator */}
+                    <div className="flex items-center gap-2 text-xs">
+                        <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-green-500' : 'bg-amber-500'}`} />
+                        <span className="text-muted-foreground">
+                            {wsConnected ? 'Live' : 'Standard'}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-6">
@@ -411,7 +483,7 @@ function ConversationViewPageContent() {
                                     <Textarea
                                         placeholder="Type a message..."
                                         value={messageText}
-                                        onChange={(e) => setMessageText(e.target.value)}
+                                        onChange={(e) => handleMessageChange(e.target.value)}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault()

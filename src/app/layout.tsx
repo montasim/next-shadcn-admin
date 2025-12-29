@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/context/auth-context'
+import { WebSocketProvider } from '@/context/websocket-context'
 import { ThemeProvider } from 'next-themes'
 import { AppQueryClientProvider } from '@/components/providers/query-client-provider'
 import './globals.css'
@@ -46,7 +47,9 @@ export default function RootLayout({
         >
         <AppQueryClientProvider>
           <AuthProvider>
-            {children}
+            <WebSocketProvider>
+              {children}
+            </WebSocketProvider>
           </AuthProvider>
         </AppQueryClientProvider>
         </ThemeProvider>
