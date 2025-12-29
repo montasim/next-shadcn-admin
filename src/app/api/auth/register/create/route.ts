@@ -161,7 +161,16 @@ export async function POST(request: NextRequest) {
         })
 
         // Create authenticated login session (auto-login)
-        await createLoginSession(user.id, user.email, user.name, user.role)
+        await createLoginSession(
+            user.id,
+            user.email,
+            user.name,
+            user.role,
+            user.firstName || '',
+            user.lastName || null,
+            user.isPremium || false,
+            user.avatar || null
+        )
 
         // Return success response
         const response: CreateAccountResponse = {

@@ -124,6 +124,18 @@ export function RequestBookDrawer({ open, onOpenChange, onSuccess }: Props) {
         body: JSON.stringify({ voiceText: transcript }),
       })
 
+      // Check response status before parsing JSON
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error')
+        console.error('[RequestDrawer] API error:', response.status, errorText)
+        toast({
+          title: 'Processing Failed',
+          description: `Server error (${response.status}). Please try again.`,
+          variant: 'destructive'
+        })
+        return
+      }
+
       const result = await response.json()
 
       if (result.success && result.data) {

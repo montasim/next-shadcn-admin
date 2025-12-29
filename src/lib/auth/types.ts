@@ -98,7 +98,11 @@ export interface LoginSessionData {
   userId: string
   email: string
   name: string
+  firstName: string
+  lastName: string | null
   role: string
+  isPremium?: boolean
+  avatar?: string | null
 }
 
 // ============================================================================

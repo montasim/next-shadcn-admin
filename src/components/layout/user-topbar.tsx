@@ -24,10 +24,11 @@ import {
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BookOpen, User, Settings, LogOut, CreditCard, Brain, ChevronDown } from 'lucide-react'
+import { BookOpen, User, Settings, LogOut, CreditCard, Brain, ChevronDown, ShoppingBag, MessageSquare } from 'lucide-react'
 import {useAuth} from "@/context/auth-context";
 import { getUserInitials } from '@/lib/utils/user'
 import { useCategories } from '@/hooks/use-categories'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 interface UserTopbarProps {
   className?: string
@@ -86,6 +87,9 @@ export function UserTopbar({
 
       <ThemeSwitch />
 
+      {/* Notification Bell - only show for logged in users */}
+      {user && <NotificationBell />}
+
       {/* User Profile or Auth Buttons */}
       <div className="flex items-center space-x-2">
         {isLoading ? (
@@ -113,6 +117,18 @@ export function UserTopbar({
                   <Link href="/books" className="w-full cursor-pointer">
                     <BookOpen className="mr-2 h-4 w-4" />
                     Browse Books
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/marketplace" className="w-full cursor-pointer">
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    Marketplace
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/messages" className="w-full cursor-pointer">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Messages
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

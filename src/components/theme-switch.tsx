@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { IconCheck, IconMoon, IconSun } from '@tabler/icons-react'
 import { cn } from '../lib/utils'
 import { useTheme } from 'next-themes'
@@ -14,14 +14,30 @@ import {
 
 export function ThemeSwitch() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // useEffect only runs on the client, so we can safely set mounted
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   /* Update theme-color meta tag
    * when theme is updated */
   useEffect(() => {
+    if (!mounted) return
     const themeColor = theme === 'dark' ? '#020817' : '#fff'
     const metaThemeColor = document.querySelector("meta[name='theme-color']")
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
-  }, [theme])
+  }, [theme, mounted])
+
+  // Prevent hydration mismatch by not rendering theme-dependent UI until mounted
+  if (!mounted) {
+    return (
+      <Button variant='ghost' size='icon' className='h-9 w-9'>
+        <span className='sr-only'>Toggle theme</span>
+      </Button>
+    )
+  }
 
   return (
     <DropdownMenu modal={false}>

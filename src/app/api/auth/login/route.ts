@@ -87,7 +87,16 @@ export async function POST(request: NextRequest) {
 
         // Create authenticated session with HttpOnly cookie
         const displayName = user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
-        await createLoginSession(user.id, user.email, displayName, user.role)
+        await createLoginSession(
+            user.id,
+            user.email,
+            displayName,
+            user.role,
+            user.firstName || '',
+            user.lastName || null,
+            user.isPremium || false,
+            user.avatar || null
+        )
 
         // Return success response with user data including role
         const response: LoginResponse = {

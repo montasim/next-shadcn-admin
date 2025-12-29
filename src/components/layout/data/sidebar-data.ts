@@ -27,6 +27,10 @@ import {
   IconBuildingFactory,
   IconMoodSmile,
   IconList,
+  IconShoppingCart,
+  IconMessageCircle,
+  IconTag as IconTagOffer,
+  IconStar,
 } from '@tabler/icons-react'
 import { AudioWaveform, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -133,6 +137,71 @@ export const sidebarData: SidebarData = {
           title: 'Book Requests',
           url: '/dashboard/book-requests',
           icon: IconBooks,
+        },
+      ],
+    },
+    {
+      title: 'Marketplace',
+      items: [
+        {
+          title: 'Browse Marketplace',
+          url: '/marketplace',
+          icon: IconShoppingCart,
+        },
+        {
+          title: 'My Listings',
+          url: '/marketplace/my-posts',
+          icon: IconBook,
+        },
+        {
+          title: 'Create Listing',
+          url: '/marketplace/create',
+          icon: IconTag,
+        },
+        {
+          title: 'Messages',
+          url: '/messages',
+          icon: IconMessageCircle,
+        },
+        {
+          title: 'Offers Sent',
+          url: '/offers/sent',
+          icon: IconTagOffer,
+        },
+        {
+          title: 'Offers Received',
+          url: '/offers/received',
+          icon: IconTagOffer,
+        },
+      ],
+    },
+    {
+      title: 'Admin Marketplace',
+      items: [
+        {
+          title: 'Marketplace Overview',
+          url: '/dashboard/marketplace',
+          icon: IconLayoutDashboard,
+        },
+        {
+          title: 'Manage Listings',
+          url: '/dashboard/marketplace/posts',
+          icon: IconBook,
+        },
+        {
+          title: 'Conversations',
+          url: '/dashboard/marketplace/conversations',
+          icon: IconMessages,
+        },
+        {
+          title: 'Reviews',
+          url: '/dashboard/marketplace/reviews',
+          icon: IconStar,
+        },
+        {
+          title: 'Analytics',
+          url: '/dashboard/marketplace/analytics',
+          icon: IconBrowserCheck,
         },
       ],
     },

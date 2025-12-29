@@ -204,6 +204,9 @@ model Book {
   views                        BookView[]
   chatMessages                 BookChatMessage[]
 
+  // Marketplace relations
+  sellPosts                    BookSellPost[]            @relation("BookSellPosts")
+
   @@map("books")
 }
 
@@ -463,6 +466,18 @@ model User {
   categoryViews       CategoryView[]
   seriesViews         SeriesView[]
 
+  // Marketplace relations
+  sellPosts              BookSellPost[]              @relation("UserSellPosts")
+  buyerOffers            BookOffer[]                 @relation("UserBuyerOffers")
+  sellerConversations    Conversation[]              @relation("UserSellerConversations")
+  buyerConversations     Conversation[]              @relation("UserBuyerConversations")
+  sentMessages           Message[]                   @relation("UserSentMessages")
+  givenReviews           SellerReview[]              @relation("UserGivenReviews")
+  sellPostViews          SellPostView[]              @relation("UserSellPostViews")
+
+  // Notifications
+  notifications          Notification[]
+
   @@map("users")
 }
 
@@ -656,6 +671,254 @@ enum RequestStatus {
   IN_PROGRESS
   APPROVED
   REJECTED
+}
+
+// ============================================================================
+// MARKETPLACE ENUMS
+// ============================================================================
+
+enum BookCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum SellPostStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+  EXPIRED
+  HIDDEN
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  WITHDRAWN
+  EXPIRED
+}
+
+enum ConversationStatus {
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+  BLOCKED
+}
+
+// ============================================================================
+// MARKETPLACE MODELS
+// ============================================================================
+
+model BookSellPost {
+  id                String             @id @default(uuid())
+  title             String
+  description       String?            @db.Text
+  price             Float
+  negotiable        Boolean            @default(true)
+  condition         BookCondition
+  images            String[]           // Array of image URLs
+  directImageUrls   Json?              // Store direct URLs for each image
+
+  // Book reference (links to existing Book model if applicable)
+  bookId            String?
+  book              Book?              @relation("BookSellPosts", fields: [bookId], references: [id], onDelete: SetNull)
+
+  // Seller info
+  sellerId          String
+  seller            User               @relation("UserSellPosts", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  // Location for meetup
+  location          String?
+  city              String?
+
+  // Status
+  status            SellPostStatus     @default(AVAILABLE)
+  soldAt            DateTime?
+
+  // Timestamps
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  expiresAt         DateTime?          // Optional expiration for listings
+
+  // Relations
+  offers            BookOffer[]
+  conversations     Conversation[]
+  reviews           SellerReview[]
+
+  // Analytics
+  views             SellPostView[]
+
+  @@index([sellerId, status])
+  @@index([status, createdAt])
+  @@index([bookId])
+  @@map("book_sell_posts")
+}
+
+model BookOffer {
+  id                String             @id @default(uuid())
+  sellPostId        String
+  sellPost          BookSellPost       @relation(fields: [sellPostId], references: [id], onDelete: Cascade)
+
+  buyerId           String
+  buyer             User               @relation("UserBuyerOffers", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  offeredPrice      Float
+  message           String?            @db.Text
+
+  status            OfferStatus        @default(PENDING)
+  respondedAt       DateTime?
+  responseMessage   String?            @db.Text
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([sellPostId, status])
+  @@index([buyerId, status])
+  @@map("book_offers")
+}
+
+model Conversation {
+  id                String             @id @default(uuid())
+  sellPostId        String
+  sellPost          BookSellPost       @relation(fields: [sellPostId], references: [id], onDelete: Cascade)
+
+  // Participants
+  sellerId          String
+  buyerId           String
+  seller            User               @relation("UserSellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  buyer             User               @relation("UserBuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  // Status
+  status            ConversationStatus @default(ACTIVE)
+  completedAt       DateTime?
+
+  // Transaction completion (for reviews)
+  transactionCompleted Boolean        @default(false)
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  messages          Message[]
+  review            SellerReview?
+
+  @@unique([sellPostId, buyerId])
+  @@index([sellerId, status])
+  @@index([buyerId, status])
+  @@map("conversations")
+}
+
+model Message {
+  id                String             @id @default(uuid())
+  conversationId    String
+  conversation      Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId          String
+  sender            User               @relation("UserSentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  content           String             @db.Text
+
+  // Read status
+  readAt            DateTime?
+
+  createdAt         DateTime           @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model SellerReview {
+  id                String             @id @default(uuid())
+  conversationId    String             @unique
+  conversation      Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  sellPostId        String
+  sellPost          BookSellPost       @relation(fields: [sellPostId], references: [id], onDelete: Cascade)
+
+  reviewerId        String             // The buyer who left the review
+  reviewer          User               @relation("UserGivenReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  sellerId          String             // The seller being reviewed (denormalized for queries)
+
+  rating            Int                // 1-5 stars
+
+  // Review categories
+  communicationRating     Int          @default(0)
+  descriptionAccuracyRating Int       @default(0)
+  meetupRating            Int          @default(0)
+
+  comment           String?            @db.Text
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([sellerId])
+  @@index([reviewerId])
+  @@map("seller_reviews")
+}
+
+model SellPostView {
+  id                String             @id @default(uuid())
+  sellPostId        String
+  sellPost          BookSellPost       @relation(fields: [sellPostId], references: [id], onDelete: Cascade)
+
+  userId            String?            // Nullable for anonymous visits
+  sessionId         String?            // For anonymous tracking
+
+  visitedAt         DateTime           @default(now())
+  ip                String?
+  userAgent         String?
+  referrer          String?
+
+  user              User?              @relation("UserSellPostViews", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sellPostId, visitedAt])
+  @@index([userId, visitedAt])
+  @@map("sell_post_views")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_OFFER
+  OFFER_ACCEPTED
+  OFFER_REJECTED
+  OFFER_COUNTERED
+  TRANSACTION_COMPLETE
+  NEW_REVIEW
+  POST_APPROVED
+  POST_REJECTED
+  MARKETPLACE_UPDATE
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  title       String
+  message     String             @db.Text
+
+  // Optional links to related entities
+  linkUrl     String?
+
+  // Read status
+  isRead      Boolean            @default(false)
+  readAt      DateTime?
+
+  createdAt   DateTime           @default(now())
+
+  @@index([userId, isRead, createdAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
 
 // System-wide settings

@@ -34,6 +34,10 @@ const SESSION_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
  * @param {string} email - User email
  * @param {string} name - User name
  * @param {string} role - User role
+ * @param {string} firstName - User first name
+ * @param {string | null} lastName - User last name
+ * @param {boolean} isPremium - User premium status
+ * @param {string | null} avatar - User avatar URL
  *
  * Security: Uses HttpOnly, Secure (in production), SameSite=Lax
  */
@@ -41,13 +45,21 @@ export async function createLoginSession(
     userId: string,
     email: string,
     name: string,
-    role: string
+    role: string,
+    firstName: string = '',
+    lastName: string | null = null,
+    isPremium: boolean = false,
+    avatar: string | null = null
 ): Promise<void> {
     const sessionData: LoginSessionData = {
         userId,
         email,
         name,
+        firstName,
+        lastName,
         role,
+        isPremium,
+        avatar,
     }
 
     const cookieStore = await cookies()

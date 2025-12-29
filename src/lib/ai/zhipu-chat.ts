@@ -326,7 +326,20 @@ Rules:
     throw new Error(`AI Service Error (${response.status}): ${errorText}`)
   }
 
-  const data = await response.json()
+  // Parse response with error handling for empty/malformed responses
+  let data
+  try {
+    data = await response.json()
+  } catch (jsonError) {
+    console.error('[Zhipu AI] Failed to parse JSON response:', jsonError)
+    throw new Error('AI service returned invalid response. Please try again.')
+  }
+
+  if (!data.choices || data.choices.length === 0 || !data.choices[0].message) {
+    console.error('[Zhipu AI] Invalid response structure:', data)
+    throw new Error('AI service returned invalid response format. Please try again.')
+  }
+
   const content = data.choices[0].message.content
 
   console.log('[Zhipu AI] Book Request Parse Response:', content)

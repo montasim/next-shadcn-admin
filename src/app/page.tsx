@@ -128,7 +128,7 @@ export default async function HomePage() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Button asChild size="lg" className="w-full sm:w-auto text-base h-12 px-8">
-                <Link href="/auth/sign-up">
+                <Link href="/sign-up">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
@@ -304,7 +304,7 @@ export default async function HomePage() {
 
                 <div className="pt-4">
                   <Button asChild size="lg" className="group">
-                    <Link href="/auth/sign-up">
+                    <Link href="/sign-up">
                       Start Your Journey
                       <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
@@ -375,7 +375,7 @@ export default async function HomePage() {
                   variant="secondary"
                   className="w-full sm:w-auto text-base h-12 px-8"
                 >
-                  <Link href="/auth/sign-up">
+                  <Link href="/sign-up">
                     Create Free Account
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
