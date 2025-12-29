@@ -478,7 +478,46 @@ model User {
   // Notifications
   notifications          Notification[]
 
+  // WebSocket features
+  onlineStatus           OnlineStatus?              @relation("UserOnlineStatus")
+  typingIndicators       TypingIndicator[]          @relation("UserTypingIndicators")
+
   @@map("users")
+}
+
+// ============================================================================
+// WEBSOCKET MODELS
+// ============================================================================
+
+model OnlineStatus {
+  id          String     @id @default(uuid())
+  userId      String     @unique
+  socketId    String?
+  status      UserStatus @default(OFFLINE)
+  lastSeenAt  DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation("UserOnlineStatus", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, lastSeenAt])
+  @@map("online_status")
+}
+
+model TypingIndicator {
+  id               String       @id @default(uuid())
+  conversationId   String
+  userId           String
+  isTyping         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user             User         @relation("UserTypingIndicators", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@map("typing_indicators")
 }
 
 model UserOtp {
@@ -804,6 +843,7 @@ model Conversation {
 
   messages          Message[]
   review            SellerReview?
+  typingIndicators  TypingIndicator[]
 
   @@unique([sellPostId, buyerId])
   @@index([sellerId, status])
@@ -898,6 +938,13 @@ enum NotificationType {
   MARKETPLACE_UPDATE
 }
 
+// WebSocket features
+enum UserStatus {
+  ONLINE
+  AWAY
+  OFFLINE
+}
+
 model Notification {
   id          String             @id @default(uuid())
   userId      String
@@ -920,6 +967,10 @@ model Notification {
   @@index([userId, createdAt])
   @@map("notifications")
 }
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
 
 // System-wide settings
 model SystemSettings {

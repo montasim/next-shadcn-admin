@@ -15,11 +15,11 @@ import {
     Loader2,
     ShoppingBag,
     Send,
-    ArrowLeft,
     MoreVertical,
     Check,
     Star,
     Clock,
+    Home,
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow, getInitials } from '@/lib/utils'
@@ -32,6 +32,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 
 // ============================================================================
 // TYPES
@@ -132,33 +133,57 @@ function ConversationViewPageContent() {
     const otherUserId = isSeller ? conversation?.buyerId : conversation?.sellerId
     const canLeaveReview = !isSeller && conversation?.transactionCompleted && !conversation?.review
 
+    // Poll for new messages every 5 seconds
     useEffect(() => {
-        const fetchConversation = async () => {
-            setIsLoading(true)
+        let isMounted = true
+        let pollInterval: NodeJS.Timeout | null = null
+
+        const fetchConversation = async (isPoll = false) => {
+            if (!isMounted) return
+
+            if (!isPoll) {
+                setIsLoading(true)
+            }
             setError(null)
 
             try {
                 const response = await fetch(`/api/user/conversations/${conversationId}`)
                 const result: ConversationResponse = await response.json()
 
-                if (result.success) {
+                if (isMounted && result.success) {
                     setConversation(result.data)
 
                     // Mark messages as read
                     await fetch(`/api/user/conversations/${conversationId}/read`, {
                         method: 'POST',
                     })
-                } else {
+
+                    // Start polling only after successful initial load
+                    if (!isPoll && !pollInterval) {
+                        pollInterval = setInterval(() => fetchConversation(true), 5000)
+                    }
+                } else if (isMounted && !isPoll) {
                     setError(result.message || 'Failed to load conversation')
                 }
             } catch (err: any) {
-                setError(err.message || 'Failed to load conversation')
+                if (isMounted && !isPoll) {
+                    setError(err.message || 'Failed to load conversation')
+                }
             } finally {
-                setIsLoading(false)
+                if (!isPoll) {
+                    setIsLoading(false)
+                }
             }
         }
 
         fetchConversation()
+
+        return () => {
+            isMounted = false
+            if (pollInterval) {
+                clearInterval(pollInterval)
+            }
+        }
     }, [conversationId])
 
     useEffect(() => {
@@ -181,17 +206,18 @@ function ConversationViewPageContent() {
 
             const result = await response.json()
 
-            if (result.success) {
-                setMessageText('')
-                // Optimistically update messages
-                setConversation(prev => prev ? {
-                    ...prev,
-                    messages: [...prev.messages, result.data],
-                    updatedAt: new Date(),
-                } : null)
-            } else {
-                setError(result.message || 'Failed to send message')
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to send message')
             }
+
+            // Optimistically update messages
+            setConversation(prev => prev ? {
+                ...prev,
+                messages: [...prev.messages, result.data],
+                updatedAt: new Date(),
+            } : null)
+
+            setMessageText('')
         } catch (err: any) {
             setError(err.message || 'Failed to send message')
         } finally {
@@ -301,24 +327,26 @@ function ConversationViewPageContent() {
     return (
         <div className="min-h-screen bg-background">
             <main className="container mx-auto p-4 pb-24 lg:pb-8 max-w-5xl">
-                {/* Header */}
-                <div className="flex items-center gap-4 mb-6">
-                    <Link href="/messages">
-                        <Button variant="ghost" size="sm">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back
-                        </Button>
-                    </Link>
-                    <div className="flex items-center gap-3 flex-1">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <ShoppingBag className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h1 className="text-lg font-bold truncate">{conversation.sellPost.title}</h1>
-                            <p className="text-sm text-muted-foreground">
-                                ${conversation.sellPost.price} • {CONDITION_LABELS[conversation.sellPost.condition]}
-                            </p>
-                        </div>
+                {/* Header with Breadcrumb */}
+                <NavigationBreadcrumb
+                    items={[
+                        { label: 'Home', href: '/', icon: <Home className="h-4 w-4" /> },
+                        { label: 'Messages', href: '/messages', icon: <MessageSquare className="h-4 w-4" /> },
+                        { label: conversation.sellPost.title, icon: <ShoppingBag className="h-4 w-4" /> },
+                    ]}
+                    className="mb-6"
+                />
+
+                {/* Item Info Header */}
+                <div className="flex items-center gap-3 mb-6 p-4 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <ShoppingBag className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-lg font-bold truncate">{conversation.sellPost.title}</h1>
+                        <p className="text-sm text-muted-foreground">
+                            ${conversation.sellPost.price} • {CONDITION_LABELS[conversation.sellPost.condition]}
+                        </p>
                     </div>
                 </div>
 
@@ -505,7 +533,7 @@ function ConversationViewPageContent() {
                                                 </div>
                                                 {conversation.review.comment && (
                                                     <p className="text-sm text-muted-foreground italic">
-                                                        "{conversation.review.comment}"
+                                                        {conversation.review.comment}
                                                     </p>
                                                 )}
                                             </div>

@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            data: conversation,
+            data: { conversation },
             message: 'Conversation retrieved successfully',
         })
     } catch (error: any) {

@@ -289,10 +289,12 @@ function SellPostDetailContent() {
         }
 
         if (!messageText.trim()) {
+            setError('Please enter a message')
             return
         }
 
         setIsSendingMessage(true)
+        setError(null)
 
         try {
             // First get or create conversation
@@ -306,23 +308,30 @@ function SellPostDetailContent() {
 
             const convResult = await convResponse.json()
 
-            if (convResult.success) {
-                // Send message
-                const msgResponse = await fetch(`/api/user/conversations/${convResult.data.conversation.id}/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        content: messageText,
-                    }),
-                })
+            if (!convResult.success) {
+                setError(convResult.message || 'Failed to start conversation')
+                return
+            }
 
-                if (msgResponse.ok) {
-                    setMessageText('')
-                    router.push(`/messages/${convResult.data.conversation.id}`)
-                }
+            // Send message
+            const msgResponse = await fetch(`/api/user/conversations/${convResult.data.conversation.id}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: messageText,
+                }),
+            })
+
+            if (msgResponse.ok) {
+                setMessageText('')
+                router.push(`/messages/${convResult.data.conversation.id}`)
+            } else {
+                const msgResult = await msgResponse.json()
+                setError(msgResult.message || 'Failed to send message')
             }
         } catch (err) {
             console.error('Failed to send message:', err)
+            setError('Failed to send message. Please try again.')
         } finally {
             setIsSendingMessage(false)
         }
@@ -599,6 +608,9 @@ function SellPostDetailContent() {
                                             onChange={(e) => setMessageText(e.target.value)}
                                             rows={3}
                                         />
+                                        {error && error.includes('message') && (
+                                            <p className="text-sm text-destructive">{error}</p>
+                                        )}
                                         <Button
                                             onClick={handleSendMessage}
                                             disabled={isSendingMessage || !messageText.trim() || isSold}
