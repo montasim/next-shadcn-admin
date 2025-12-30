@@ -49,6 +49,25 @@ interface Offer {
   updatedAt: Date
 }
 
+interface TicketResponse {
+  id: string
+  ticketId: string
+  message: string
+  isFromAdmin: boolean
+  createdAt: Date
+  sender: {
+    id: string
+    name: string
+    email: string
+  }
+}
+
+interface TicketUpdate {
+  ticketId: string
+  status: string
+  updatedAt: Date
+}
+
 interface WebSocketContextType {
   socket: Socket | null
   isConnected: boolean
@@ -71,6 +90,10 @@ interface WebSocketContextType {
   onUserStatusChange: (callback: (data: { userId: string; status: 'ONLINE' | 'AWAY' | 'OFFLINE'; lastSeenAt: Date }) => void) => () => void
   onNewOffer: (callback: (data: { sellPostId: string; offer: Offer; sellerId: string }) => void) => () => void
   onOfferUpdated: (callback: (data: { offerId: string; status: string; sellPostId: string; offer: Offer }) => void) => () => void
+
+  // Support ticket events
+  onTicketUpdated: (callback: (data: TicketUpdate) => void) => () => void
+  onNewTicketResponse: (callback: (data: { ticketId: string; response: TicketResponse }) => void) => () => void
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined)
@@ -258,6 +281,23 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     return () => socket.off('offer_updated', handler)
   }, [socket])
 
+  // Support ticket event listeners
+  const onTicketUpdated = useCallback((callback: (data: TicketUpdate) => void) => {
+    if (!socket) return () => {}
+
+    const handler = (data: TicketUpdate) => callback(data)
+    socket.on('ticket_updated', handler)
+    return () => socket.off('ticket_updated', handler)
+  }, [socket])
+
+  const onNewTicketResponse = useCallback((callback: (data: { ticketId: string; response: TicketResponse }) => void) => {
+    if (!socket) return () => {}
+
+    const handler = (data: { ticketId: string; response: TicketResponse }) => callback(data)
+    socket.on('new_ticket_response', handler)
+    return () => socket.off('new_ticket_response', handler)
+  }, [socket])
+
   const value: WebSocketContextType = {
     socket,
     isConnected,
@@ -273,7 +313,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     onUserTyping,
     onUserStatusChange,
     onNewOffer,
-    onOfferUpdated
+    onOfferUpdated,
+    onTicketUpdated,
+    onNewTicketResponse
   }
 
   return (

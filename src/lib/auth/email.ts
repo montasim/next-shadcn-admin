@@ -8,12 +8,14 @@
  * - OTP email sending for registration
  * - OTP email sending for password reset
  * - OTP email sending for email changes
+ * - Campaign email sending with Markdown support
  * - Error handling and retry logic
  * - Industry-standard email templates
  */
 
 import { Resend } from 'resend'
 import { config } from '@/config'
+import { marked } from 'marked'
 
 // ============================================================================
 // RESEND CLIENT INITIALIZATION
@@ -520,4 +522,174 @@ export async function sendInvitationEmail(
     console.error('Email sending error:', error)
     throw new Error('Failed to send invitation email')
   }
+}
+
+// ============================================================================
+// CAMPAIGN EMAIL FUNCTIONS
+// ============================================================================
+
+/**
+ * Convert Markdown to HTML
+ * Uses the marked library for conversion
+ */
+export function markdownToHtml(markdown: string): string {
+  // Configure marked options for safe HTML
+  marked.setOptions({
+    breaks: true, // Convert \n to <br>
+    gfm: true, // Enable GitHub Flavored Markdown
+  })
+
+  return marked(markdown) as string
+}
+
+/**
+ * Replace template variables in content
+ * Replaces {{userName}}, {{firstName}}, {{email}}, {{unsubscribeUrl}}
+ */
+function replaceTemplateVariables(
+  content: string,
+  variables: {
+    userName?: string
+    firstName?: string
+    email?: string
+    unsubscribeUrl?: string
+  }
+): string {
+  let result = content
+
+  if (variables.userName) {
+    result = result.replace(/\{\{userName\}\}/g, variables.userName)
+  } else {
+    result = result.replace(/\{\{userName\}\}/g, '')
+  }
+
+  if (variables.firstName) {
+    result = result.replace(/\{\{firstName\}\}/g, variables.firstName)
+  } else {
+    result = result.replace(/\{\{firstName\}\}/g, variables.userName || '')
+  }
+
+  if (variables.email) {
+    result = result.replace(/\{\{email\}\}/g, variables.email)
+  } else {
+    result = result.replace(/\{\{email\}\}/g, '')
+  }
+
+  if (variables.unsubscribeUrl) {
+    result = result.replace(/\{\{unsubscribeUrl\}\}/g, variables.unsubscribeUrl)
+  }
+
+  return result
+}
+
+/**
+ * Generate campaign email HTML template
+ */
+function getCampaignEmailTemplate(
+  subject: string,
+  previewText: string | undefined,
+  htmlContent: string,
+  unsubscribeUrl: string
+): {
+  subject: string
+  html: string
+} {
+  const content = `
+        ${htmlContent}
+
+        <!-- Unsubscribe Section -->
+        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
+            You received this email because you subscribed to marketing emails from ${APP_NAME}.
+            <br />
+            <a href="${unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a> from these emails.
+          </p>
+        </div>
+      `
+
+  return {
+    subject,
+    html: emailTemplateWrapper(content, previewText),
+  }
+}
+
+/**
+ * Send campaign email to a single recipient
+ */
+export async function sendCampaignEmail(
+  to: string,
+  subject: string,
+  previewText: string | undefined,
+  htmlContent: string,
+  variables?: {
+    userName?: string
+    firstName?: string
+    email?: string
+    unsubscribeUrl?: string
+  }
+): Promise<{ success: boolean; error?: string }> {
+  // Replace template variables in the HTML content
+  const personalizedHtml = variables
+    ? replaceTemplateVariables(htmlContent, variables)
+    : htmlContent
+
+  // Generate the email template with unsubscribe link
+  const { html } = getCampaignEmailTemplate(
+    subject,
+    previewText,
+    personalizedHtml,
+    variables?.unsubscribeUrl || `${BASE_URL}/unsubscribe`
+  )
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+    })
+
+    if (error) {
+      console.error('Failed to send campaign email:', {
+        to,
+        error: error.message,
+      })
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Campaign email sending error:', error)
+    return { success: false, error: error?.message || 'Unknown error' }
+  }
+}
+
+/**
+ * Send campaign email with Markdown content
+ * Converts Markdown to HTML before sending
+ */
+export async function sendCampaignEmailFromMarkdown(
+  to: string,
+  subject: string,
+  previewText: string | undefined,
+  markdownContent: string,
+  variables?: {
+    userName?: string
+    firstName?: string
+    email?: string
+    unsubscribeUrl?: string
+  }
+): Promise<{ success: boolean; error?: string }> {
+  // First convert Markdown to HTML
+  const htmlContent = markdownToHtml(markdownContent)
+
+  // Then send as regular campaign email
+  return sendCampaignEmail(to, subject, previewText, htmlContent, variables)
+}
+
+/**
+ * Generate unsubscribe URL for a campaign
+ */
+export function generateUnsubscribeUrl(campaignId: string, userId: string): string {
+  return `${BASE_URL}/api/campaigns/unsubscribe?campaign=${campaignId}&user=${userId}`
 }

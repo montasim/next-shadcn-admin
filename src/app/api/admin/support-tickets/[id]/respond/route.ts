@@ -2,8 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
-import { addResponse } from '@/lib/support/support.repository'
-import { isAdmin } from '@/lib/auth/validation'
+import { addResponse, getTicketById } from '@/lib/support/support.repository'
+import { broadcastTicketResponse } from '@/lib/support/support.webhook'
 
 /**
  * POST /api/admin/support-tickets/:id/respond
@@ -11,7 +11,7 @@ import { isAdmin } from '@/lib/auth/validation'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAuth()
@@ -22,7 +22,7 @@ export async function POST(
       )
     }
 
-    if (!isAdmin(session.role)) {
+    if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { success: false, message: 'Admin access required' },
         { status: 403 }
@@ -39,14 +39,39 @@ export async function POST(
       )
     }
 
+    const { id } = await params
+
     const response = await addResponse({
-      ticketId: params.id,
+      ticketId: id,
       senderId: session.userId,
       senderRole: session.role,
       isFromAdmin: true,
       message,
       attachments,
     })
+
+    // Get ticket to fetch userId for broadcasting
+    const ticket = await getTicketById(id)
+
+    // Broadcast new response to user via socket server
+    if (ticket) {
+      await broadcastTicketResponse({
+        ticketId: id,
+        response: {
+          id: response.id,
+          ticketId: response.ticketId,
+          message: response.message,
+          isFromAdmin: response.isFromAdmin,
+          createdAt: response.createdAt.toISOString(),
+          sender: {
+            id: session.userId,
+            name: session.name,
+            email: session.email,
+          },
+        },
+        userId: ticket.userId,
+      })
+    }
 
     return NextResponse.json({
       success: true,

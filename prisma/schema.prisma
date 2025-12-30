@@ -494,6 +494,9 @@ model User {
   // Legal content management
   updatedLegalContent    LegalContent[]            @relation("UserLegalContent")
 
+  // Campaign management
+  campaigns              Campaign[]                @relation("UserCampaigns")
+
   @@map("users")
 }
 
@@ -692,6 +695,116 @@ model QuizStreak {
 
   @@index([userId])
   @@map("quiz_streaks")
+}
+
+// ============================================================================
+// CAMPAIGN MANAGEMENT
+// ============================================================================
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum CampaignType {
+  ONE_TIME       // Send once immediately or scheduled
+  RECURRING      // Recurring campaign (cron-based)
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  CUSTOM
+}
+
+model Campaign {
+  id                String                @id @default(uuid())
+  name              String
+  subject           String
+  previewText       String?
+  htmlContent       String                @db.Text
+  markdownContent   String                @db.Text  // Store original markdown
+
+  // Campaign type
+  type              CampaignType          @default(ONE_TIME)
+
+  // Recipients
+  targetAllUsers    Boolean               @default(true)
+  targetRole        UserRole?
+  recipientCount    Int                   @default(0)
+
+  // Status tracking
+  status            CampaignStatus        @default(DRAFT)
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+
+  // Recurring settings (for RECURRING type)
+  isRecurring       Boolean               @default(false)
+  recurrenceFrequency RecurrenceFrequency?
+  recurrenceCron    String?               // Custom cron expression
+  recurrenceEndDate  DateTime?            // When to stop recurring
+  nextRunAt         DateTime?             // Next scheduled run for recurring
+
+  // Delivery stats
+  sentCount         Int                   @default(0)
+  deliveredCount    Int                   @default(0)
+  failedCount       Int                   @default(0)
+  openedCount       Int                   @default(0)
+  clickedCount      Int                   @default(0)
+
+  // Unsubscribe tracking
+  unsubscribeCount  Int                   @default(0)
+
+  // Metadata
+  entryById         String
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  entryBy           User                  @relation("UserCampaigns", fields: [entryById], references: [id])
+  recipients        CampaignRecipient[]
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([entryById])
+  @@index([nextRunAt])
+  @@map("campaigns")
+}
+
+model CampaignRecipient {
+  id                String         @id @default(uuid())
+  campaignId        String
+  userId            String
+  userEmail         String         // Denormalized for filtering
+
+  // Delivery status
+  status            CampaignStatus @default(DRAFT)
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  unsubscribedAt    DateTime?      // When user unsubscribed from this campaign
+  failedReason      String?
+
+  // Engagement tracking (for links clicked)
+  clickedLinks      Json?          // Track which links were clicked
+
+  // Retry tracking
+  retryCount        Int            @default(0)
+  lastRetryAt       DateTime?
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  campaign          Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, userId])
+  @@index([campaignId, status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("campaign_recipients")
 }
 
 enum BookType {
@@ -1075,6 +1188,13 @@ enum ActivityAction {
   NOTICE_DELETED
   USER_BANNED
   USER_PROMOTED
+
+  // Campaigns
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  CAMPAIGN_DELETED
+  CAMPAIGN_SENT
+  CAMPAIGN_CANCELLED
 }
 
 enum ActivityResourceType {
@@ -1095,6 +1215,7 @@ enum ActivityResourceType {
   NOTICE
   SYSTEM_SETTINGS
   ACHIEVEMENT_UNLOCKED
+  CAMPAIGN
 }
 
 // ============================================================================

@@ -9,6 +9,7 @@ import {
   IconLayoutDashboard,
   IconLock,
   IconLockAccess,
+  IconMail,
   IconMessages,
   IconNotification,
   IconPackages,
@@ -80,6 +81,11 @@ export const sidebarData: SidebarData = {
           icon: IconUsers,
         },
         {
+          title: 'Campaigns',
+          url: '/dashboard/campaigns',
+          icon: IconMail,
+        },
+        {
           title: 'Notices',
           url: '/dashboard/notices',
           icon: IconNotification,
@@ -88,6 +94,11 @@ export const sidebarData: SidebarData = {
           title: 'Activity Logs',
           url: '/dashboard/admin/activities',
           icon: IconHistory,
+        },
+        {
+          title: 'Support Tickets',
+          url: '/dashboard/admin/support-tickets',
+          icon: IconMessages,
         },
       ],
     },

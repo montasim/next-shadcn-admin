@@ -3,7 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { getTicketById, updateTicket, addResponse } from '@/lib/support/support.repository'
-import { TicketStatus, isAdmin } from '@/lib/auth/validation'
+import { broadcastTicketUpdate, broadcastTicketResponse } from '@/lib/support/support.webhook'
+import { TicketStatus } from '@prisma/client'
 
 /**
  * GET /api/admin/support-tickets/:id
@@ -22,7 +23,7 @@ export async function GET(
       )
     }
 
-    if (!isAdmin(session.role)) {
+    if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { success: false, message: 'Admin access required' },
         { status: 403 }
@@ -68,7 +69,7 @@ export async function PATCH(
       )
     }
 
-    if (!isAdmin(session.role)) {
+    if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { success: false, message: 'Admin access required' },
         { status: 403 }
@@ -92,6 +93,15 @@ export async function PATCH(
       assignedToId,
       resolution,
     })
+
+    // Broadcast ticket update to user via socket server
+    if (status) {
+      await broadcastTicketUpdate({
+        ticketId: params.id,
+        status,
+        userId: ticket.userId,
+      })
+    }
 
     return NextResponse.json({
       success: true,

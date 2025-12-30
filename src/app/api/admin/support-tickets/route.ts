@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth/session'
 import { getTickets, getTicketStats } from '@/lib/support/support.repository'
-import { isAdmin } from '@/lib/auth/validation'
 
 /**
  * GET /api/admin/support-tickets
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    if (!isAdmin(session.role)) {
+    if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
       return NextResponse.json(
         { success: false, message: 'Admin access required' },
         { status: 403 }

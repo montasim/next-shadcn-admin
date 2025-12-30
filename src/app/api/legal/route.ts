@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthSession } from '@/lib/auth'
+import { getSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { LegalContentType } from '@prisma/client'
 
@@ -57,9 +57,9 @@ export async function GET(request: NextRequest) {
 // POST /api/legal - Create or update legal content (Admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getAuthSession()
+    const session = await getSession()
 
-    if (!session?.user) {
+    if (!session) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
 
     // Check if user is admin
     if (
-      session.user.role !== 'ADMIN' &&
-      session.user.role !== 'SUPER_ADMIN'
+      session.role !== 'ADMIN' &&
+      session.role !== 'SUPER_ADMIN'
     ) {
       return NextResponse.json(
         { success: false, error: 'Forbidden - Admin access required' },
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         data: {
           title,
           content,
-          lastUpdatedById: session.user.id,
+          lastUpdatedById: session.userId,
           updatedAt: new Date(),
         },
         include: {
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
           type,
           title,
           content,
-          lastUpdatedById: session.user.id,
+          lastUpdatedById: session.userId,
           effectiveDate: new Date(),
         },
         include: {
