@@ -19,6 +19,20 @@ export const objectIdSchema = z.string().regex(/^[0-9a-f]{24}$/i, {
 })
 
 /**
+ * UUID v4 validation
+ */
+export const uuidSchema = z.string()
+  .min(1, 'ID is required')
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i, {
+    message: 'Invalid UUID format'
+  })
+
+/**
+ * Generic ID validation - accepts ObjectId or UUID
+ */
+export const idSchema = z.string().min(1, 'ID is required')
+
+/**
  * Email validation with RFC 5322 compliance
  */
 export const emailSchema = z.string()
@@ -64,6 +78,25 @@ export const urlSchema = z.string()
     },
     'URL must use HTTP or HTTPS protocol'
   )
+
+/**
+ * Google Drive URL validation
+ * Accepts both preview and direct download URLs
+ */
+export const googleDriveUrlSchema = z.string()
+  .min(1, 'URL is required')
+  .refine((url) => {
+    try {
+      const parsed = new URL(url)
+      return parsed.hostname.includes('drive.google.com')
+    } catch {
+      return false
+    }
+  }, 'URL must be a valid Google Drive URL')
+  .refine((url) => {
+    // Check if URL contains a file ID
+    return /\/d\/[a-zA-Z0-9_-]+/.test(url) || /\/file\/d\/[a-zA-Z0-9_-]+/.test(url) || /\/open\?id=/.test(url)
+  }, 'Google Drive URL must contain a valid file ID')
 
 /**
  * Sanitized text - removes HTML tags and dangerous characters
@@ -257,7 +290,7 @@ export const chatMessageSchema = z.object({
       // Remove event handlers
       return val.replace(/on\w+\s*=/gi, '')
     })
-    .trim(),
+    .transform((val) => val.trim()),
   conversationHistory: z.array(z.object({
     role: z.enum(['user', 'assistant', 'system']),
     content: z.string().max(2000)
@@ -558,10 +591,13 @@ export function sanitizeUserContent(content: string, maxLength: number = 5000): 
 export const validation = {
   // Common
   objectId: objectIdSchema,
+  uuid: uuidSchema,
+  id: idSchema,
   email: emailSchema,
   username: usernameSchema,
   password: passwordSchema,
   url: urlSchema,
+  googleDriveUrl: googleDriveUrlSchema,
   sanitizedText: sanitizedTextSchema,
   pagination: paginationSchema,
 

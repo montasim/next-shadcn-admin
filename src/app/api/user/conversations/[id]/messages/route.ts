@@ -68,7 +68,8 @@ async function broadcastNewMessage(
 // ============================================================================
 
 const SendMessageSchema = z.object({
-    content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
+    content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long')
+      .transform((val) => val.replace(/<[^>]*>/g, '').replace(/javascript:/gi, '').replace(/on\w+\s*=/gi, '').trim()),
 })
 
 /**

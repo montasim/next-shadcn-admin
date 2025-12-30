@@ -18,16 +18,20 @@ import { ActivityAction, ActivityResourceType } from '@prisma/client'
 // ============================================================================
 
 const CreateSellPostSchema = z.object({
-    title: z.string().min(3, 'Title must be at least 3 characters').max(200),
-    description: z.string().optional(),
+    title: z.string().min(3, 'Title must be at least 3 characters').max(200)
+      .transform((val) => val.replace(/<[^>]*>/g, '').trim()), // Strip HTML
+    description: z.string().optional()
+      .transform((val) => val ? val.replace(/<[^>]*>/g, '').replace(/javascript:/gi, '').replace(/on\w+\s*=/gi, '').trim() : val),
     price: z.coerce.number().positive('Price must be greater than 0'),
     negotiable: z.coerce.boolean().default(true),
     condition: z.enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR', 'POOR']),
     images: z.array(z.string()).min(1, 'At least one image is required'),
     directImageUrls: z.any().optional(),
     bookId: z.string().optional(),
-    location: z.string().optional(),
-    city: z.string().optional(),
+    location: z.string().optional()
+      .transform((val) => val ? val.replace(/<[^>]*>/g, '').trim() : val),
+    city: z.string().optional()
+      .transform((val) => val ? val.replace(/<[^>]*>/g, '').trim() : val),
     expiresAt: z.string().datetime().optional(),
 })
 

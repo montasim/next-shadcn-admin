@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { googleDriveUrlSchema } from '@/lib/validation'
 
 // Map of file extensions to MIME types
 const CONTENT_TYPE_MAP: Record<string, string> = {
@@ -18,6 +20,12 @@ export async function GET(request: NextRequest) {
 
   if (!url) {
     return new NextResponse('URL parameter is missing', { status: 400 })
+  }
+
+  // Validate the Google Drive URL
+  const validationResult = googleDriveUrlSchema.safeParse(url)
+  if (!validationResult.success) {
+    return new NextResponse('Invalid Google Drive URL', { status: 400 })
   }
 
   try {

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const generatePrefilled = body.generatePrefilled === true;
 
-    console.log('[Chat API] Request body:', { message, generatePrefilled, historyLength: conversationHistory.length });
+    console.log('[Chat API] Request body:', { message, generatePrefilled, historyLength: (conversationHistory as any[]).length });
 
     // Get user from session (required for chat)
     const session = await getSession();
@@ -57,7 +57,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     let finalSessionId = sessionId;
     if (!finalSessionId) {
       // Check if there's a recent session (within 30 minutes or today)
-      const lastChat = conversationHistory.length > 0 ? conversationHistory[0] : null;
+      const history = conversationHistory as any[];
+      const lastChat = history.length > 0 ? history[0] : null;
       const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -118,7 +119,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     // Prepare messages
-    let messages = conversationHistory.map((m: any) => ({
+    const history = conversationHistory as any[];
+    let messages = history.map((m: any) => ({
       role: m.role,
       content: m.content
     }));

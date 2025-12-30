@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { pdfCache, generateCacheKey } from '@/lib/cache/pdf-cache';
+import { googleDriveUrlSchema } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -7,6 +8,12 @@ export async function GET(request: NextRequest) {
 
   if (!url) {
     return new NextResponse('URL parameter is missing', { status: 400 });
+  }
+
+  // Validate the Google Drive URL
+  const validationResult = googleDriveUrlSchema.safeParse(url)
+  if (!validationResult.success) {
+    return new NextResponse('Invalid Google Drive URL', { status: 400 });
   }
 
   console.log('[PDF Proxy] Starting download for URL:', url);

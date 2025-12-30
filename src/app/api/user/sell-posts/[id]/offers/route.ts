@@ -20,7 +20,8 @@ import { ActivityAction, ActivityResourceType } from '@prisma/client'
 
 const MakeOfferSchema = z.object({
     offeredPrice: z.coerce.number().positive('Offer amount must be greater than 0'),
-    message: z.string().optional(),
+    message: z.string().optional()
+      .transform((val) => val ? val.replace(/<[^>]*>/g, '').replace(/javascript:/gi, '').replace(/on\w+\s*=/gi, '').trim() : val),
 })
 
 /**
