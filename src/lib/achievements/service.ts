@@ -316,7 +316,7 @@ export async function checkAndUnlockAchievements(
           user.email,
           achievement.name,
           achievement.description,
-          achievement.icon
+          achievement.icon || undefined
         ).catch(console.error)
       }
     } else {
