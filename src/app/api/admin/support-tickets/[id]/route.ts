@@ -12,7 +12,7 @@ import { TicketStatus } from '@prisma/client'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAuth()
@@ -30,7 +30,8 @@ export async function GET(
       )
     }
 
-    const ticket = await getTicketById(params.id)
+    const { id } = await params
+    const ticket = await getTicketById(id)
 
     if (!ticket) {
       return NextResponse.json(
@@ -58,7 +59,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await requireAuth()
@@ -88,7 +89,8 @@ export async function PATCH(
       )
     }
 
-    const ticket = await updateTicket(params.id, {
+    const { id } = await params
+    const ticket = await updateTicket(id, {
       status,
       assignedToId,
       resolution,
@@ -97,7 +99,7 @@ export async function PATCH(
     // Broadcast ticket update to user via socket server
     if (status) {
       await broadcastTicketUpdate({
-        ticketId: params.id,
+        ticketId: id,
         status,
         userId: ticket.userId,
       })
