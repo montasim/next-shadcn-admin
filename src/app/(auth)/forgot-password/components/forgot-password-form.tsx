@@ -69,7 +69,6 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
   const [step, setStep] = useState<'email' | 'otp' | 'password'>('email')
   const [email, setEmail] = useState('')
-  const [resendCountdown, setResendCountdown] = useState(0)
   const [otpError, setOtpError] = useState('')
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
@@ -85,17 +84,6 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
       emailForm.setValue('email', emailFromUrl)
     }
   }, [searchParams, emailForm])
-
-  // Countdown timer for resend button
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (resendCountdown > 0) {
-      interval = setInterval(() => {
-        setResendCountdown(prev => prev - 1)
-      }, 1000)
-    }
-    return () => clearInterval(interval)
-  }, [resendCountdown])
 
   const otpForm = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
@@ -134,8 +122,6 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
 
       setEmail(data.email)
       setStep('otp')
-      // Start 60-second countdown for resend
-      setResendCountdown(60)
 
       toast({
         title: 'Reset Code Sent',
@@ -174,9 +160,6 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
         })
         return
       }
-
-      // Start 60-second countdown for resend
-      setResendCountdown(60)
 
       toast({
         title: 'Reset Code Resent',
