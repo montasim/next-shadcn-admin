@@ -177,7 +177,7 @@ export function LibraryFilterToolbar({
   )
 
   return (
-    <div className="space-y-3 mb-4">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         {/* Search Input */}
         <Input

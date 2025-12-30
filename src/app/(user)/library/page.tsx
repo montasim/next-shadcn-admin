@@ -136,10 +136,9 @@ function LibraryPageContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const bookshelfId = searchParams.get('bookshelfId')
-  // Determine active tab from pathname or fallback to query param
+  // Determine active tab from pathname or query param
   const activeTab = pathname.includes('/bookshelves') ? 'bookshelves' :
   pathname.includes('/my-uploads') ? 'my-uploads' :
-  pathname.includes('/my-requests') ? 'my-requests' :
   searchParams.get('tab') || 'my-uploads'
 
   const [books, setBooks] = useState<Book[]>([])
@@ -537,17 +536,17 @@ function LibraryPageContent() {
           ]}
         />
 
-        <Tabs value={activeTab} className="space-y-4" onValueChange={(value) => router.push(`/library/${value === 'my-uploads' ? 'my-uploads' : value === 'my-requests' ? 'my-requests' : 'bookshelves'}`)}>
+        <Tabs value={activeTab} className="space-y-4" onValueChange={(value) => router.push(`/library?tab=${value}`)}>
           {/* Tabs List with Filter Toolbar - Side by Side */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:justify-between gap-4">
             <TabsList>
-              <Link href="/library/my-uploads">
+              <Link href="/library?tab=my-uploads">
                 <TabsTrigger value="my-uploads">My Uploads</TabsTrigger>
               </Link>
-              <Link href="/library/bookshelves">
+              <Link href="/library?tab=bookshelves">
                 <TabsTrigger value="bookshelves">Bookshelves</TabsTrigger>
               </Link>
-              <Link href="/library/my-requests">
+              <Link href="/library?tab=my-requests">
                 <TabsTrigger value="my-requests">My Requests</TabsTrigger>
               </Link>
             </TabsList>
@@ -594,14 +593,31 @@ function LibraryPageContent() {
           </div>
 
           <TabsContent value="my-uploads" className="space-y-6 md:overflow-y-visible md:max-h-none">
-            {/* Scrollable book list - only this scrolls on mobile */}
-            <div className="overflow-y-auto pb-24 md:overflow-y-visible md:max-h-none md:pb-0 max-h-[calc(100vh-28rem)]">
-              <BookList
-                books={filteredBooks}
-                onEditAction={handleEditBook}
-                onCardClickAction={handleBookClick}
-              />
-            </div>
+            {filteredBooks.length === 0 ? (
+              <Card>
+                <CardContent className="pt-12 pb-12">
+                  <div className="text-center">
+                    <Upload className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No books uploaded yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Upload your first book to start building your library.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Click the &quot;Upload Book&quot; button above to get started.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              /* Scrollable book list - only this scrolls on mobile */
+              <div className="overflow-y-auto pb-24 md:overflow-y-visible md:max-h-none md:pb-0 max-h-[calc(100vh-28rem)]">
+                <BookList
+                  books={filteredBooks}
+                  onEditAction={handleEditBook}
+                  onCardClickAction={handleBookClick}
+                />
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="bookshelves" className="space-y-4 md:overflow-y-visible md:max-h-none">
             <div className="overflow-y-auto max-h-[calc(100vh-24rem)] pb-24 md:overflow-y-visible md:max-h-none md:pb-0">
@@ -621,17 +637,20 @@ function LibraryPageContent() {
                 <div className="text-muted-foreground">Loading requests...</div>
               </div>
             ) : requests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-                <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No requests yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  You haven&apos;t requested any books yet.
-                </p>
-                <Button onClick={() => setIsRequestDrawerOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Request Book
-                </Button>
-              </div>
+              <Card>
+                <CardContent className="pt-12 pb-12">
+                  <div className="text-center">
+                    <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No requests yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      You haven&apos;t requested any books yet.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Click the &quot;Request Book&quot; button above to get started.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {requests.map((request) => {
