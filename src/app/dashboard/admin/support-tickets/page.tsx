@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { SupportTicket, TicketPriority, TicketStatus } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
 import { MessageSquare, Send, Clock, AlertCircle, CheckCircle2, User, LifeBuoy } from 'lucide-react'
@@ -250,40 +251,42 @@ export default function AdminSupportTicketsPage() {
       <div className='flex gap-4'>
         {/* Tickets List */}
         <div className='flex-1 space-y-4'>
-          {/* Stats Cards */}
+          {/* Stats Summary */}
           {stats && (
-            <div className='grid grid-cols-2 md:grid-cols-5 gap-3'>
-              <Card>
-                <CardContent className='pt-4'>
-                  <div className='text-2xl font-bold'>{stats.total}</div>
-                  <div className='text-xs text-muted-foreground'>Total</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className='pt-4'>
-                  <div className='text-2xl font-bold text-blue-500'>{stats.open}</div>
-                  <div className='text-xs text-muted-foreground'>Open</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className='pt-4'>
-                  <div className='text-2xl font-bold text-yellow-600'>{stats.inProgress}</div>
-                  <div className='text-xs text-muted-foreground'>In Progress</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className='pt-4'>
-                  <div className='text-2xl font-bold text-purple-500'>{stats.waitingForUser}</div>
-                  <div className='text-xs text-muted-foreground'>Waiting</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className='pt-4'>
-                  <div className='text-2xl font-bold text-green-500'>{stats.resolved}</div>
-                  <div className='text-xs text-muted-foreground'>Resolved</div>
-                </CardContent>
-              </Card>
-            </div>
+            <DashboardSummary
+              summaries={[
+                {
+                  title: 'Total Tickets',
+                  value: stats.total,
+                  description: 'All support tickets',
+                  icon: MessageSquare,
+                },
+                {
+                  title: 'Open',
+                  value: stats.open,
+                  description: 'Needs attention',
+                  icon: AlertCircle,
+                },
+                {
+                  title: 'In Progress',
+                  value: stats.inProgress,
+                  description: 'Being handled',
+                  icon: Clock,
+                },
+                {
+                  title: 'Waiting',
+                  value: stats.waitingForUser,
+                  description: 'Awaiting user response',
+                  icon: Send,
+                },
+                {
+                  title: 'Resolved',
+                  value: stats.resolved,
+                  description: 'Successfully resolved',
+                  icon: CheckCircle2,
+                },
+              ]}
+            />
           )}
 
           {/* Filters */}

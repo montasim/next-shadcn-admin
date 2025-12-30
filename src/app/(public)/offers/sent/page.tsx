@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import {
     Tag as OfferIcon,
     Search,
@@ -184,33 +185,35 @@ function OffersSentPageContent() {
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                    <Card>
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold">{stats.total}</div>
-                            <div className="text-sm text-muted-foreground">Total</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                            <div className="text-sm text-muted-foreground">Pending</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-green-600">{stats.accepted}</div>
-                            <div className="text-sm text-muted-foreground">Accepted</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4 text-center">
-                            <div className="text-2xl font-bold text-blue-600">{stats.countered}</div>
-                            <div className="text-sm text-muted-foreground">Countered</div>
-                        </CardContent>
-                    </Card>
-                </div>
+                {/* Stats Summary */}
+                <DashboardSummary
+                    summaries={[
+                        {
+                            title: 'Total Offers',
+                            value: stats.total,
+                            description: 'All offers sent',
+                            icon: OfferIcon,
+                        },
+                        {
+                            title: 'Pending',
+                            value: stats.pending,
+                            description: 'Waiting for response',
+                            icon: Clock,
+                        },
+                        {
+                            title: 'Accepted',
+                            value: stats.accepted,
+                            description: 'Successfully accepted',
+                            icon: CheckCircle,
+                        },
+                        {
+                            title: 'Countered',
+                            value: stats.countered,
+                            description: 'Counter offers received',
+                            icon: RotateCcw,
+                        },
+                    ]}
+                />
 
                 {/* Search and Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-6">
