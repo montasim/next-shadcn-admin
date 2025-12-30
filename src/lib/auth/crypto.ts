@@ -22,7 +22,7 @@ import * as bcrypt from 'bcrypt'
 // ============================================================================
 
 const BCRYPT_SALT_ROUNDS = 12
-const OTP_LENGTH = 7
+const OTP_LENGTH = 6
 const SESSION_ID_BYTES = 32
 
 // ============================================================================
@@ -30,16 +30,16 @@ const SESSION_ID_BYTES = 32
 // ============================================================================
 
 /**
- * Generate a cryptographically secure 7-digit OTP
- * 
- * @returns {string} 7-digit OTP as string
- * 
+ * Generate a cryptographically secure 6-digit OTP
+ *
+ * @returns {string} 6-digit OTP as string
+ *
  * Security: Uses crypto.randomBytes for cryptographic randomness
  */
 export function generateOtp(): string {
-    // Generate random number between 1000000 and 9999999
-    const min = 1000000
-    const max = 9999999
+    // Generate random number between 100000 and 999999
+    const min = 100000
+    const max = 999999
     const range = max - min + 1
 
     // Generate random bytes and convert to number

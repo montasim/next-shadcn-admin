@@ -147,8 +147,8 @@ export function isAuthIntent(value: string): value is AuthIntent {
 // ============================================================================
 
 /**
- * Validate OTP format (7 digits)
- * 
+ * Validate OTP format (6 digits)
+ *
  * @param {string} otp - OTP to validate
  * @returns {boolean} True if OTP format is valid
  */
@@ -157,8 +157,8 @@ export function validateOtpFormat(otp: string): boolean {
         return false
     }
 
-    // Must be exactly 7 digits
-    return /^\d{7}$/.test(otp)
+    // Must be exactly 6 digits
+    return /^\d{6}$/.test(otp)
 }
 
 // ============================================================================

@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { OtpInput, ResendButton } from '@/components/ui/otp-input'
+import { Card, CardContent } from '@/components/ui/card'
+import { Loader2, Mail } from 'lucide-react'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -37,8 +40,8 @@ const emailSchema = z.object({
 const otpSchema = z.object({
   otp: z
     .string()
-    .min(7, { message: 'OTP must be 7 digits' })
-    .max(7, { message: 'OTP must be 7 digits' })
+    .min(6, { message: 'OTP must be 6 digits' })
+    .max(6, { message: 'OTP must be 6 digits' })
     .regex(/^\d+$/, { message: 'OTP must contain only numbers' }),
 })
 
@@ -93,6 +96,10 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
   const [otpExpiresAt, setOtpExpiresAt] = useState<string>('')
   const [showResend, setShowResend] = useState(false)
   const [resendSuccessful, setResendSuccessful] = useState(false)
+  const [isSendingOtp, setIsSendingOtp] = useState(false)
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
+  const [otpError, setOtpError] = useState('')
+  const [otpCode, setOtpCode] = useState('')
 
   // Get prefilled data from query parameters
   const prefilledEmail = searchParams?.get('email') || ''
@@ -193,19 +200,21 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
   }, [prefilledEmail])
 
   // Step 2: Verify OTP
-  async function onOtpSubmit(data: z.infer<typeof otpSchema>) {
-    setIsLoading(true)
+  async function onOtpSubmit(otpCode: string) {
+    setIsVerifyingOtp(true)
+    setOtpError('')
 
     try {
       const response = await fetch('/api/auth/register/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp: data.otp }),
+        body: JSON.stringify({ email, otp: otpCode }),
       })
 
       const result = await response.json()
 
       if (!response.ok) {
+        setOtpError(result.error || 'Invalid OTP')
         toast({
           variant: 'destructive',
           title: 'Invalid OTP',
@@ -227,13 +236,54 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
       })
     } catch (error) {
       console.error('Verify OTP error:', error)
+      setOtpError('An error occurred. Please try again.')
       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'An error occurred. Please try again.',
       })
     } finally {
-      setIsLoading(false)
+      setIsVerifyingOtp(false)
+    }
+  }
+
+  // Resend OTP
+  async function handleResendOtp() {
+    setIsSendingOtp(true)
+    setOtpError('')
+
+    try {
+      const response = await fetch('/api/auth/register/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, inviteToken }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result.error || 'Failed to send OTP',
+        })
+        return
+      }
+
+      setOtpExpiresAt(result.expiresAt)
+      toast({
+        title: 'OTP Sent',
+        description: 'Check your email for the verification code',
+      })
+    } catch (error) {
+      console.error('Send OTP error:', error)
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'An error occurred. Please try again.',
+      })
+    } finally {
+      setIsSendingOtp(false)
     }
   }
 
@@ -408,43 +458,48 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
         <Header />
         <div className='mb-4'>
           <p className='text-sm text-muted-foreground'>
-            We sent a 7-digit code to <strong>{email}</strong>
+            We sent a 6-digit code to <strong>{email}</strong>
           </p>
         </div>
-        <Form {...otpForm}>
-          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)}>
-            <div className='grid gap-2'>
-              <FormField
-                control={otpForm.control}
-                name='otp'
-                render={({ field }) => (
-                  <FormItem className='space-y-1'>
-                    <FormLabel>Verification Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='1234567'
-                        maxLength={7}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+
+        <Card className={cn('border-2', otpError ? 'border-red-500' : 'border-indigo-500')}>
+          <CardContent className='pt-6 space-y-4'>
+            <div className='flex justify-center'>
+              <OtpInput
+                length={6}
+                onComplete={onOtpSubmit}
+                error={!!otpError}
+                disabled={isVerifyingOtp}
               />
-              <Button className='mt-2' disabled={isLoading}>
-                {isLoading ? 'Verifying...' : 'Verify'}
-              </Button>
-              <Button
-                type='button'
-                variant='ghost'
-                onClick={() => setStep('email')}
-                className='mt-2'
-              >
-                Back to Email
-              </Button>
             </div>
-          </form>
-        </Form>
+
+            {otpError && (
+              <p className='text-sm text-red-600 text-center'>{otpError}</p>
+            )}
+
+            <ResendButton
+              onResend={handleResendOtp}
+              isResending={isSendingOtp}
+              cooldown={60}
+            />
+
+            {isVerifyingOtp && (
+              <div className='flex items-center justify-center gap-2 text-sm text-muted-foreground'>
+                <Loader2 className='h-4 w-4 animate-spin' />
+                Verifying code...
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Button
+          type='button'
+          variant='ghost'
+          onClick={() => setStep('email')}
+          className='w-full'
+        >
+          Back to Email
+        </Button>
       </div>
     )
   }

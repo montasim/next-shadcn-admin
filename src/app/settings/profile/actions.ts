@@ -210,14 +210,14 @@ export async function checkEmailAvailability(email: string): Promise<boolean> {
 }
 
 // Send OTP for email change
-export async function sendEmailChangeOtp(newEmail: string): Promise<{ success: boolean, message: string }> {
+export async function sendEmailChangeOtp(newEmail: string, oldEmail?: string): Promise<{ success: boolean, message: string }> {
   const session = await requireAuth()
   if (!session) return { success: false, message: 'Not authenticated' }
 
   const available = await checkEmailAvailability(newEmail)
   if (!available) return { success: false, message: 'Email is already taken' }
 
-  const otp = Math.floor(1000000 + Math.random() * 9000000).toString() // 7-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString() // 6-digit OTP
   const codeHash = createHash('sha256').update(otp).digest('hex')
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 mins
 
@@ -242,10 +242,17 @@ export async function sendEmailChangeOtp(newEmail: string): Promise<{ success: b
     }
   })
 
-  // Mock sending email - in production, you'd use a real email service
-  console.log(`[DEV] Email change OTP for ${newEmail}: ${otp}`)
+  // Send email using Resend
+  try {
+    const { sendEmailChangeOtp: sendOtpEmail } = await import('@/lib/auth/email')
+    await sendOtpEmail(newEmail, otp, session.email)
+  } catch (error) {
+    console.error('Failed to send email change OTP:', error)
+    // Don't fail the request if email fails - log for debugging
+    console.log(`[DEV] Email change OTP for ${newEmail} (from ${session.email}): ${otp}`)
+  }
 
-  return { success: true, message: 'Verification code sent to ' + newEmail }
+  return { success: true, message: `Verification code sent to ${newEmail}` }
 }
 
 // Verify OTP and update email

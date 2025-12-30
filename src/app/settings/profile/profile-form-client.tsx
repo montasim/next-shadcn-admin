@@ -41,6 +41,8 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2, Check, X, Mail, Trash2 } from 'lucide-react'
+import { OtpInput, ResendButton } from '@/components/ui/otp-input'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface ProfileFormClientProps {
   defaultValues: Partial<ProfileFormValues>
@@ -53,9 +55,9 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
   const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null)
   const [isSendingOtp, setIsSendingOtp] = useState(false)
   const [showOtpInput, setShowOtpInput] = useState(false)
-  const [otpCode, setOtpCode] = useState('')
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
   const [emailVerified, setEmailVerified] = useState(false)
+  const [otpError, setOtpError] = useState('')
   const [originalEmail, setOriginalEmail] = useState(defaultValues.email || '')
   const [originalUsername, setOriginalUsername] = useState(defaultValues.username || '')
 
@@ -137,7 +139,7 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
       debouncedEmailCheck(email)
       setShowOtpInput(false)
       setEmailVerified(false)
-      setOtpCode('')
+      setOtpError('')
     } else {
       setEmailAvailable(null)
       setShowOtpInput(false)
@@ -149,15 +151,17 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
     if (!email || email === originalEmail) return
 
     setIsSendingOtp(true)
+    setOtpError('')
     try {
       const result = await sendEmailChangeOtp(email)
       if (result.success) {
         setShowOtpInput(true)
         toast({
-          title: 'Success',
-          description: result.message,
+          title: 'Verification code sent',
+          description: `A 6-digit code has been sent to ${email}`,
         })
       } else {
+        setOtpError(result.message)
         toast({
           title: 'Error',
           description: result.message,
@@ -165,6 +169,7 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
         })
       }
     } catch (error) {
+      setOtpError('Failed to send verification code')
       toast({
         title: 'Error',
         description: 'Failed to send verification code',
@@ -175,34 +180,26 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
     }
   }
 
-  const handleVerifyOtp = async () => {
+  const handleVerifyOtp = async (otpCode: string) => {
     if (!otpCode || !email) return
 
     setIsVerifyingOtp(true)
+    setOtpError('')
     try {
       const result = await verifyEmailChangeOtp(email, otpCode)
       if (result.success) {
         setEmailVerified(true)
         setShowOtpInput(false)
-        setOtpCode('')
         setOriginalEmail(email) // Update original email after successful verification
         toast({
-          title: 'Success',
-          description: result.message,
+          title: 'Email verified',
+          description: 'Your email has been updated successfully',
         })
       } else {
-        toast({
-          title: 'Error',
-          description: result.message,
-          variant: 'destructive',
-        })
+        setOtpError(result.message)
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to verify code',
-        variant: 'destructive',
-      })
+      setOtpError('Failed to verify code')
     } finally {
       setIsVerifyingOtp(false)
     }
@@ -291,7 +288,7 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <div className='space-y-2'>
+                <div className='space-y-3'>
                   <div className='relative'>
                     <Input placeholder='email@example.com' {...field} />
                     {isCheckingEmail && (
@@ -308,7 +305,7 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
                     )}
                   </div>
 
-                  {emailChanged && emailAvailable && !showOtpInput && (
+                  {emailChanged && emailAvailable && !showOtpInput && !emailVerified && (
                     <Button
                       type='button'
                       variant='outline'
@@ -332,37 +329,48 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
                   )}
 
                   {showOtpInput && (
-                    <div className='space-y-2'>
-                      <Input
-                        placeholder='Enter 7-digit code'
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value)}
-                        maxLength={7}
-                      />
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='sm'
-                        onClick={handleVerifyOtp}
-                        disabled={isVerifyingOtp || otpCode.length !== 7}
-                        className='w-full'
-                      >
-                        {isVerifyingOtp ? (
-                          <>
-                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                            Verifying...
-                          </>
-                        ) : (
-                          'Verify Code'
+                    <Card className={cn('border-2', otpError ? 'border-red-500' : 'border-indigo-500')}>
+                      <CardContent className='pt-6 space-y-4'>
+                        <div className='space-y-2'>
+                          <h3 className='font-semibold text-center'>Enter verification code</h3>
+                          <p className='text-sm text-muted-foreground text-center'>
+                            We've sent a 6-digit code to <span className='font-medium text-foreground'>{email}</span>
+                          </p>
+                        </div>
+
+                        <div className='flex justify-center'>
+                          <OtpInput
+                            length={6}
+                            onComplete={handleVerifyOtp}
+                            error={!!otpError}
+                            disabled={isVerifyingOtp}
+                          />
+                        </div>
+
+                        {otpError && (
+                          <p className='text-sm text-red-600 text-center'>{otpError}</p>
                         )}
-                      </Button>
-                    </div>
+
+                        <ResendButton
+                          onResend={handleSendOtp}
+                          isResending={isSendingOtp}
+                          cooldown={60}
+                        />
+
+                        {isVerifyingOtp && (
+                          <div className='flex items-center justify-center gap-2 text-sm text-muted-foreground'>
+                            <Loader2 className='h-4 w-4 animate-spin' />
+                            Verifying code...
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
                   )}
 
                   {emailVerified && emailChanged && (
-                    <div className='flex items-center text-green-600 text-sm'>
-                      <Check className='mr-2 h-4 w-4' />
-                      Email verified
+                    <div className='flex items-center justify-center p-3 bg-green-50 border border-green-200 rounded-lg'>
+                      <Check className='mr-2 h-4 w-4 text-green-600' />
+                      <span className='text-sm text-green-700 font-medium'>Email verified successfully</span>
                     </div>
                   )}
                 </div>

@@ -18,6 +18,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { OtpInput, ResendButton } from '@/components/ui/otp-input'
+import { Card, CardContent } from '@/components/ui/card'
+import { Loader2 } from 'lucide-react'
 
 type ForgotFormProps = HTMLAttributes<HTMLDivElement>
 
@@ -33,8 +36,8 @@ const emailSchema = z.object({
 const otpSchema = z.object({
   otp: z
     .string()
-    .min(7, { message: 'OTP must be 7 digits' })
-    .max(7, { message: 'OTP must be 7 digits' })
+    .min(6, { message: 'OTP must be 6 digits' })
+    .max(6, { message: 'OTP must be 6 digits' })
     .regex(/^\d+$/, { message: 'OTP must contain only numbers' }),
 })
 
@@ -63,9 +66,11 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
   const [step, setStep] = useState<'email' | 'otp' | 'password'>('email')
   const [email, setEmail] = useState('')
   const [resendCountdown, setResendCountdown] = useState(0)
+  const [otpError, setOtpError] = useState('')
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -190,19 +195,21 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
   }
 
   // Step 2: Verify OTP
-  async function onOtpSubmit(data: z.infer<typeof otpSchema>) {
-    setIsLoading(true)
+  async function onOtpSubmit(otpCode: string) {
+    setIsVerifyingOtp(true)
+    setOtpError('')
 
     try {
       const response = await fetch('/api/auth/password-reset/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp: data.otp }),
+        body: JSON.stringify({ email, otp: otpCode }),
       })
 
       const result = await response.json()
 
       if (!response.ok) {
+        setOtpError(result.error || 'Invalid OTP')
         toast({
           variant: 'destructive',
           title: 'Invalid Code',
@@ -219,13 +226,14 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
       })
     } catch (error) {
       console.error('Verify OTP error:', error)
+      setOtpError('An error occurred. Please try again.')
       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'An error occurred. Please try again.',
       })
     } finally {
-      setIsLoading(false)
+      setIsVerifyingOtp(false)
     }
   }
 
@@ -308,63 +316,48 @@ export function ForgotForm({ className, ...props }: ForgotFormProps) {
       <div className={cn('grid gap-6', className)} {...props}>
         <div>
           <p className='text-sm text-muted-foreground'>
-            We sent a 7-digit code to <strong>{email}</strong>
+            We sent a 6-digit code to <strong>{email}</strong>
           </p>
-          <div className='mt-3 flex items-center justify-between'>
-            <span className='text-xs text-muted-foreground'>
-              Didn&apos;t receive the code?
-            </span>
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={onResendOtp}
-              disabled={resendCountdown > 0 || isResending}
-              className='text-xs h-auto p-0 font-normal'
-            >
-              {isResending
-                ? 'Sending...'
-                : resendCountdown > 0
-                  ? `Resend in ${resendCountdown}s`
-                  : 'Resend'
-              }
-            </Button>
-          </div>
         </div>
-        <Form {...otpForm}>
-          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)}>
-            <div className='grid gap-2'>
-              <FormField
-                control={otpForm.control}
-                name='otp'
-                render={({ field }) => (
-                  <FormItem className='space-y-1'>
-                    <FormLabel>Reset Code</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='1234567'
-                        maxLength={7}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+
+        <Card className={cn('border-2', otpError ? 'border-red-500' : 'border-indigo-500')}>
+          <CardContent className='pt-6 space-y-4'>
+            <div className='flex justify-center'>
+              <OtpInput
+                length={6}
+                onComplete={onOtpSubmit}
+                error={!!otpError}
+                disabled={isVerifyingOtp}
               />
-              <Button className='mt-2' disabled={isLoading}>
-                {isLoading ? 'Verifying...' : 'Verify Code'}
-              </Button>
-              <Button
-                type='button'
-                variant='ghost'
-                onClick={() => setStep('email')}
-                className='mt-2'
-              >
-                Back to Email
-              </Button>
             </div>
-          </form>
-        </Form>
+
+            {otpError && (
+              <p className='text-sm text-red-600 text-center'>{otpError}</p>
+            )}
+
+            <ResendButton
+              onResend={onResendOtp}
+              isResending={isResending}
+              cooldown={60}
+            />
+
+            {isVerifyingOtp && (
+              <div className='flex items-center justify-center gap-2 text-sm text-muted-foreground'>
+                <Loader2 className='h-4 w-4 animate-spin' />
+                Verifying code...
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Button
+          type='button'
+          variant='ghost'
+          onClick={() => setStep('email')}
+          className='w-full'
+        >
+          Back to Email
+        </Button>
       </div>
     )
   }
