@@ -38,6 +38,7 @@ const SUPPORT_EMAIL = 'support@bookheaven.com'
 
 /**
  * Industry-standard email template wrapper
+ * Modern, clean design with responsive layout using Book Heaven branding colors
  */
 function emailTemplateWrapper(content: string, previewText?: string): string {
   return `
@@ -48,67 +49,92 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
+  <meta name="subject" content="${previewText || APP_NAME}">
   <title>${APP_NAME}</title>
   <!--[if mso]>
-  <style type="text/css">
-    table {border-collapse: collapse;}
-    .v-text {padding: 0!important;margin: 0!important;}
-  </style>
-  <xml>
-    <o:OfficeDocumentSettings>
-      <o:PixelsPerInch>96</o:PixelsPerInch>
-    </o:OfficeDocumentSettings>
-  </xml>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
   <![endif]-->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { margin: 0; padding: 0; min-width: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    .email-container { max-width: 600px; margin: 0 auto; }
-    .button { display: inline-block; padding: 14px 28px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; }
-    .button:hover { background-color: #4338ca; }
-    .otp-code { font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #4f46e5; text-align: center; font-family: 'Courier New', monospace; }
-    .footer-link { color: #6b7280; text-decoration: underline; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { margin: 0; padding: 0; min-width: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+    .button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 15px; transition: all 0.2s ease; }
+    .button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30, 58, 95, 0.3); }
+    .button-secondary { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
+    .button-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    .button-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .otp-container { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px dashed #cbd5e1; border-radius: 16px; padding: 32px 24px; margin: 32px 0; position: relative; }
+    .otp-code { font-size: 36px; font-weight: 800; letter-spacing: 12px; color: #1e3a5f; text-align: center; font-family: 'Inter', monospace; line-height: 1; margin: 16px 0; }
+    .otp-label { color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-align: center; margin: 0; }
+    .footer-link { color: #64748b; text-decoration: underline; transition: color 0.2s; }
+    .footer-link:hover { color: #1e3a5f; }
+    .warning-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px 20px; margin: 24px 0; border-radius: 8px; }
+    .info-box { background-color: #eff6ff; border-left: 4px solid #1e3a5f; padding: 16px 20px; margin: 24px 0; border-radius: 8px; }
     @media only screen and (max-width: 600px) {
       .email-container { width: 100% !important; }
-      .button { display: block !important; width: 100% !important; box-sizing: border-box; }
-      .otp-code { font-size: 28px !important; letter-spacing: 4px !important; }
+      .button { display: block !important; width: 100% !important; box-sizing: border-box; text-align: center; }
+      .otp-code { font-size: 28px !important; letter-spacing: 6px !important; }
+      .otp-container { padding: 24px 16px !important; }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f9fafb; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="background-color: #f9fafb; padding: 40px 20px;">
-    <div class="email-container" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+<body style="margin: 0; padding: 0; background-color: #f8fafc;">
+  <div style="background-color: #f8fafc; padding: 32px 16px;">
+    <div class="email-container" style="border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); overflow: hidden;">
       <!-- Header -->
-      <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 40px 40px 30px 40px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">${APP_NAME}</h1>
+      <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8f 100%); padding: 48px 32px 32px 32px; text-align: center; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.1;">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+          </svg>
+        </div>
+        <div style="position: relative; z-index: 1;">
+          <div style="display: inline-block; background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); border-radius: 50%; width: 64px; height: 64px; line-height: 64px; margin-bottom: 16px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">${APP_NAME}</h1>
+        </div>
       </div>
 
       <!-- Content -->
-      <div style="padding: 40px 40px 30px 40px;">
+      <div style="padding: 48px 40px 32px 40px;">
         ${content}
       </div>
 
       <!-- Footer -->
-      <div style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
-        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 13px;">
+      <div style="background-color: #f8fafc; padding: 32px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px; font-weight: 500;">
           &copy; ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
         </p>
-        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-          This email was sent to <a href="mailto:{{email}}" style="color: #6b7280; text-decoration: none;">{{email}}</a>.
+        <p style="margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+          This email was sent to <a href="mailto:{{email}}" style="color: #64748b; text-decoration: none; font-weight: 500;">{{email}}</a>.
           <a href="${BASE_URL}/unsubscribe" class="footer-link">Unsubscribe</a> if you don't want to receive these emails.
         </p>
       </div>
     </div>
 
     <!-- Footer Links -->
-    <div style="text-align: center; margin-top: 30px; padding: 0 20px;">
-      <p style="margin: 0 0 10px 0; color: #9ca3af; font-size: 12px;">
-        Need help? <a href="mailto:${SUPPORT_EMAIL}" style="color: #6b7280; text-decoration: underline;">Contact Support</a>
+    <div style="text-align: center; margin-top: 24px; padding: 0 16px;">
+      <p style="margin: 0 0 12px 0; color: #94a3b8; font-size: 12px;">
+        Need help? <a href="mailto:${SUPPORT_EMAIL}" style="color: #64748b; text-decoration: underline; font-weight: 500;">Contact Support</a>
       </p>
-      <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-        <a href="${BASE_URL}/privacy" style="color: #9ca3af; text-decoration: none; margin: 0 10px;">Privacy Policy</a>
-        <span style="color: #d1d5db;">•</span>
-        <a href="${BASE_URL}/terms" style="color: #9ca3af; text-decoration: none; margin: 0 10px;">Terms of Service</a>
+      <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+        <a href="${BASE_URL}/privacy" style="color: #94a3b8; text-decoration: none; margin: 0 8px;">Privacy</a>
+        <span style="color: #cbd5e1;">•</span>
+        <a href="${BASE_URL}/terms" style="color: #94a3b8; text-decoration: none; margin: 0 8px;">Terms</a>
       </p>
     </div>
   </div>
@@ -119,6 +145,7 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
 
 /**
  * Generate registration OTP email HTML
+ * Modern, clean design with prominent OTP display
  */
 function getRegistrationOtpEmailTemplate(otp: string, email?: string): {
   subject: string
@@ -126,52 +153,66 @@ function getRegistrationOtpEmailTemplate(otp: string, email?: string): {
   text: string
 } {
   const content = `
-        <h2 style="color: #111827; margin: 0 0 12px 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-          Verify your email address
+        <!-- Greeting -->
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
+          Welcome to ${APP_NAME}! 🎉
         </h2>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          Thanks for signing up for ${APP_NAME}! We're excited to have you on board.
-        </p>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          To complete your registration, please verify your email address using the code below:
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
+          Thanks for signing up! We're thrilled to have you on board.
         </p>
 
-        <!-- OTP Code -->
-        <div style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border: 2px solid #4f46e5; border-radius: 12px; padding: 24px; margin: 32px 0;">
-          <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Your verification code
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
+          To complete your registration, please enter this verification code:
+        </p>
+
+        <!-- OTP Code - Prominent Display -->
+        <div class="otp-container">
+          <p class="otp-label">Your Verification Code</p>
+          <p class="otp-code">${otp}</p>
+          <p style="color: #94a3b8; font-size: 11px; text-align: center; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+            Valid for 10 minutes
           </p>
-          <p class="otp-code" style="margin: 0;">${otp}</p>
         </div>
 
-        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 32px 0 0 0;">
-          <strong>Important:</strong>
+        <!-- Instructions -->
+        <div class="info-box">
+          <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6;">
+            <strong>📝 How to use:</strong><br />
+            Copy the 6-digit code above and paste it into the verification form on your screen.
+          </p>
+        </div>
+
+        <!-- Important Notes -->
+        <p style="color: #64748b; font-size: 14px; line-height: 1.7; margin: 32px 0 12px 0; font-weight: 600;">
+          Important Information:
         </p>
-        <ul style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 8px 0; padding-left: 20px;">
-          <li>This code will expire in <strong>10 minutes</strong></li>
-          <li>Enter this code on the verification page to complete your registration</li>
-          <li>If you didn't create an account with ${APP_NAME}, please ignore this email</li>
+        <ul style="color: #64748b; font-size: 14px; line-height: 1.8; margin: 0 0 32px 0; padding-left: 20px;">
+          <li style="margin-bottom: 8px;">This code expires in <strong>10 minutes</strong> for your security</li>
+          <li style="margin-bottom: 8px;">Never share this code with anyone</li>
+          <li style="margin-bottom: 8px;">If you didn't create an account, please ignore this email</li>
         </ul>
 
-        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-            If you're having trouble, click the button below to request a new code:
+        <!-- Help Section -->
+        <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">
+            Didn't receive the code or it expired?
           </p>
-          <div style="margin-top: 16px;">
-            <a href="${BASE_URL}/sign-up?email=${encodeURIComponent(email || '')}" class="button">Request New Code</a>
-          </div>
+          <a href="${BASE_URL}/sign-up?email=${encodeURIComponent(email || '')}" class="button">Request New Code</a>
         </div>
       `
 
   return {
-    subject: `Verify your email address - ${APP_NAME}`,
-    html: emailTemplateWrapper(content),
+    subject: `Verify your email - ${APP_NAME}`,
+    html: emailTemplateWrapper(content, 'Email Verification Required'),
     text: `
 ${APP_NAME} - Verify Your Email
 
-Thanks for signing up for ${APP_NAME}!
+Welcome to ${APP_NAME}!
 
-Your verification code is: ${otp}
+Thanks for signing up! Your verification code is:
+
+${otp}
 
 This code will expire in 10 minutes.
 
@@ -186,6 +227,7 @@ Need help? Contact us at ${SUPPORT_EMAIL}
 
 /**
  * Generate password reset OTP email HTML
+ * Modern design with security-focused styling
  */
 function getPasswordResetOtpEmailTemplate(otp: string, email?: string): {
   subject: string
@@ -193,46 +235,62 @@ function getPasswordResetOtpEmailTemplate(otp: string, email?: string): {
   text: string
 } {
   const content = `
-        <h2 style="color: #111827; margin: 0 0 12px 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-          Reset your password
+        <!-- Header -->
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
+          Password Reset Request 🔒
         </h2>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
           We received a request to reset the password for your ${APP_NAME} account.
         </p>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          Use the verification code below to reset your password:
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
+          Use this verification code to reset your password:
         </p>
 
-        <!-- OTP Code -->
-        <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px solid #dc2626; border-radius: 12px; padding: 24px; margin: 32px 0;">
-          <p style="margin: 0 0 12px 0; color: #991b1b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Password reset code
+        <!-- OTP Code - Security Styled -->
+        <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px dashed #fca5a5; border-radius: 16px; padding: 32px 24px; margin: 32px 0; position: relative;">
+          <p style="color: #991b1b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-align: center; margin: 0;">
+            Password Reset Code
           </p>
-          <p class="otp-code" style="margin: 0; color: #dc2626;">${otp}</p>
+          <p style="font-size: 36px; font-weight: 800; letter-spacing: 12px; color: #dc2626; text-align: center; font-family: 'Inter', monospace; line-height: 1; margin: 16px 0;">
+            ${otp}
+          </p>
+          <p style="color: #b91c1c; font-size: 11px; text-align: center; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+            Valid for 10 minutes
+          </p>
         </div>
 
-        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 32px 0 0 0;">
-          <strong>For your security:</strong>
+        <!-- Security Notice -->
+        <div class="warning-box">
+          <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
+            <strong>⚠️ Security Notice:</strong><br />
+            Never share this code with anyone. Our team will never ask for your verification code.
+          </p>
+        </div>
+
+        <!-- Important Notes -->
+        <p style="color: #64748b; font-size: 14px; line-height: 1.7; margin: 32px 0 12px 0; font-weight: 600;">
+          For Your Security:
         </p>
-        <ul style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 8px 0; padding-left: 20px;">
-          <li>This code will expire in <strong>10 minutes</strong></li>
-          <li>If you didn't request a password reset, please ignore this email</li>
-          <li>Your password will remain unchanged until you use this code</li>
+        <ul style="color: #64748b; font-size: 14px; line-height: 1.8; margin: 0 0 32px 0; padding-left: 20px;">
+          <li style="margin-bottom: 8px;">This code expires in <strong>10 minutes</strong></li>
+          <li style="margin-bottom: 8px;">If you didn't request a password reset, please ignore this email</li>
+          <li style="margin-bottom: 8px;">Your password will remain unchanged until you use this code</li>
         </ul>
 
-        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-            If you're having trouble, click the button below to try again:
+        <!-- Help Section -->
+        <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">
+            Code expired or having trouble?
           </p>
-          <div style="margin-top: 16px;">
-            <a href="${BASE_URL}/forgot-password?email=${encodeURIComponent(email || '')}" class="button" style="background-color: #dc2626;">Request New Code</a>
-          </div>
+          <a href="${BASE_URL}/forgot-password?email=${encodeURIComponent(email || '')}" class="button button-danger">Request New Code</a>
         </div>
       `
 
   return {
     subject: `Reset your password - ${APP_NAME}`,
-    html: emailTemplateWrapper(content),
+    html: emailTemplateWrapper(content, 'Password Reset Request'),
     text: `
 ${APP_NAME} - Reset Your Password
 
@@ -253,6 +311,7 @@ Need help? Contact us at ${SUPPORT_EMAIL}
 
 /**
  * Generate email change OTP email HTML
+ * Clean, modern design for email verification
  */
 function getEmailChangeOtpEmailTemplate(otp: string, newEmail?: string, oldEmail?: string): {
   subject: string
@@ -260,46 +319,60 @@ function getEmailChangeOtpEmailTemplate(otp: string, newEmail?: string, oldEmail
   text: string
 } {
   const content = `
-        <h2 style="color: #111827; margin: 0 0 12px 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-          Confirm your email change
+        <!-- Header -->
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
+          Confirm Email Change ✉️
         </h2>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          You requested to change your email address from <strong>${oldEmail || 'your current email'}</strong> to <strong>${newEmail || 'a new email'}</strong>.
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
+          You requested to change your email from:
         </p>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          To complete this change, please verify the new email address using the code below:
+
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 16px 20px; margin: 0 auto 24px auto; max-width: 400px; text-align: center;">
+          <p style="margin: 0; color: #64748b; font-size: 14px; font-weight: 500;">${oldEmail || 'your current email'}</p>
+          <div style="margin: 12px 0; color: #94a3b8;">↓</div>
+          <p style="margin: 0; color: #1e3a5f; font-size: 16px; font-weight: 700;">${newEmail || 'a new email'}</p>
+        </div>
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
+          Please enter this verification code to confirm:
         </p>
 
         <!-- OTP Code -->
-        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #059669; border-radius: 12px; padding: 24px; margin: 32px 0;">
-          <p style="margin: 0 0 12px 0; color: #065f46; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            Email confirmation code
+        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px dashed #86efac; border-radius: 16px; padding: 32px 24px; margin: 32px 0; position: relative;">
+          <p style="color: #065f46; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-align: center; margin: 0;">
+            Email Confirmation Code
           </p>
-          <p class="otp-code" style="margin: 0; color: #059669;">${otp}</p>
+          <p style="font-size: 36px; font-weight: 800; letter-spacing: 12px; color: #059669; text-align: center; font-family: 'Inter', monospace; line-height: 1; margin: 16px 0;">
+            ${otp}
+          </p>
+          <p style="color: #047857; font-size: 11px; text-align: center; margin: 12px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
+            Valid for 10 minutes
+          </p>
         </div>
 
-        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 32px 0 0 0;">
-          <strong>Important:</strong>
+        <!-- Important Notes -->
+        <p style="color: #64748b; font-size: 14px; line-height: 1.7; margin: 32px 0 12px 0; font-weight: 600;">
+          Important Information:
         </p>
-        <ul style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 8px 0; padding-left: 20px;">
-          <li>This code will expire in <strong>10 minutes</strong></li>
-          <li>Your old email will remain active until you verify the new one</li>
-          <li>If you didn't request this change, please ignore this email</li>
+        <ul style="color: #64748b; font-size: 14px; line-height: 1.8; margin: 0 0 32px 0; padding-left: 20px;">
+          <li style="margin-bottom: 8px;">This code expires in <strong>10 minutes</strong></li>
+          <li style="margin-bottom: 8px;">Your old email will remain active until you verify the new one</li>
+          <li style="margin-bottom: 8px;">If you didn't request this change, please ignore this email</li>
         </ul>
 
-        <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-          <p style="color: #9ca3af; font-size: 13px; margin: 0;">
-            If you're having trouble, click the button below to try again:
+        <!-- Help Section -->
+        <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">
+            Need to make changes?
           </p>
-          <div style="margin-top: 16px;">
-            <a href="${BASE_URL}/settings/profile" class="button" style="background-color: #059669;">Go to Settings</a>
-          </div>
+          <a href="${BASE_URL}/settings/profile" class="button button-success">Go to Settings</a>
         </div>
       `
 
   return {
     subject: `Confirm your email change - ${APP_NAME}`,
-    html: emailTemplateWrapper(content),
+    html: emailTemplateWrapper(content, 'Email Change Confirmation'),
     text: `
 ${APP_NAME} - Confirm Email Change
 
@@ -320,55 +393,77 @@ Need help? Contact us at ${SUPPORT_EMAIL}
 
 /**
  * Generate invitation email HTML
+ * Modern, attractive invitation design
  */
 function getInvitationEmailTemplate(inviteLink: string, role?: string, desc?: string): {
   subject: string
   html: string
   text: string
 } {
-  const roleText = role ? ` as <strong>${role}</strong>` : ''
+  const roleText = role ? ` as <strong style="color: #1e3a5f;">${role}</strong>` : ''
   const descText = desc
-    ? `<div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
-          <p style="margin: 0; color: #92400e; font-size: 14px; font-style: italic;">"${desc}"</p>
+    ? `<div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 24px 0; border-radius: 8px;">
+          <p style="margin: 0; color: #15803d; font-size: 15px; line-height: 1.6;">
+            <strong>💬 Message from the inviter:</strong><br />
+            <span style="font-style: italic;">"${desc}"</span>
+          </p>
         </div>`
     : ''
 
   const content = `
-        <h2 style="color: #111827; margin: 0 0 12px 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">
-          You're invited!
+        <!-- Header -->
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
+          You're Invited! 🎉
         </h2>
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-          Great news! You've been invited to join <strong>${APP_NAME}</strong>${roleText}.
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
+          Great news! You've been invited to join
         </p>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+          <strong style="color: #1e3a5f; font-size: 20px;">${APP_NAME}</strong>${roleText}
+        </div>
+
         ${descText}
-        <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
           Click the button below to create your account and get started:
         </p>
 
         <!-- CTA Button -->
         <div style="text-align: center; margin: 40px 0;">
-          <a href="${inviteLink}" class="button" style="font-size: 18px; padding: 16px 32px;">Create Your Account</a>
+          <a href="${inviteLink}" class="button" style="font-size: 17px; padding: 18px 40px; box-shadow: 0 4px 14px rgba(30, 58, 95, 0.25);">
+            Create Your Account →
+          </a>
         </div>
 
-        <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 32px 0 0 0;">
-          <strong>Important:</strong>
+        <!-- Important Notes -->
+        <p style="color: #64748b; font-size: 14px; line-height: 1.7; margin: 32px 0 12px 0; font-weight: 600;">
+          Important Information:
         </p>
-        <ul style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 8px 0; padding-left: 20px;">
-          <li>This invitation will expire in <strong>7 days</strong></li>
-          <li>If you weren't expecting this invitation, please ignore this email</li>
-          <li>You can only use this invitation link once</li>
+        <ul style="color: #64748b; font-size: 14px; line-height: 1.8; margin: 0 0 32px 0; padding-left: 20px;">
+          <li style="margin-bottom: 8px;">This invitation will expire in <strong>7 days</strong></li>
+          <li style="margin-bottom: 8px;">You can only use this invitation link once</li>
+          <li style="margin-bottom: 8px;">If you weren't expecting this invitation, please ignore this email</li>
         </ul>
+
+        <!-- Help Section -->
+        <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 13px; margin: 0;">
+            Questions? <a href="mailto:${SUPPORT_EMAIL}" style="color: #64748b; text-decoration: underline; font-weight: 500;">Contact our support team</a>
+          </p>
+        </div>
       `
 
   return {
     subject: `You're invited to join ${APP_NAME}`,
-    html: emailTemplateWrapper(content),
+    html: emailTemplateWrapper(content, 'Invitation to Join Book Heaven'),
     text: `
 ${APP_NAME} - You're Invited!
 
 You've been invited to join ${APP_NAME}${role ? ` as a ${role}` : ''}.
 
-${desc ? `Note: "${desc}"\n` : ''}
+${desc ? `Message: "${desc}"\n` : ''}
 
 Click here to create your account: ${inviteLink}
 
