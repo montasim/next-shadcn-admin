@@ -384,6 +384,120 @@ export const createSeriesSchema = z.object({
   image: urlSchema.optional()
 })
 
+export const updateSeriesSchema = createSeriesSchema.partial()
+
+// ============================================================================
+// MOOD SCHEMAS
+// ============================================================================
+
+export const createMoodSchema = z.object({
+  name: z.string().min(1).max(100).trim(),
+  description: z.string().max(500).trim().optional(),
+  icon: z.string().max(50).trim().optional(), // Emoji or icon name
+  color: z.string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color format (use hex format #RRGGBB)')
+    .optional()
+})
+
+export const updateMoodSchema = createMoodSchema.partial()
+
+// ============================================================================
+// NOTICE SCHEMAS
+// ============================================================================
+
+export const createNoticeSchema = z.object({
+  title: z.string().min(1).max(200).trim(),
+  content: z.string()
+    .min(10, 'Content must be at least 10 characters')
+    .max(5000, 'Content is too long')
+    .transform((val) => sanitizeUserContent(val, 5000)),
+  type: z.enum(['INFO', 'WARNING', 'SUCCESS', 'ERROR']).default('INFO'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
+  isActive: z.boolean().default(true),
+  expiresAt: z.string().datetime().optional(),
+  targetRole: z.enum(['USER', 'ADMIN', 'SUPERADMIN', 'ALL']).optional()
+})
+
+export const updateNoticeSchema = createNoticeSchema.partial()
+
+// ============================================================================
+// MESSAGE & CONVERSATION SCHEMAS
+// ============================================================================
+
+export const createConversationSchema = z.object({
+  recipientId: objectIdSchema,
+  initialMessage: z.string()
+    .min(1, 'Message cannot be empty')
+    .max(2000, 'Message is too long')
+    .transform((val) => sanitizeUserContent(val, 2000))
+})
+
+export const sendConversationMessageSchema = z.object({
+  conversationId: objectIdSchema.optional(),
+  content: z.string()
+    .min(1, 'Message cannot be empty')
+    .max(2000, 'Message is too long')
+    .transform((val) => sanitizeUserContent(val, 2000))
+    .refine((val) => val.trim().length > 0, 'Message cannot be empty or whitespace only'),
+  listingId: objectIdSchema.optional(), // For marketplace conversations
+  offerId: objectIdSchema.optional() // For offer-related messages
+})
+
+export const markConversationAsReadSchema = z.object({
+  conversationId: objectIdSchema,
+  lastReadAt: z.string().datetime().optional()
+})
+
+// ============================================================================
+// LIBRARY/BOOKSHELF ENHANCEMENTS
+// ============================================================================
+
+export const addBookToBookshelfSchema = z.object({
+  bookshelfId: objectIdSchema,
+  bookId: objectIdSchema,
+  notes: z.string().max(500).trim().optional()
+})
+
+export const removeBookFromBookshelfSchema = z.object({
+  bookshelfId: objectIdSchema,
+  bookId: objectIdSchema
+})
+
+export const updateBookshelfBookSchema = z.object({
+  bookshelfId: objectIdSchema,
+  bookId: objectIdSchema,
+  notes: z.string().max(500).trim().optional(),
+  readingStatus: z.enum(['NOT_STARTED', 'READING', 'COMPLETED', 'ABANDONED']).optional(),
+  rating: z.number().int().min(1).max(5).optional()
+})
+
+// ============================================================================
+// ADMIN OPERATIONS SCHEMAS
+// ============================================================================
+
+export const bulkActionSchema = z.object({
+  ids: z.array(objectIdSchema).min(1).max(100),
+  action: z.enum(['DELETE', 'ACTIVATE', 'DEACTIVATE', 'PUBLISH', 'UNPUBLISH']),
+  reason: z.string().max(500).optional()
+})
+
+export const updateUserRoleSchema = z.object({
+  userId: objectIdSchema,
+  role: z.enum(['USER', 'ADMIN', 'SUPERADMIN']),
+  reason: z.string().min(10).max(500).trim()
+})
+
+// ============================================================================
+// ANALYTICS & REPORTING SCHEMAS
+// ============================================================================
+
+export const analyticsQuerySchema = z.object({
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  granularity: z.enum(['hour', 'day', 'week', 'month']).optional(),
+  metrics: z.array(z.string()).optional()
+})
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
@@ -472,14 +586,29 @@ export const validation = {
   createCategory: createCategorySchema,
   createPublication: createPublicationSchema,
 
+  // Series
+  createSeries: createSeriesSchema,
+  updateSeries: updateSeriesSchema,
+
+  // Moods
+  createMood: createMoodSchema,
+  updateMood: updateMoodSchema,
+
+  // Notices
+  createNotice: createNoticeSchema,
+  updateNotice: updateNoticeSchema,
+
   // Marketplace
   createListing: createListingSchema,
   createOffer: createOfferSchema,
   updateOfferStatus: updateOfferStatusSchema,
 
-  // Messaging
+  // Messaging & Chat
   chatMessage: chatMessageSchema,
   sendMessage: sendMessageSchema,
+  createConversation: createConversationSchema,
+  sendConversationMessage: sendConversationMessageSchema,
+  markConversationAsRead: markConversationAsReadSchema,
 
   // Quiz
   submitQuizAnswer: submitQuizAnswerSchema,
@@ -498,13 +627,20 @@ export const validation = {
   updateDisplaySettings: updateDisplaySettingsSchema,
   updateNotificationSettings: updateNotificationSettingsSchema,
 
-  // Bookshelves
+  // Bookshelves & Library
   createBookshelf: createBookshelfSchema,
   updateBookshelf: updateBookshelfSchema,
+  addBookToBookshelf: addBookToBookshelfSchema,
+  removeBookFromBookshelf: removeBookFromBookshelfSchema,
+  updateBookshelfBook: updateBookshelfBookSchema,
 
   // Book requests
   createBookRequest: createBookRequestSchema,
 
-  // Series
-  createSeries: createSeriesSchema
+  // Admin operations
+  bulkAction: bulkActionSchema,
+  updateUserRole: updateUserRoleSchema,
+
+  // Analytics
+  analyticsQuery: analyticsQuerySchema
 }
