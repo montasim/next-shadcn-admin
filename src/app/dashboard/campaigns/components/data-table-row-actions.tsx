@@ -2,7 +2,7 @@
 
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { Row } from '@tanstack/react-table'
-import { IconSend, IconCalendar, IconTrash, IconChartBar, IconEdit } from '@tabler/icons-react'
+import { IconSend, IconCalendar, IconTrash, IconChartBar, IconEdit, IconTestPipe } from '@tabler/icons-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useCampaignsContext } from '../context/campaigns-context'
 import { campaignSchema } from '../data/schema'
-import { sendCampaign } from '../actions'
+import { sendCampaign, testRunCampaign } from '../actions'
 import { toast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 
@@ -33,6 +33,7 @@ export function DataTableRowActions<TData>({
   const canDelete = campaign.status === 'DRAFT' || campaign.status === 'FAILED' || campaign.status === 'CANCELLED'
   const canSend = campaign.status === 'DRAFT' || campaign.status === 'FAILED'
   const canSchedule = campaign.status === 'DRAFT' || campaign.status === 'FAILED'
+  const canTest = campaign.status === 'DRAFT' || campaign.status === 'FAILED' || campaign.status === 'SENT' || campaign.status === 'CANCELLED'
 
   const handleSend = async () => {
     try {
@@ -46,6 +47,22 @@ export function DataTableRowActions<TData>({
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to send campaign',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleTestRun = async () => {
+    try {
+      const result = await testRunCampaign(campaign.id)
+      toast({
+        title: 'Test email sent',
+        description: result.message,
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to send test email',
         variant: 'destructive',
       })
     }
@@ -81,6 +98,14 @@ export function DataTableRowActions<TData>({
             Send Now
             <DropdownMenuShortcut>
               <IconSend size={16} />
+            </DropdownMenuShortcut>
+          </DropdownMenuItem>
+        )}
+        {canTest && (
+          <DropdownMenuItem onClick={handleTestRun}>
+            Test Run
+            <DropdownMenuShortcut>
+              <IconTestPipe size={16} />
             </DropdownMenuShortcut>
           </DropdownMenuItem>
         )}

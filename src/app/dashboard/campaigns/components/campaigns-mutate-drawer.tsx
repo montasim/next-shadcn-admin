@@ -34,10 +34,10 @@ import {
 } from '@/components/ui/select'
 import { useCampaignsContext } from '../context/campaigns-context'
 import { createCampaignSchema, CreateCampaignInput, Campaign } from '../data/schema'
-import { createCampaign, updateCampaign, getRecipientCount } from '../actions'
+import { createCampaign, updateCampaign, getRecipientCount, testRunCampaignWithContent } from '../actions'
 import { toast } from '@/hooks/use-toast'
 import { MarkdownEmailEditor, TemplateVariablesHint } from './markdown-email-editor'
-import { Loader2 } from 'lucide-react'
+import { Loader2, TestTube } from 'lucide-react'
 
 interface CampaignsMutateDialogProps {
   open: boolean
@@ -56,6 +56,7 @@ export function CampaignsMutateDrawer({
   const isEdit = !!currentRow
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [recipientCount, setRecipientCount] = useState(0)
+  const [isTesting, setIsTesting] = useState(false)
 
   const form = useForm<CreateCampaignInput>({
     resolver: zodResolver(createCampaignSchema),
@@ -159,6 +160,40 @@ export function CampaignsMutateDrawer({
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const onTest = async () => {
+    const values = form.getValues()
+    if (!values.subject || !values.markdownContent) {
+      toast({
+        title: 'Missing Information',
+        description: 'Please provide a subject and email content before testing',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsTesting(true)
+    try {
+      await testRunCampaignWithContent(
+        values.subject,
+        values.previewText || '',
+        values.markdownContent
+      )
+      toast({
+        title: 'Test Email Sent',
+        description: 'Check your inbox for the test email',
+      })
+    } catch (error) {
+      console.error('Error sending test email:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to send test email',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsTesting(false)
     }
   }
 
@@ -378,20 +413,43 @@ export function CampaignsMutateDrawer({
               />
             )}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : isEdit ? (
-                  'Update Campaign'
-                ) : (
-                  'Create Campaign'
-                )}
-              </Button>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onTest}
+                  disabled={isTesting || isSubmitting}
+                  className="flex-1 sm:flex-none"
+                >
+                  {isTesting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <TestTube className="mr-2 h-4 w-4" />
+                      Test Run
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                <Button type="submit" disabled={isSubmitting} className="flex-1 sm:flex-none">
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : isEdit ? (
+                    'Update Campaign'
+                  ) : (
+                    'Create Campaign'
+                  )}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>

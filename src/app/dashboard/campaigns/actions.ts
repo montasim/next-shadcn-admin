@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { requireAuth } from '@/lib/auth/session'
-import { markdownToHtml, sendCampaignEmailFromMarkdown, generateUnsubscribeUrl } from '@/lib/auth/email'
+import { markdownToHtml, generateUnsubscribeUrl } from '@/lib/utils/markdown'
+import { sendCampaignEmailFromMarkdown } from '@/lib/auth/email'
 import { Campaign, CampaignStatus, CampaignType, RecurrenceFrequency, UserRole } from '@prisma/client'
 import { logActivity } from '@/lib/activity/repositories/activity-log.repository'
 import { Campaign as CampaignSchema } from './data/schema'
@@ -579,6 +580,137 @@ async function getRecipientCountFromDb(targetAllUsers: boolean, targetRole?: str
   }
 
   return await prisma.user.count({ where })
+}
+
+// Test run a campaign - sends to current user only
+export async function testRunCampaign(id: string) {
+  const session = await requireAuth()
+
+  try {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id },
+    })
+
+    if (!campaign) {
+      throw new Error('Campaign not found')
+    }
+
+    // Get current user
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Send test email to current user
+    const unsubscribeUrl = generateUnsubscribeUrl(id, user.id)
+
+    const result = await sendCampaignEmailFromMarkdown(
+      user.email,
+      `[TEST] ${campaign.subject}`,
+      campaign.previewText || undefined,
+      campaign.markdownContent,
+      {
+        userName: user.firstName && user.lastName
+          ? `${user.firstName} ${user.lastName}`
+          : user.email.split('@')[0],
+        firstName: user.firstName || undefined,
+        email: user.email,
+        unsubscribeUrl,
+      }
+    )
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send test email')
+    }
+
+    // Log activity
+    await logActivity({
+      userId: session.userId,
+      userRole: session.role as UserRole,
+      action: 'CAMPAIGN_SENT' as any,
+      resourceType: 'CAMPAIGN' as any,
+      resourceId: id,
+      resourceName: campaign.name,
+      description: `Test run for campaign "${campaign.name}" sent to ${user.email}`,
+    })
+
+    revalidatePath('/dashboard/campaigns')
+    return {
+      success: true,
+      message: `Test email sent successfully to ${user.email}`,
+    }
+  } catch (error) {
+    console.error('Error running test campaign:', error)
+    throw error || new Error('Failed to send test email')
+  }
+}
+
+// Test run a campaign with custom content (for testing before saving)
+export async function testRunCampaignWithContent(
+  subject: string,
+  previewText: string,
+  markdownContent: string
+) {
+  const session = await requireAuth()
+
+  try {
+    // Get current user
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+    })
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Generate a temporary ID for unsubscribe URL
+    const tempCampaignId = 'test-campaign'
+
+    // Send test email to current user
+    const unsubscribeUrl = generateUnsubscribeUrl(tempCampaignId, user.id)
+
+    const result = await sendCampaignEmailFromMarkdown(
+      user.email,
+      `[TEST] ${subject}`,
+      previewText || undefined,
+      markdownContent,
+      {
+        userName: user.firstName && user.lastName
+          ? `${user.firstName} ${user.lastName}`
+          : user.email.split('@')[0],
+        firstName: user.firstName || undefined,
+        email: user.email,
+        unsubscribeUrl,
+      }
+    )
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send test email')
+    }
+
+    return {
+      success: true,
+      message: `Test email sent successfully to ${user.email}`,
+    }
+  } catch (error) {
+    console.error('Error running test campaign with custom content:', error)
+    throw error || new Error('Failed to send test email')
+  }
 }
 
 // Helper function to map Prisma Campaign to Campaign type
