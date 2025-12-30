@@ -486,6 +486,14 @@ model User {
   // Activity tracking
   activities             ActivityLog[]              @relation("UserActivities")
 
+  // Support tickets
+  tickets                SupportTicket[]            @relation("UserTickets")
+  assignedTickets        SupportTicket[]            @relation("AssignedTickets")
+  ticketResponses        TicketResponse[]           @relation("TicketResponses")
+
+  // Legal content management
+  updatedLegalContent    LegalContent[]            @relation("UserLegalContent")
+
   @@map("users")
 }
 
@@ -1198,4 +1206,131 @@ model ActivityLog {
   @@index([action, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
   @@map("activity_logs")
+}
+
+// ============================================================================
+// SUPPORT TICKETS SYSTEM
+// ============================================================================
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+model SupportTicket {
+  id                String           @id @default(uuid())
+
+  // User info
+  userId            String
+  user              User             @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  userEmail          String
+  userName           String
+
+  // Ticket details
+  subject           String
+  description       String           @db.Text
+  category          String           // e.g., 'technical', 'billing', 'feature', 'bug'
+  priority          TicketPriority   @default(MEDIUM)
+  status            TicketStatus     @default(OPEN)
+
+  // Admin assignment
+  assignedToId      String?
+  assignedTo        User?            @relation("AssignedTickets", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  // Resolution
+  resolution        String?          @db.Text
+  resolvedAt        DateTime?
+
+  // Timestamps
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  closedAt          DateTime?
+
+  // Relations
+  responses         TicketResponse[]
+
+  @@index([userId, status, createdAt(sort: Desc)])
+  @@index([status, priority, createdAt(sort: Desc)])
+  @@index([assignedToId, status])
+  @@map("support_tickets")
+}
+
+model TicketResponse {
+  id                String           @id @default(uuid())
+
+  ticketId          String
+  ticket            SupportTicket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  // Response info
+  senderId          String
+  sender            User             @relation("TicketResponses", fields: [senderId], references: [id], onDelete: Cascade)
+  senderRole        UserRole         @default(USER)
+  isFromAdmin       Boolean          @default(false)
+
+  message           String           @db.Text
+
+  // Attachments (optional)
+  attachments       Json?            // Array of file URLs
+
+  createdAt         DateTime         @default(now())
+
+  @@index([ticketId, createdAt(sort: Asc)])
+  @@map("ticket_responses")
+}
+
+// FAQ for help center
+model FAQ {
+  id                String           @id @default(uuid())
+
+  question          String
+  answer            String           @db.Text
+  category          String           // e.g., 'account', 'reading', 'marketplace', 'technical'
+  order             Int              @default(0)
+
+  isActive          Boolean          @default(true)
+
+  // Metadata
+  views             Int              @default(0)
+  helpfulCount      Int              @default(0)
+  notHelpfulCount   Int              @default(0)
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([category, order])
+  @@index([isActive])
+  @@map("faqs")
+}
+
+// Legal content pages (Terms, Privacy, etc.)
+model LegalContent {
+  id                String           @id @default(uuid())
+  type              LegalContentType @unique
+  title             String
+  content           String           @db.Text  // Markdown content
+  lastUpdatedById   String
+  lastUpdatedBy     User             @relation("UserLegalContent", fields: [lastUpdatedById], references: [id])
+  effectiveDate     DateTime         @default(now())
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([type])
+  @@map("legal_content")
+}
+
+enum LegalContentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  COOKIE_POLICY
+  DISCLAIMER
 }
