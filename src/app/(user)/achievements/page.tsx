@@ -11,9 +11,11 @@ import { useAuth } from '@/context/auth-context'
 import { useRouter } from 'next/navigation'
 import { AchievementsList } from '@/components/achievements/achievements-list'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
-import { Trophy, Sparkles, Target, BookOpen, TrendingUp, Award, ChevronRight } from 'lucide-react'
+import { Trophy, Sparkles, Target, BookOpen, TrendingUp, Award, ChevronRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import type { AchievementWithProgress } from '@/lib/achievements/types'
 
@@ -33,6 +35,7 @@ export default function AchievementsPage() {
   const [achievements, setAchievements] = useState<AchievementWithProgress[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isChecking, setIsChecking] = useState(false)
+  const [isGuidanceExpanded, setIsGuidanceExpanded] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -209,9 +212,9 @@ export default function AchievementsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className='flex flex-1 flex-col'>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between gap-4">
+      <div className='flex-none mb-2 flex flex-col md:flex-row md:justify-between gap-4'>
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Trophy className="h-6 w-6" />
@@ -230,27 +233,36 @@ export default function AchievementsPage() {
         </Button>
       </div>
 
-      {/* Dashboard Summary */}
-      <DashboardSummary summaries={summaryItems} />
+      <ScrollArea className='faded-bottom -mx-4 flex-1 scroll-smooth px-4 md:pb-16'>
+        <div className='space-y-6'>
+          {/* Dashboard Summary */}
+          <DashboardSummary summaries={summaryItems} />
 
       {/* All Achievements Guidance Section */}
-      <div className="rounded-lg border bg-card p-6">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          How to Achieve More
-        </h2>
+      <div className="rounded-lg border bg-card">
+        <button
+          onClick={() => setIsGuidanceExpanded(!isGuidanceExpanded)}
+          className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+        >
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-left">
+            <Target className="h-5 w-5" />
+            How to Achieve More
+          </h2>
+          {isGuidanceExpanded ? (
+            <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform" />
+          )}
+        </button>
 
-        {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading achievements...
-          </div>
-        ) : achievements.length === 0 ? (
-          <div className="text-center py-8">
-            <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No achievements available yet.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
+        {isGuidanceExpanded && (
+          <div className="px-6 pb-6">
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Loading achievements...
+              </div>
+            ) : achievements.length === 0 ? null : (
+              <div className="space-y-6">
             {Object.entries(achievementsByCategory).map(([category, items]) => {
             const categoryConfig: Record<string, { label: string; icon: any }> = {
               READING: { label: 'Reading', icon: BookOpen },
@@ -348,11 +360,32 @@ export default function AchievementsPage() {
             )
           })}
           </div>
+            )}
+          </div>
         )}
       </div>
 
       {/* Achievements List */}
-      <AchievementsList achievements={achievements} isLoading={isLoading} />
+      {achievements.length === 0 && !isLoading ? (
+        <Card>
+          <CardContent className="pt-12 pb-12">
+            <div className="text-center">
+              <Trophy className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No achievements available yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start exploring the platform to unlock achievements.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Read books, take quizzes, and engage with the community to earn rewards.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <AchievementsList achievements={achievements} isLoading={isLoading} />
+      )}
+        </div>
+      </ScrollArea>
     </div>
   )
 }

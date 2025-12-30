@@ -2,8 +2,7 @@
 
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import Link from 'next/link'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 // Custom debounce function
 function debounce<T extends (...args: any[]) => any>(
@@ -32,13 +31,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2, Check, X, Mail, Trash2 } from 'lucide-react'
 import { OtpInput, ResendButton } from '@/components/ui/otp-input'
@@ -60,6 +52,7 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
   const [otpError, setOtpError] = useState('')
   const [originalEmail, setOriginalEmail] = useState(defaultValues.email || '')
   const [originalUsername, setOriginalUsername] = useState(defaultValues.username || '')
+  const [showEmptyUrlField, setShowEmptyUrlField] = useState(false)
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -417,45 +410,63 @@ export function ProfileFormClient({ defaultValues }: ProfileFormClientProps) {
         />
 
         <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`urls.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && 'sr-only')}>
-                    URLs
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && 'sr-only')}>
-                    Add links to your website, blog, or social media profiles.
-                  </FormDescription>
-                  <FormControl>
-                    <div className='flex gap-2'>
-                      <Input {...field} placeholder='https://example.com' />
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='icon'
-                        onClick={() => remove(index)}
-                        className='shrink-0'
-                        title='Remove URL'
-                      >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
+          {fields.map((field, index) => {
+            const urlValue = form.watch(`urls.${index}.value`)
+            const shouldShowField = urlValue || (showEmptyUrlField && index === fields.length - 1)
+            if (!shouldShowField) return null
+
+            return (
+              <FormField
+                control={form.control}
+                key={field.id}
+                name={`urls.${index}.value`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={cn(index !== 0 && 'sr-only')}>
+                      URLs
+                    </FormLabel>
+                    <FormDescription className={cn(index !== 0 && 'sr-only')}>
+                      Add links to your website, blog, or social media profiles.
+                    </FormDescription>
+                    <FormControl>
+                      <div className='flex gap-2'>
+                        <Input {...field} placeholder='https://example.com' />
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='icon'
+                          onClick={() => {
+                            remove(index)
+                            if (!urlValue) {
+                              setShowEmptyUrlField(false)
+                            }
+                          }}
+                          className='shrink-0'
+                          title='Remove URL'
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )
+          })}
           <Button
             type='button'
             variant='outline'
             size='sm'
             className='mt-2'
-            onClick={() => append({ value: '' })}
+            onClick={() => {
+              if (!showEmptyUrlField) {
+                setShowEmptyUrlField(true)
+                append({ value: '' })
+              } else {
+                append({ value: '' })
+              }
+            }}
           >
             Add URL
           </Button>

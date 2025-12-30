@@ -221,12 +221,12 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Activity',
-          url: '/dashboard/activity',
+          url: '/activity',
           icon: IconHistory,
         },
         {
           title: 'Achievements',
-          url: '/dashboard/achievements',
+          url: '/achievements',
           icon: IconTrophy,
         },
         {

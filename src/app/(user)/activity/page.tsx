@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { HeaderContainer } from '@/components/ui/header-container'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { ActivityAction, ActivityResourceType } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
 import { Calendar, Filter, Clock, CheckCircle, XCircle, BookOpen, MessageSquare, ShoppingCart, User, Settings, TrendingUp, Activity } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { useAuth } from '@/context/auth-context'
+import {HeaderContainer} from "@/components/ui/header-container";
 
 type UserActivity = {
   id: string
@@ -26,6 +27,8 @@ type UserActivity = {
 }
 
 export default function UserActivityPage() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
   const [activities, setActivities] = useState<UserActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedAction, setSelectedAction] = useState<string>('all')
@@ -139,19 +142,20 @@ export default function UserActivityPage() {
     : 0
 
   return (
-    <>
-      <HeaderContainer>
-        <div>
-          <h1 className='text-2xl font-bold'>Your Activity Timeline</h1>
-          <p className='text-sm text-muted-foreground'>
-            Track your recent activities on the platform
-          </p>
-        </div>
-      </HeaderContainer>
+    <div className='flex flex-1 flex-col'>
+        <HeaderContainer>
+            <div>
+                <h1 className='text-2xl font-bold'>Your Activity Timeline</h1>
+                <p className='text-sm text-muted-foreground'>
+                    Track your recent activities on the platform
+                </p>
+            </div>
+        </HeaderContainer>
 
-      <div className='space-y-6 px-4'>
-        {/* Stats Cards */}
-        <DashboardSummary
+      <ScrollArea className='faded-bottom -mx-4 flex-1 scroll-smooth px-4 md:pb-16'>
+        <div className='space-y-6'>
+            {/* Stats Cards */}
+            <DashboardSummary
           summaries={[
             {
               title: 'Total Activities',
@@ -317,7 +321,7 @@ export default function UserActivityPage() {
                             <Badge variant='outline' className='text-xs'>
                               {formatResourceType(activity.resourceType)}
                             </Badge>
-                            {activity.endpoint && (
+                            {isAdmin && activity.endpoint && (
                               <span className='text-xs text-muted-foreground font-mono'>
                                 {activity.endpoint}
                               </span>
@@ -332,7 +336,8 @@ export default function UserActivityPage() {
             ))}
           </div>
         )}
-      </div>
-    </>
+        </div>
+      </ScrollArea>
+    </div>
   )
 }
