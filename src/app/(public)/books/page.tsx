@@ -34,6 +34,10 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react'
 import { NoticeTicker } from '@/components/notices/notice-ticker'
 
@@ -47,7 +51,7 @@ function deriveFiltersFromSearchParams(searchParams: ReturnType<typeof useSearch
     sortBy: searchParams?.get('sortBy') || 'createdAt',
     sortOrder: 'desc' as 'asc' | 'desc',
     premium: 'all' as 'all' | 'free' | 'premium',
-    page: 1,
+    page: parseInt(searchParams?.get('page') || '1', 10),
     limit: 12
   }
 }
@@ -145,9 +149,6 @@ function BooksPageContent({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Notice Ticker */}
-      <NoticeTicker />
-
       <main className="container mx-auto p-4 pb-24 lg:pb-8">
           {/* Header */}
         <div className="">
@@ -699,15 +700,28 @@ function BooksPageContent({
               <div className="flex items-center justify-center gap-2 mt-8">
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleFilterChange('page', 1)}
+                  disabled={filters.page === 1}
+                  title="First page"
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => handleFilterChange('page', filters.page - 1)}
                   disabled={!pagination.hasPreviousPage}
+                  title="Previous page"
                 >
-                  Previous
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
 
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(3, pagination.totalPages) }, (_, i) => {
                     const pageNum = i + 1
                     const isCurrentPage = pageNum === filters.page
 
@@ -724,7 +738,7 @@ function BooksPageContent({
                     )
                   })}
 
-                  {pagination.totalPages > 5 && (
+                  {pagination.totalPages > 3 && (
                     <>
                       <span className="px-2 text-sm text-muted-foreground">...</span>
                       <Button
@@ -740,11 +754,24 @@ function BooksPageContent({
 
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => handleFilterChange('page', filters.page + 1)}
                   disabled={!pagination.hasNextPage}
+                  title="Next page"
                 >
-                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleFilterChange('page', pagination.totalPages)}
+                  disabled={filters.page === pagination.totalPages}
+                  title="Last page"
+                >
+                  <ChevronsRight className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -826,12 +853,15 @@ function BooksPageWrapper() {
   const key = useMemo(() => searchParams?.toString() || '', [searchParams])
 
   return (
-    <BooksPageContent
-      key={key}
-      initialFilters={initialFilters}
-      searchParams={searchParams}
-      user={user}
-    />
+    <>
+      <NoticeTicker />
+      <BooksPageContent
+        key={key}
+        initialFilters={initialFilters}
+        searchParams={searchParams}
+        user={user}
+      />
+    </>
   )
 }
 
