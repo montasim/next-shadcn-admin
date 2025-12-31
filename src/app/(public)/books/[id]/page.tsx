@@ -26,6 +26,8 @@ import { BookGrid } from '@/components/books/book-grid'
 import { BookChatButton } from '@/components/books/book-chat-button'
 import { BookChatModal } from '@/components/books/book-chat-modal'
 import { BookDetailsSkeleton } from '@/components/books/book-details-skeleton'
+import { BookReviewForm } from '@/components/books/book-review-form'
+import { BookReviewsList } from '@/components/books/book-reviews-list'
 import {
     BookOpen,
     LibraryBig,
@@ -122,6 +124,11 @@ export default function BookDetailsPage() {
 
   // Chart period state
   const [chartPeriod, setChartPeriod] = useState<'week' | 'month'>('week')
+
+  // Reviews state
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [editingReview, setEditingReview] = useState<{ id: string; rating: number; comment: string | null } | null>(null)
+  const [reviewsKey, setReviewsKey] = useState(0) // For refreshing reviews list
 
   // Get user for auth
   const { user } = useAuth()
@@ -307,6 +314,25 @@ export default function BookDetailsPage() {
       ...prev,
       [sectionId]: !prev[sectionId],
     }))
+  }
+
+  // Handle review success
+  const handleReviewSuccess = () => {
+    setShowReviewForm(false)
+    setEditingReview(null)
+    setReviewsKey((prev) => prev + 1) // Refresh reviews list
+  }
+
+  // Handle edit review
+  const handleEditReview = (review: { id: string; rating: number; comment: string | null }) => {
+    setEditingReview(review)
+    setShowReviewForm(true)
+  }
+
+  // Handle cancel review
+  const handleCancelReview = () => {
+    setShowReviewForm(false)
+    setEditingReview(null)
   }
 
   return (
@@ -658,9 +684,10 @@ export default function BookDetailsPage() {
 
             {/* Detailed Information Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="progress">My Progress</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
               </TabsList>
 
               {/* Description Tab - Book Description and Author Info */}
@@ -1124,6 +1151,55 @@ export default function BookDetailsPage() {
                       </div>
                     </CardContent>
                   </Card>
+                )}
+              </TabsContent>
+
+              {/* Reviews Tab */}
+              <TabsContent value="reviews" className="mt-4">
+                {!user ? (
+                  // Not authenticated - show login prompt
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-center">
+                        <UserIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">Sign In to Write Reviews</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Log in to share your thoughts about this book with other readers.
+                        </p>
+                        <Link href="/auth/sign-in">
+                          <Button>
+                            Sign In
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : showReviewForm ? (
+                  // Show review form (create or edit)
+                  <BookReviewForm
+                    bookId={bookId}
+                    existingReview={editingReview}
+                    onSuccess={handleReviewSuccess}
+                    onCancel={handleCancelReview}
+                  />
+                ) : (
+                  // Show reviews list
+                  <div className="space-y-6">
+                    {/* Write Review Button */}
+                    <div className="flex justify-end">
+                      <Button onClick={() => setShowReviewForm(true)}>
+                        Write a Review
+                      </Button>
+                    </div>
+
+                    {/* Reviews List */}
+                    <BookReviewsList
+                      key={reviewsKey}
+                      bookId={bookId}
+                      currentUserId={user.id}
+                      onEdit={handleEditReview}
+                    />
+                  </div>
                 )}
               </TabsContent>
             </Tabs>

@@ -207,6 +207,9 @@ model Book {
   // Marketplace relations
   sellPosts                    BookSellPost[]            @relation("BookSellPosts")
 
+  // Reviews relationship
+  reviews                      BookReview[]
+
   @@map("books")
 }
 
@@ -275,6 +278,24 @@ model BookQuestion {
 
   @@index([bookId, order])
   @@map("book_questions")
+}
+
+model BookReview {
+  id              String   @id @default(uuid())
+  bookId          String
+  userId          String
+  rating          Int      // 1-5 stars
+  comment         String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  book            Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user            User     @relation("UserBookReviews", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, userId]) // One review per user per book
+  @@index([bookId])
+  @@index([userId])
+  @@map("book_reviews")
 }
 
 model BookView {
@@ -466,6 +487,7 @@ model User {
   publicationViews    PublicationView[]
   categoryViews       CategoryView[]
   seriesViews         SeriesView[]
+  bookReviews         BookReview[]        @relation("UserBookReviews")
 
   // Marketplace relations
   sellPosts              BookSellPost[]              @relation("UserSellPosts")
