@@ -529,9 +529,17 @@ export async function deleteBook(id: string) {
     })
 
     // Delete the book
-    return tx.book.delete({
-      where: { id },
-    })
+    try {
+      return await tx.book.delete({
+        where: { id },
+      })
+    } catch (error: any) {
+      // If record not found (P2025), that's okay - book was already deleted
+      if (error.code === 'P2025') {
+        return { id, deleted: false }
+      }
+      throw error
+    }
   })
 }
 

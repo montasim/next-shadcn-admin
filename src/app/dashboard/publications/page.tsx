@@ -13,11 +13,25 @@ import { columns } from './components/columns'
 import { PublicationsMutateDrawer } from './components/publications-mutate-drawer'
 import { PublicationsDeleteDialog } from './components/publications-delete-dialog'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
+import { Button } from '@/components/ui/button'
+import { Trash2, X } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export default function PublicationsPage() {
   const [publications, setPublications] = useState<Publication[]>([])
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
   const [totalCount, setTotalCount] = useState(0)
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false)
 
   // Store current pagination in a ref to avoid stale closures
   const paginationRef = useRef(pagination)
@@ -101,11 +115,79 @@ export default function PublicationsPage() {
     }
   }
 
+  const handleBulkDelete = async () => {
+    try {
+      let deletedCount = 0
+      let failedCount = 0
+
+      for (const publicationId of selectedRows) {
+        try {
+          await deletePublication(publicationId)
+          deletedCount++
+        } catch (error) {
+          console.error(`Failed to delete publication ${publicationId}:`, error)
+          failedCount++
+        }
+      }
+
+      await refreshPublications()
+      setSelectedRows([])
+      setShowBulkDeleteDialog(false)
+
+      if (failedCount > 0) {
+        toast({
+          title: 'Partial success',
+          description: `${deletedCount} ${deletedCount === 1 ? 'publication' : 'publications'} deleted. ${failedCount} ${failedCount === 1 ? 'publication' : 'publications'} could not be deleted.`,
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Publications deleted successfully',
+          description: `${deletedCount} ${deletedCount === 1 ? 'publication' : 'publications'} deleted.`,
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete publications',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <PublicationsContextProvider value={{ open, setOpen, currentRow, setCurrentRow, refreshPublications }}>
       <HeaderContainer>
         <PublicationsHeader />
       </HeaderContainer>
+
+      {selectedRows.length > 0 && (
+        <div className='mb-4 flex items-center justify-between rounded-lg border bg-muted/50 p-4'>
+          <div className='flex items-center gap-2'>
+            <span className='text-sm font-medium'>
+              {selectedRows.length} {selectedRows.length === 1 ? 'publication' : 'publications'} selected
+            </span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => setSelectedRows([])}
+            >
+              <X className='mr-2 h-4 w-4' />
+              Clear
+            </Button>
+            <Button
+              variant='destructive'
+              size='sm'
+              onClick={() => setShowBulkDeleteDialog(true)}
+            >
+              <Trash2 className='mr-2 h-4 w-4' />
+              Delete Selected
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0'>
         {publications.length === 0 ? (
@@ -120,6 +202,7 @@ export default function PublicationsPage() {
             pagination={pagination}
             onPaginationChange={setPagination}
             totalCount={totalCount}
+            onSelectedRowsChange={setSelectedRows}
           />
         )}
       </div>
@@ -160,6 +243,23 @@ export default function PublicationsPage() {
           />
         </>
       )}
+
+      <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Selected Publications</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedRows.length} {selectedRows.length === 1 ? 'publication' : 'publications'}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PublicationsContextProvider>
   )
 }
