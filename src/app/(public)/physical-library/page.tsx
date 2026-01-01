@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/context/auth-context'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,12 +13,7 @@ import { BookGrid } from '@/components/books/book-grid'
 import { BookCardSkeleton } from '@/components/books/book-card-skeleton'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { SearchBar } from '@/components/books/search-bar'
-import { MoodSelector } from '@/components/books/mood-selector'
 import { useBooks } from '@/hooks/use-books'
-import { useRecentVisits } from '@/hooks/use-recent-visits'
-import { useContinueReading } from '@/hooks/use-continue-reading'
-import { useMoodRecommendations } from '@/hooks/use-mood-recommendations'
-import type { Mood } from '@/components/books/mood-selector'
 import Link from 'next/link'
 import {
   Grid,
@@ -27,13 +21,6 @@ import {
   SlidersHorizontal,
   X,
   BookOpen,
-  Headphones,
-  FileText,
-  Clock,
-  PlayCircle,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -53,7 +40,7 @@ interface Category {
 function deriveFiltersFromSearchParams(searchParams: ReturnType<typeof useSearchParams>) {
   return {
     search: searchParams?.get('search') || '',
-    types: searchParams?.get('types')?.split(',').filter(Boolean) || [],
+    types: ['HARD_COPY'], // Only hard copy books
     categories: searchParams?.get('categories')?.split(',').filter(Boolean) || [],
     author: searchParams?.get('author') || '',
     sortBy: searchParams?.get('sortBy') || 'createdAt',
@@ -64,34 +51,18 @@ function deriveFiltersFromSearchParams(searchParams: ReturnType<typeof useSearch
   }
 }
 
-function BooksPageContent({
+function LibraryPageContent({
   initialFilters,
   searchParams,
-  user,
 }: {
   initialFilters: ReturnType<typeof deriveFiltersFromSearchParams>
   searchParams: ReturnType<typeof useSearchParams>
-  user: any
 }) {
   const [filters, setFilters] = useState(initialFilters)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [selectedMood, setSelectedMood] = useState<Mood | null>(null)
-  const [showMoodPicker, setShowMoodPicker] = useState(false)
 
   const { data: booksData, isLoading, error, refetch } = useBooks(filters)
-
-  // Fetch continue reading books (only for authenticated users)
-  const { data: continueReadingData } = useContinueReading(8, !!user)
-  const continueReadingBooks = user ? continueReadingData?.books || [] : []
-
-  // Fetch recently visited books (only for authenticated users)
-  const { data: recentVisitsData } = useRecentVisits(8, !!user)
-  const recentBooks = user ? recentVisitsData?.books || [] : []
-
-  // Fetch mood-based recommendations
-  const { data: moodData, isLoading: isLoadingMood } = useMoodRecommendations(selectedMood?.id || null, 8)
-  const moodBooks = moodData?.books || []
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({
@@ -108,7 +79,7 @@ function BooksPageContent({
   const clearFilters = () => {
     setFilters({
       search: '',
-      types: [],
+      types: ['HARD_COPY'],
       categories: [],
       author: '',
       sortBy: 'createdAt',
@@ -119,7 +90,7 @@ function BooksPageContent({
     })
   }
 
-  const hasActiveFilters = filters.types.length > 0 || filters.categories.length > 0 || filters.author || filters.premium !== 'all'
+  const hasActiveFilters = filters.categories.length > 0 || filters.author || filters.premium !== 'all'
 
   const books = booksData?.books || []
   const pagination = booksData?.pagination
@@ -162,7 +133,6 @@ function BooksPageContent({
     const params = new URLSearchParams()
 
     if (filters.search) params.set('search', filters.search)
-    if (filters.types.length > 0) params.set('types', filters.types.join(','))
     if (filters.categories.length > 0) params.set('categories', filters.categories.join(','))
     if (filters.author) params.set('author', filters.author)
     if (filters.sortBy !== 'createdAt') params.set('sortBy', filters.sortBy)
@@ -170,21 +140,21 @@ function BooksPageContent({
     if (filters.premium !== 'all') params.set('premium', filters.premium)
     if (filters.page !== 1) params.set('page', filters.page.toString())
 
-    const newUrl = `/books${params.toString() ? '?' + params.toString() : ''}`
+    const newUrl = `/physical-library${params.toString() ? '?' + params.toString() : ''}`
     window.history.replaceState(null, '', newUrl)
   }, [filters])
 
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto p-4 pb-24 lg:pb-8">
-          {/* Header */}
+        {/* Header */}
         <div className="">
           {/* Desktop Header */}
           <div className="hidden lg:flex lg:items-center justify-between mb-4 gap-6">
             <div>
-              <h1 className="text-xl font-bold">Discover Books</h1>
+              <h1 className="text-xl font-bold">Physical Library</h1>
               <p className="text-muted-foreground">
-                {booksData?.pagination?.totalBooks || 0} books available
+                {booksData?.pagination?.totalBooks || 0} hard copy books available
               </p>
             </div>
 
@@ -217,24 +187,6 @@ function BooksPageContent({
                   <List className="h-4 w-4" />
                 </Button>
               </div>
-
-              {/*/!* Admin Actions *!/*/}
-              {/*{isAdmin && (*/}
-              {/*  <div className="flex items-center gap-2">*/}
-              {/*    <Link href="/dashboard/books">*/}
-              {/*      <Button variant="outline" size="sm">*/}
-              {/*        <Settings className="mr-2 h-4 w-4" />*/}
-              {/*        Manage Books*/}
-              {/*      </Button>*/}
-              {/*    </Link>*/}
-              {/*    <Link href="/dashboard/books/new">*/}
-              {/*      <Button size="sm">*/}
-              {/*        <Plus className="mr-2 h-4 w-4" />*/}
-              {/*        Add Book*/}
-              {/*      </Button>*/}
-              {/*    </Link>*/}
-              {/*  </div>*/}
-              {/*)}*/}
             </div>
           </div>
 
@@ -242,11 +194,11 @@ function BooksPageContent({
           <div className="lg:hidden">
             {/* Mobile Controls */}
             <div className="flex items-center justify-between mb-4">
-              {/* Left Side - Discover Books Info */}
+              {/* Left Side - Library Info */}
               <div>
-                <h1 className="text-xl font-bold">Discover Books</h1>
+                <h1 className="text-xl font-bold">Physical Library</h1>
                 <p className="text-muted-foreground">
-                  {booksData?.pagination?.totalBooks || 0} books available
+                  {booksData?.pagination?.totalBooks || 0} hard copy books
                 </p>
               </div>
 
@@ -279,26 +231,10 @@ function BooksPageContent({
                 >
                   <List className="h-4 w-4" />
                 </Button>
-
-                {/*/!* Mobile Admin Actions *!/*/}
-                {/*{isAdmin && (*/}
-                {/*  <>*/}
-                {/*    <Link href="/dashboard/books">*/}
-                {/*      <Button variant="outline" size="sm">*/}
-                {/*        <Settings className="h-4 w-4" />*/}
-                {/*      </Button>*/}
-                {/*    </Link>*/}
-                {/*    <Link href="/dashboard/books/new">*/}
-                {/*      <Button size="sm">*/}
-                {/*        <Plus className="h-4 w-4" />*/}
-                {/*      </Button>*/}
-                {/*    </Link>*/}
-                {/*  </>*/}
-                {/*)}*/}
               </div>
             </div>
 
-            {/* Mobile Search Bar - Below Discover Books Section */}
+            {/* Mobile Search Bar */}
             <div className="w-full mb-4">
               <SearchBar
                 onSearch={handleSearch}
@@ -332,34 +268,6 @@ function BooksPageContent({
               </div>
 
               <div className="p-4 space-y-6">
-                {/* Book Type Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Book Type</Label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'EBOOK', label: 'Ebook', icon: FileText },
-                      { value: 'AUDIO', label: 'Audiobook', icon: Headphones },
-                    ].map((type) => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Switch
-                          id={`mobile-${type.value}`}
-                          checked={filters.types.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            const newTypes = checked
-                              ? [...filters.types, type.value]
-                              : filters.types.filter(t => t !== type.value);
-                            handleFilterChange('types', newTypes);
-                          }}
-                        />
-                        <Label htmlFor={`mobile-${type.value}`} className="text-sm flex items-center gap-2 cursor-pointer">
-                          <type.icon className="h-4 w-4" />
-                          {type.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Category Filter */}
                 <div>
                   <Label className="text-sm font-medium mb-3 block">Categories</Label>
@@ -370,21 +278,6 @@ function BooksPageContent({
                     placeholder="Select categories"
                     maxVisible={3}
                   />
-                </div>
-
-                {/* Premium Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Access Level</Label>
-                  <Select value={filters.premium} onValueChange={(value) => handleFilterChange('premium', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Books</SelectItem>
-                      <SelectItem value="free">Free Books</SelectItem>
-                      <SelectItem value="premium">Premium Books</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {/* Sort Options */}
@@ -459,47 +352,16 @@ function BooksPageContent({
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Book Type Filter */}
+                {/* Category Filter */}
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">Book Type</Label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'EBOOK', label: 'Ebook', icon: FileText },
-                      { value: 'AUDIO', label: 'Audiobook', icon: Headphones },
-                    ].map((type) => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Switch
-                          id={type.value}
-                          checked={filters.types.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            const newTypes = checked
-                              ? [...filters.types, type.value]
-                              : filters.types.filter(t => t !== type.value);
-                            handleFilterChange('types', newTypes);
-                          }}
-                        />
-                        <Label htmlFor={type.value} className="text-sm flex items-center gap-2 cursor-pointer">
-                          <type.icon className="h-4 w-4" />
-                          {type.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Premium Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Access Level</Label>
-                  <Select value={filters.premium} onValueChange={(value) => handleFilterChange('premium', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Books</SelectItem>
-                      <SelectItem value="free">Free Books</SelectItem>
-                      <SelectItem value="premium">Premium Books</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-sm font-medium mb-3 block">Categories</Label>
+                  <MultiSelect
+                    options={CATEGORY_OPTIONS}
+                    selected={filters.categories}
+                    onChange={(values) => handleFilterChange('categories', values)}
+                    placeholder="Select categories"
+                    maxVisible={3}
+                  />
                 </div>
 
                 {/* Sort Options */}
@@ -531,18 +393,6 @@ function BooksPageContent({
                     </div>
                   </div>
                 </div>
-
-                {/* Category Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Categories</Label>
-                  <MultiSelect
-                    options={CATEGORY_OPTIONS}
-                    selected={filters.categories}
-                    onChange={(values) => handleFilterChange('categories', values)}
-                    placeholder="Select categories"
-                    maxVisible={3}
-                  />
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -552,15 +402,6 @@ function BooksPageContent({
             {/* Active Filters - Mobile Only */}
             {hasActiveFilters && (
               <div className="mb-6 flex flex-wrap gap-2 lg:hidden">
-                {filters.types.map((type) => (
-                  <Badge key={type} variant="secondary" className="flex items-center gap-1">
-                    Type: {type.replace('_', ' ')}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => handleFilterChange('types', filters.types.filter(t => t !== type))}
-                    />
-                  </Badge>
-                ))}
                 {filters.categories.map((categoryValue) => {
                   const category = CATEGORY_OPTIONS.find(opt => opt.value === categoryValue)
                   return (
@@ -573,15 +414,6 @@ function BooksPageContent({
                     </Badge>
                   )
                 })}
-                {filters.premium !== 'all' && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    {filters.premium === 'free' ? 'Free Only' : 'Premium Only'}
-                    <X
-                      className="h-3 w-3 cursor-pointer"
-                      onClick={() => handleFilterChange('premium', 'all')}
-                    />
-                  </Badge>
-                )}
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
                   Clear All
                 </Button>
@@ -609,77 +441,6 @@ function BooksPageContent({
               </div>
             )}
 
-            {/* Mood-Based Recommendations Section */}
-            {(!user || user.showMoodRecommendations !== false) && (
-            <div className="mt-4 md:mt-0 lg:mt-0 mb-6">
-              <Card>
-                <CardHeader className="cursor-pointer py-3 sm:py-6 px-4 sm:px-6" onClick={() => setShowMoodPicker(!showMoodPicker)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-base sm:text-lg">Recommended for Your Mood</CardTitle>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      {showMoodPicker ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </CardHeader>
-                {showMoodPicker && (
-                  <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                    {!selectedMood ? (
-                      <MoodSelector onSelectMood={setSelectedMood} />
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">{selectedMood.emoji}</span>
-                            <div>
-                              <h3 className="font-semibold">{selectedMood.name} Mood</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {selectedMood.description}
-                              </p>
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm" onClick={() => setSelectedMood(null)}>
-                            Change Mood
-                          </Button>
-                        </div>
-
-                        {isLoadingMood ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[...Array(6)].map((_, i) => (
-                              <BookCardSkeleton key={i} viewMode="grid" />
-                            ))}
-                          </div>
-                        ) : moodBooks.length > 0 ? (
-                          <BookGrid
-                            books={moodBooks}
-                            viewMode={viewMode}
-                            viewMoreHref={(book) => `/books/${book.id}`}
-                            showTypeBadge={true}
-                            showPremiumBadge={true}
-                            showCategories={true}
-                            showReaderCount={true}
-                            showAddToBookshelf={true}
-                            showUploader={true}
-                            showLockOverlay={true}
-                            coverHeight="tall"
-                            showProgressActions={true}
-                          />
-                        ) : (
-                          <EmptyStateCard
-                            title='No books found for this mood'
-                            description='Try selecting another mood to see different book recommendations.'
-                          />
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                )}
-              </Card>
-            </div>
-            )}
-
             {/* Books Display */}
             {!isLoading && !error && (
               <>
@@ -692,9 +453,6 @@ function BooksPageContent({
                         <p className="text-muted-foreground mb-4">
                           Try adjusting your filters or search terms to find what you&apos;re looking for.
                         </p>
-                        <p className="text-sm text-muted-foreground mb-6">
-                          You can also browse our collection by clearing all filters.
-                        </p>
                         <Button onClick={clearFilters}>
                           Clear Filters
                         </Button>
@@ -705,16 +463,16 @@ function BooksPageContent({
                   <BookGrid
                     books={books}
                     viewMode={viewMode}
-                    viewMoreHref={(book) => `/books/${book.id}`}
-                    showTypeBadge={true}
-                    showPremiumBadge={true}
+                    viewMoreHref={(book) => `/physical-library/${book.id}`}
+                    showTypeBadge={false} // Hard copy only, no need to show type
+                    showPremiumBadge={false} // No premium for hard copies
                     showCategories={true}
-                    showReaderCount={true}
-                    showAddToBookshelf={true}
-                    showUploader={true}
-                    showLockOverlay={true}
+                    showReaderCount={false} // Not relevant for hard copies
+                    showAddToBookshelf={false} // Not needed for physical library
+                    showUploader={false} // Cleaner look
+                    showLockOverlay={false} // No lock for hard copies
                     coverHeight="tall"
-                    showProgressActions={true}
+                    showProgressActions={false} // No reading progress for hard copies
                   />
                 )}
               </>
@@ -800,67 +558,6 @@ function BooksPageContent({
                 </Button>
               </div>
             )}
-
-              {/* Continue Reading Section - For Authenticated Users */}
-              {user && continueReadingBooks.length > 0 && (
-                  <div className="mt-8">
-                      <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                              <PlayCircle className="h-5 w-5 text-primary" />
-                              <h2 className="text-xl font-semibold">Continue Reading</h2>
-                          </div>
-                          <Link href="/library?filter=reading">
-                              <Button variant="outline" size="sm">
-                                  View All
-                              </Button>
-                          </Link>
-                      </div>
-                      <BookGrid
-                          books={continueReadingBooks}
-                          viewMode={viewMode}
-                          viewMoreHref={(book) => `/books/${book.id}`}
-                          showTypeBadge={true}
-                          showPremiumBadge={true}
-                          showCategories={true}
-                          showReaderCount={true}
-                          showAddToBookshelf={true}
-                          showUploader={true}
-                          showLockOverlay={true}
-                          showProgressActions={true}
-                          coverHeight="tall"
-                      />
-                  </div>
-              )}
-
-              {/* Recently Visited Section - For Authenticated Users */}
-              {user && recentBooks.length > 0 && (
-                  <div className="mt-8">
-                      <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                              <Clock className="h-5 w-5 text-primary" />
-                              <h2 className="text-xl font-semibold">Recently Visited</h2>
-                          </div>
-                          <Link href="/library">
-                              <Button variant="outline" size="sm">
-                                  View All
-                              </Button>
-                          </Link>
-                      </div>
-                      <BookGrid
-                          books={recentBooks}
-                          viewMode={viewMode}
-                          viewMoreHref={(book) => `/books/${book.id}`}
-                          showTypeBadge={true}
-                          showPremiumBadge={true}
-                          showCategories={true}
-                          showReaderCount={true}
-                          showAddToBookshelf={true}
-                          showUploader={true}
-                          showLockOverlay={true}
-                          coverHeight="tall"
-                      />
-                  </div>
-              )}
           </div>
         </div>
       </main>
@@ -869,9 +566,8 @@ function BooksPageContent({
 }
 
 // Wrapper component that resets state when searchParams change
-function BooksPageWrapper() {
+function LibraryPageWrapper() {
   const searchParams = useSearchParams()
-  const { user } = useAuth()
 
   // Use a key to force re-mount when URL params change
   const initialFilters = useMemo(() => deriveFiltersFromSearchParams(searchParams), [searchParams])
@@ -880,21 +576,20 @@ function BooksPageWrapper() {
   return (
     <>
       <NoticeTicker />
-      <BooksPageContent
+      <LibraryPageContent
         key={key}
         initialFilters={initialFilters}
         searchParams={searchParams}
-        user={user}
       />
     </>
   )
 }
 
 // Wrapper with Suspense boundary for useSearchParams
-export default function BooksPage() {
+export default function LibraryPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <BooksPageWrapper />
+      <LibraryPageWrapper />
     </Suspense>
   )
 }

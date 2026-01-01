@@ -35,6 +35,7 @@ import {
   IconHistory,
   IconTrophy,
   IconHandStop,
+  IconLibrary,
 } from '@tabler/icons-react'
 import { AudioWaveform, BookOpen as BookOpenIcon, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -232,8 +233,13 @@ export const sidebarData: SidebarData = {
           icon: IconLayoutDashboard,
         },
         {
-          title: 'Library',
-          url: '/library',
+          title: 'Physical Library',
+          url: '/physical-library',
+          icon: IconLibrary,
+        },
+        {
+          title: 'My Library',
+          url: '/library?tab=my-uploads',
           icon: IconBookmark,
         },
         {
