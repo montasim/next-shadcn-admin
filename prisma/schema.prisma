@@ -1515,4 +1515,5 @@ enum LegalContentType {
   PRIVACY_POLICY
   COOKIE_POLICY
   DISCLAIMER
+  ABOUT
 }
