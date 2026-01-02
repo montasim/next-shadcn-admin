@@ -15,6 +15,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton } from '@/components/dashboard/dashboard-summary-skeleton'
+import {
+  AchievementsPageHeaderSkeleton,
+  AchievementsGuidanceSkeleton,
+  AchievementsListSkeleton
+} from '@/components/achievements/achievements-page-skeleton'
 import { Trophy, Sparkles, Target, BookOpen, TrendingUp, Award, ChevronRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import type { AchievementWithProgress } from '@/lib/achievements/types'
@@ -212,33 +218,44 @@ export default function AchievementsPage() {
   }
 
   return (
-    <div className='flex flex-1 flex-col'>
+    <div className='flex flex-col h-full'>
       {/* Header */}
-      <div className='flex-none mb-2 flex flex-col md:flex-row md:justify-between gap-4'>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Trophy className="h-6 w-6" />
-            Achievements
-          </h1>
-          <p className="text-muted-foreground">
-            Unlock achievements by reading, taking quizzes, and exploring the platform
-          </p>
+      {isLoading ? (
+        <AchievementsPageHeaderSkeleton />
+      ) : (
+        <div className='flex-none mb-2 flex flex-col md:flex-row md:justify-between gap-4'>
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Trophy className="h-6 w-6" />
+              Achievements
+            </h1>
+            <p className="text-muted-foreground">
+              Unlock achievements by reading, taking quizzes, and exploring the platform
+            </p>
+          </div>
+          <Button
+            onClick={handleCheckAchievements}
+            disabled={isChecking}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {isChecking ? 'Checking...' : 'Check for New'}
+          </Button>
         </div>
-        <Button
-          onClick={handleCheckAchievements}
-          disabled={isChecking}
-        >
-          <Sparkles className="h-4 w-4 mr-2" />
-          {isChecking ? 'Checking...' : 'Check for New'}
-        </Button>
-      </div>
+      )}
 
-      <ScrollArea className='faded-bottom -mx-4 flex-1 scroll-smooth px-4 md:pb-16'>
+      <ScrollArea className='faded-bottom -mx-4 flex-1 scroll-smooth px-4 md:pb-16 h-full'>
         <div className='space-y-6'>
           {/* Dashboard Summary */}
-          <DashboardSummary summaries={summaryItems} />
+          {isLoading ? (
+            <DashboardSummarySkeleton count={4} />
+          ) : (
+            <DashboardSummary summaries={summaryItems} />
+          )}
 
       {/* All Achievements Guidance Section */}
+      {isLoading ? (
+        <AchievementsGuidanceSkeleton />
+      ) : (
       <div className="rounded-lg border bg-card">
         <button
           onClick={() => setIsGuidanceExpanded(!isGuidanceExpanded)}
@@ -364,6 +381,7 @@ export default function AchievementsPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* Achievements List */}
       {achievements.length === 0 && !isLoading ? (
@@ -381,6 +399,8 @@ export default function AchievementsPage() {
             </div>
           </CardContent>
         </Card>
+      ) : isLoading ? (
+        <AchievementsListSkeleton />
       ) : (
         <AchievementsList achievements={achievements} isLoading={isLoading} />
       )}
