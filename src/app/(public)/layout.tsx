@@ -5,6 +5,7 @@ import '../globals.css'
 import { Toaster } from '@/components/ui/toaster'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { PublicHeader } from '@/components/layout/public-header'
+import { PublicFooter } from '@/components/layout/public-footer'
 import { UnderConstructionBanner } from '@/components/layout/under-construction-banner'
 import { MDXViewerProvider } from 'mdx-craft'
 
@@ -35,6 +36,9 @@ export default function PublicLayout({
                       {children}
                   </MDXViewerProvider>
               </div>
+
+              {/* Public Footer */}
+              <PublicFooter />
 
               {/* Mobile Bottom Navigation */}
               <MobileBottomNav />

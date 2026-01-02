@@ -29,16 +29,6 @@ const navItems: NavItem[] = [
     icon: Bookmark,
   },
   {
-    label: 'Request',
-    href: '/dashboard/book-requests',
-    icon: Plus,
-  },
-    {
-        label: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutDashboard,
-    },
-  {
     label: 'Settings',
     href: '/settings',
     icon: Settings,
