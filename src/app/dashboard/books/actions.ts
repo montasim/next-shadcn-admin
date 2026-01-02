@@ -260,7 +260,7 @@ export async function getBooks(options?: { page?: number; pageSize?: number }) {
           featured: book.featured ?? false,
           entryDate: book.entryDate.toISOString(),
           entryBy: entryByName,
-          entryById: book.entryBy.id,
+          entryById: book.entryBy?.id,
           createdAt: book.createdAt.toISOString(),
           updatedAt: book.updatedAt.toISOString(),
           authors: book.authors.map(bookAuthor => ({
