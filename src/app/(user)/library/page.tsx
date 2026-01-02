@@ -34,7 +34,7 @@ import { UploadBooksMutateDrawer } from './upload-books-mutate-drawer'
 import { LibraryFilterToolbar } from './components/library-filter-toolbar'
 import { BookshelfFilterToolbar } from './components/bookshelf-filter-toolbar'
 import { RequestBookDrawer } from './request-book-drawer'
-import { BookGridSkeleton } from '@/components/books/book-grid-skeleton'
+import { BookGridSkeleton, DashboardSummarySkeleton, FilterToolbarSkeleton } from '@/components/books/book-grid-skeleton'
 import { Book } from '@/app/dashboard/books/data/schema'
 import { deleteBook } from '@/app/dashboard/books/actions'
 import { getBookshelves, deleteBookshelf, getUserBooks } from './actions'
@@ -187,11 +187,18 @@ function LibraryPageContent() {
   const [isPending, startTransition] = useTransition()
 
   const refreshBooks = useCallback(async () => {
-    const userBooks = await getUserBooks()
-    startTransition(() => {
-      setBooks(userBooks)
-      setStats(calculateLibraryStats(userBooks))
-    })
+    try {
+      setBooksLoading(true)
+      const userBooks = await getUserBooks()
+      startTransition(() => {
+        setBooks(userBooks)
+        setStats(calculateLibraryStats(userBooks))
+      })
+    } catch (error) {
+      console.error('Error fetching books:', error)
+    } finally {
+      setBooksLoading(false)
+    }
   }, [])
 
   const refreshBookshelves = useCallback(async () => {
@@ -506,50 +513,57 @@ function LibraryPageContent() {
         </div>
 
         {/* Dashboard Summary - Always visible at top */}
-        <DashboardSummary
-          summaries={[
-            {
-              title: 'Books Read',
-              value: stats.completedBooks,
-              description: stats.completedThisMonth > 0 ? `${stats.completedThisMonth} this month` : 'Start reading to track',
-              icon: BookOpen,
-            },
-            {
-              title: 'Reading Time',
-              value: `${stats.readingTimeHours}h`,
-              description: stats.totalPagesRead > 0 ? `${stats.totalPagesRead} pages read` : 'Start reading to track',
-              icon: Clock,
-            },
-            {
-              title: 'Currently Reading',
-              value: stats.currentlyReading,
-              description: stats.currentlyReading > 0 ? 'Books in progress' : 'No books started',
-              icon: TrendingUp,
-            },
-            {
-              title: 'Total Progress',
-              value: books.length > 0 ? `${Math.round((stats.completedBooks / books.length) * 100)}%` : '0%',
-              description: `${stats.completedBooks} of ${books.length} books completed`,
-              icon: Target,
-              additionalContent: (
-                <Progress value={books.length > 0 ? (stats.completedBooks / books.length) * 100 : 0} className="h-2" />
-              ),
-            },
-          ]}
-        />
+        {booksLoading ? (
+          <DashboardSummarySkeleton />
+        ) : (
+          <DashboardSummary
+            summaries={[
+              {
+                title: 'Books Read',
+                value: stats.completedBooks,
+                description: stats.completedThisMonth > 0 ? `${stats.completedThisMonth} this month` : 'Start reading to track',
+                icon: BookOpen,
+              },
+              {
+                title: 'Reading Time',
+                value: `${stats.readingTimeHours}h`,
+                description: stats.totalPagesRead > 0 ? `${stats.totalPagesRead} pages read` : 'Start reading to track',
+                icon: Clock,
+              },
+              {
+                title: 'Currently Reading',
+                value: stats.currentlyReading,
+                description: stats.currentlyReading > 0 ? 'Books in progress' : 'No books started',
+                icon: TrendingUp,
+              },
+              {
+                title: 'Total Progress',
+                value: books.length > 0 ? `${Math.round((stats.completedBooks / books.length) * 100)}%` : '0%',
+                description: `${stats.completedBooks} of ${books.length} books completed`,
+                icon: Target,
+                additionalContent: (
+                  <Progress value={books.length > 0 ? (stats.completedBooks / books.length) * 100 : 0} className="h-2" />
+                ),
+              },
+            ]}
+          />
+        )}
 
         <Tabs value={activeTab} className="space-y-4" onValueChange={(value) => router.push(`/library?tab=${value}`)}>
           {/* Tabs List with Filter Toolbar - Side by Side */}
-          <div className="flex flex-col md:flex-row md:justify-between gap-4">
-            <TabsList>
-              <Link href="/library?tab=my-uploads">
-                <TabsTrigger value="my-uploads">My Uploads</TabsTrigger>
-              </Link>
-              <Link href="/library?tab=bookshelves">
-                <TabsTrigger value="bookshelves">Bookshelves</TabsTrigger>
-              </Link>
-              <Link href="/library?tab=my-requests">
-                <TabsTrigger value="my-requests">My Requests</TabsTrigger>
+          {booksLoading ? (
+            <FilterToolbarSkeleton />
+          ) : (
+            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+              <TabsList>
+                <Link href="/library?tab=my-uploads">
+                  <TabsTrigger value="my-uploads">My Uploads</TabsTrigger>
+                </Link>
+                <Link href="/library?tab=bookshelves">
+                  <TabsTrigger value="bookshelves">Bookshelves</TabsTrigger>
+                </Link>
+                <Link href="/library?tab=my-requests">
+                  <TabsTrigger value="my-requests">My Requests</TabsTrigger>
               </Link>
             </TabsList>
 
@@ -593,9 +607,15 @@ function LibraryPageContent() {
               </div>
             )}
           </div>
+          )}
 
           <TabsContent value="my-uploads" className="space-y-6 md:overflow-y-visible md:max-h-none">
-            {filteredBooks.length === 0 ? (
+            {booksLoading ? (
+              /* Scrollable skeleton - only this scrolls on mobile */
+              <div className="overflow-y-auto pb-24 md:overflow-y-visible md:max-h-none md:pb-0 max-h-[calc(100vh-28rem)]">
+                <BookGridSkeleton count={6} />
+              </div>
+            ) : filteredBooks.length === 0 ? (
               <Card>
                 <CardContent className="pt-12 pb-12">
                   <div className="text-center">
