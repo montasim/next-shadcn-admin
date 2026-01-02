@@ -215,6 +215,16 @@ model Book {
   // Lending relations
   loans                        BookLoan[]
 
+  // Performance indexes for /api/public/books
+  @@index([isPublic]) // Filter public books
+  @@index([isPublic, createdAt(sort: Desc)]) // Public books sorted by date (most common query)
+  @@index([isPublic, type]) // Public books filtered by type
+  @@index([isPublic, requiresPremium]) // Public books filtered by premium status
+  @@index([createdAt(sort: Desc)]) // Sort by creation date
+  @@index([name]) // Search by name
+  @@index([type]) // Filter by type
+  @@index([requiresPremium]) // Filter by premium status
+  // Existing indexes
   @@index([entryById, type, purchaseDate])
   @@index([type, purchaseDate])
   @@index([entryById, purchaseDate])
