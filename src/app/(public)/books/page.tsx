@@ -13,6 +13,7 @@ import { MultiSelect } from '@/components/ui/multi-select'
 import { BookGrid } from '@/components/books/book-grid'
 import { BookCardSkeleton } from '@/components/books/book-card-skeleton'
 import { BooksFilterSidebarSkeleton, BooksFilterMobileSkeleton } from '@/components/books/books-filter-sidebar-skeleton'
+import { BooksHeaderSkeleton } from '@/components/books/books-header-skeleton'
 import { MoodRecommendationsSkeleton } from '@/components/books/mood-recommendations-skeleton'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { SearchBar } from '@/components/books/search-bar'
@@ -180,136 +181,106 @@ function BooksPageContent({
     <div className="min-h-screen bg-background">
       <main className="container mx-auto p-4 pb-24 lg:pb-8">
           {/* Header */}
-        <div className="">
-          {/* Desktop Header */}
-          <div className="hidden lg:flex lg:items-center justify-between mb-4 gap-6">
-            <div>
-              <h1 className="text-xl font-bold">Discover Books</h1>
-              <p className="text-muted-foreground">
-                {booksData?.pagination?.totalBooks || 0} books available
-              </p>
-            </div>
+          {isLoading ? (
+            <BooksHeaderSkeleton />
+          ) : (
+            <div className="">
+              {/* Desktop Header */}
+              <div className="hidden lg:flex lg:items-center justify-between mb-4 gap-6">
+                <div>
+                  <h1 className="text-xl font-bold">Discover Books</h1>
+                  <p className="text-muted-foreground">
+                    {booksData?.pagination?.totalBooks || 0} books available
+                  </p>
+                </div>
 
-            {/* Search Bar - Desktop */}
-            <div className="flex-1 max-w-md">
-              <SearchBar
-                onSearch={handleSearch}
-                initialValue={filters.search}
-                placeholder="Search books by title, author..."
-                className="w-full"
-              />
-            </div>
+                {/* Search Bar - Desktop */}
+                <div className="flex-1 max-w-md">
+                  <SearchBar
+                    onSearch={handleSearch}
+                    initialValue={filters.search}
+                    placeholder="Search books by title, author..."
+                    className="w-full"
+                  />
+                </div>
 
-            {/* Right Side Controls - Desktop Only */}
-            <div className="flex items-center gap-3">
-              {/* Desktop View Mode Toggle */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
+                {/* Right Side Controls - Desktop Only */}
+                <div className="flex items-center gap-3">
+                  {/* Desktop View Mode Toggle */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
 
-              {/*/!* Admin Actions *!/*/}
-              {/*{isAdmin && (*/}
-              {/*  <div className="flex items-center gap-2">*/}
-              {/*    <Link href="/dashboard/books">*/}
-              {/*      <Button variant="outline" size="sm">*/}
-              {/*        <Settings className="mr-2 h-4 w-4" />*/}
-              {/*        Manage Books*/}
-              {/*      </Button>*/}
-              {/*    </Link>*/}
-              {/*    <Link href="/dashboard/books/new">*/}
-              {/*      <Button size="sm">*/}
-              {/*        <Plus className="mr-2 h-4 w-4" />*/}
-              {/*        Add Book*/}
-              {/*      </Button>*/}
-              {/*    </Link>*/}
-              {/*  </div>*/}
-              {/*)}*/}
-            </div>
-          </div>
+              {/* Mobile Header */}
+              <div className="lg:hidden">
+                {/* Mobile Controls */}
+                <div className="flex items-center justify-between mb-4">
+                  {/* Left Side - Discover Books Info */}
+                  <div>
+                    <h1 className="text-xl font-bold">Discover Books</h1>
+                    <p className="text-muted-foreground">
+                      {booksData?.pagination?.totalBooks || 0} books available
+                    </p>
+                  </div>
 
-          {/* Mobile Header */}
-          <div className="lg:hidden">
-            {/* Mobile Controls */}
-            <div className="flex items-center justify-between mb-4">
-              {/* Left Side - Discover Books Info */}
-              <div>
-                <h1 className="text-xl font-bold">Discover Books</h1>
-                <p className="text-muted-foreground">
-                  {booksData?.pagination?.totalBooks || 0} books available
-                </p>
-              </div>
+                  {/* Right Side - Mobile Controls */}
+                  <div className="flex items-center gap-2">
+                    {/* Mobile Filter Toggle */}
+                    <Button
+                      variant={hasActiveFilters ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                      {hasActiveFilters && (
+                        <span className="ml-1 h-2 w-2 bg-current rounded-full" />
+                      )}
+                    </Button>
 
-              {/* Right Side - Mobile Controls */}
-              <div className="flex items-center gap-2">
-                {/* Mobile Filter Toggle */}
-                <Button
-                  variant={hasActiveFilters ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  {hasActiveFilters && (
-                    <span className="ml-1 h-2 w-2 bg-current rounded-full" />
-                  )}
-                </Button>
+                    {/* Mobile View Mode Toggle */}
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
-                {/* Mobile View Mode Toggle */}
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-
-                {/*/!* Mobile Admin Actions *!/*/}
-                {/*{isAdmin && (*/}
-                {/*  <>*/}
-                {/*    <Link href="/dashboard/books">*/}
-                {/*      <Button variant="outline" size="sm">*/}
-                {/*        <Settings className="h-4 w-4" />*/}
-                {/*      </Button>*/}
-                {/*    </Link>*/}
-                {/*    <Link href="/dashboard/books/new">*/}
-                {/*      <Button size="sm">*/}
-                {/*        <Plus className="h-4 w-4" />*/}
-                {/*      </Button>*/}
-                {/*    </Link>*/}
-                {/*  </>*/}
-                {/*)}*/}
+                {/* Mobile Search Bar - Below Discover Books Section */}
+                <div className="w-full mb-4">
+                  <SearchBar
+                    onSearch={handleSearch}
+                    initialValue={filters.search}
+                    placeholder="Search books, authors, or categories..."
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Mobile Search Bar - Below Discover Books Section */}
-            <div className="w-full mb-4">
-              <SearchBar
-                onSearch={handleSearch}
-                initialValue={filters.search}
-                placeholder="Search books, authors, or categories..."
-              />
-            </div>
-          </div>
-        </div>
+          )}
 
         {/* Mobile Filter Sheet */}
         {isFilterOpen && (
