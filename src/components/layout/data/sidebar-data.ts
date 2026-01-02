@@ -250,7 +250,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Activity',
-          url: '/activity',
+          url: '/dashboard/activity',
           icon: IconHistory,
         },
         {
