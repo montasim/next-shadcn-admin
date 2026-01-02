@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
+import { ConversationListSkeleton } from '@/components/data-table/table-skeleton'
 import {
     MessageSquare,
     Search,
@@ -104,7 +105,7 @@ function MessagesInboxPageContent() {
 
     return (
         <div className="min-h-screen bg-background">
-            <main className="container mx-auto p-4 pb-24 lg:pb-8 max-w-5xl">
+            <main className="container mx-auto p-4 pb-24 lg:pb-8">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">
                     <div className="p-2 bg-primary/10 rounded-lg">
@@ -131,15 +132,10 @@ function MessagesInboxPageContent() {
                 </div>
 
                 {/* Loading State */}
-                {isLoading && (
-                    <div className="text-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">Loading conversations...</p>
-                    </div>
-                )}
+                {isLoading && <ConversationListSkeleton />}
 
                 {/* Error State */}
-                {error && (
+                {!isLoading && error && (
                     <Card className="border-destructive">
                         <CardContent className="p-4 text-destructive">
                             {error}

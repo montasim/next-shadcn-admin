@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SellPostCard } from '@/components/marketplace'
+import { SellPostMutateDrawer } from '@/components/marketplace/sell-post-mutate-drawer'
 import { MarketplaceListingSkeleton, DashboardSummarySkeleton, FilterTabsSkeleton } from '@/components/data-table/table-skeleton'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import {
@@ -115,34 +116,35 @@ function MySellPostsPageContent() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [postToDelete, setPostToDelete] = useState<string | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isCreateDrawerOpen, setIsCreateDrawerOpen] = useState(false)
     const [filterStatus, setFilterStatus] = useState<SellPostStatus | 'all'>('all')
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            if (!user?.id) return
+    const fetchPosts = async () => {
+        if (!user?.id) return
 
-            setIsLoading(true)
-            setError(null)
+        setIsLoading(true)
+        setError(null)
 
-            try {
-                const params = new URLSearchParams()
-                params.set('limit', '50')
+        try {
+            const params = new URLSearchParams()
+            params.set('limit', '50')
 
-                const response = await fetch(`/api/user/sell-posts?${params.toString()}`)
-                const result: MyPostsResponse = await response.json()
+            const response = await fetch(`/api/user/sell-posts?${params.toString()}`)
+            const result: MyPostsResponse = await response.json()
 
-                if (result.success) {
-                    setPosts(result.data.posts)
-                } else {
-                    setError(result.message || 'Failed to fetch your listings')
-                }
-            } catch (err: any) {
-                setError(err.message || 'Failed to fetch your listings')
-            } finally {
-                setIsLoading(false)
+            if (result.success) {
+                setPosts(result.data.posts)
+            } else {
+                setError(result.message || 'Failed to fetch your listings')
             }
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch your listings')
+        } finally {
+            setIsLoading(false)
         }
+    }
 
+    useEffect(() => {
         fetchPosts()
     }, [user?.id])
 
@@ -224,12 +226,10 @@ function MySellPostsPageContent() {
                             </p>
                         </div>
                     </div>
-                    <Link href="/marketplace/create">
-                        <Button>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create Listing
-                        </Button>
-                    </Link>
+                    <Button onClick={() => setIsCreateDrawerOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Listing
+                    </Button>
                 </div>
 
                 {/* Stats Cards */}
@@ -318,12 +318,10 @@ function MySellPostsPageContent() {
                                     : `You don't have any ${STATUS_CONFIG[filterStatus as SellPostStatus]?.label.toLowerCase()} listings.`}
                             </p>
                             {filterStatus === 'all' && (
-                                <Link href="/marketplace/create">
-                                    <Button>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Create Your First Listing
-                                    </Button>
-                                </Link>
+                                <Button onClick={() => setIsCreateDrawerOpen(true)}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create Your First Listing
+                                </Button>
                             )}
                         </CardContent>
                     </Card>
@@ -481,6 +479,13 @@ function MySellPostsPageContent() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                {/* Create Listing Drawer */}
+                <SellPostMutateDrawer
+                    open={isCreateDrawerOpen}
+                    onOpenChange={setIsCreateDrawerOpen}
+                    onSuccess={fetchPosts}
+                />
             </main>
         </div>
     )

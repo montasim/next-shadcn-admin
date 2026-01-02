@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton, OfferListSkeleton } from '@/components/data-table/table-skeleton'
 import {
     Tag as OfferIcon,
     Search,
@@ -19,6 +21,7 @@ import {
     XCircle,
     Clock,
     RotateCcw,
+    Filter,
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatPrice, formatDistanceToNow, getInitials } from '@/lib/utils'
@@ -163,94 +166,121 @@ function OffersSentPageContent() {
 
     return (
         <div className="min-h-screen bg-background">
-            <main className="container mx-auto p-4 pb-24 lg:pb-8 max-w-5xl">
+            <main className="container mx-auto p-4 pb-24 lg:pb-8">
+                {/* Back Button */}
+                <Link href="/marketplace" className="inline-block mb-6">
+                    <Button variant="ghost" size="sm">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Marketplace
+                    </Button>
+                </Link>
+
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-6">
-                    <Link href="/marketplace">
-                        <Button variant="ghost" size="sm">
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back to Marketplace
-                        </Button>
-                    </Link>
-                    <div className="flex items-center gap-3 flex-1">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <OfferIcon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-bold">My Offers</h1>
-                            <p className="text-muted-foreground text-sm">
-                                Track your offers on listings
-                            </p>
-                        </div>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <OfferIcon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold">My Offers</h1>
+                        <p className="text-muted-foreground text-sm">
+                            Track your offers on listings
+                        </p>
                     </div>
                 </div>
 
                 {/* Stats Summary */}
-                <DashboardSummary
-                    summaries={[
-                        {
-                            title: 'Total Offers',
-                            value: stats.total,
-                            description: 'All offers sent',
-                            icon: OfferIcon,
-                        },
-                        {
-                            title: 'Pending',
-                            value: stats.pending,
-                            description: 'Waiting for response',
-                            icon: Clock,
-                        },
-                        {
-                            title: 'Accepted',
-                            value: stats.accepted,
-                            description: 'Successfully accepted',
-                            icon: CheckCircle,
-                        },
-                        {
-                            title: 'Countered',
-                            value: stats.countered,
-                            description: 'Counter offers received',
-                            icon: RotateCcw,
-                        },
-                    ]}
-                />
-
-                {/* Search and Filters */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder="Search by listing or seller..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-                        {(['all', 'PENDING', 'ACCEPTED', 'REJECTED', 'COUNTERED'] as const).map((status) => (
-                            <Button
-                                key={status}
-                                variant={filterStatus === status ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setFilterStatus(status)}
-                            >
-                                {status === 'all' ? 'All' : STATUS_CONFIG[status as OfferStatus].label}
-                            </Button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Loading */}
-                {isLoading && (
-                    <div className="text-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">Loading your offers...</p>
-                    </div>
+                {isLoading ? (
+                    <DashboardSummarySkeleton count={4} />
+                ) : (
+                    <DashboardSummary
+                        summaries={[
+                            {
+                                title: 'Total Offers',
+                                value: stats.total,
+                                description: 'All offers sent',
+                                icon: OfferIcon,
+                            },
+                            {
+                                title: 'Pending',
+                                value: stats.pending,
+                                description: 'Waiting for response',
+                                icon: Clock,
+                            },
+                            {
+                                title: 'Accepted',
+                                value: stats.accepted,
+                                description: 'Successfully accepted',
+                                icon: CheckCircle,
+                            },
+                            {
+                                title: 'Countered',
+                                value: stats.countered,
+                                description: 'Counter offers received',
+                                icon: RotateCcw,
+                            },
+                        ]}
+                    />
                 )}
 
+                {/* Search and Filters */}
+                {isLoading ? (
+                    <Card className="p-4 mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <Skeleton className="h-5 w-20" />
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Skeleton className="h-10 w-full" />
+                            </div>
+                            <div className="flex gap-2">
+                                {Array.from({ length: 5 }).map((_, index) => (
+                                    <Skeleton key={index} className="h-9 w-20" />
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+                ) : (
+                    <>
+                        <Card className="p-4 mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    <Filter className="h-4 w-4" />
+                                    Filters
+                                </h3>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Search by listing or seller..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
+                                    {(['all', 'PENDING', 'ACCEPTED', 'REJECTED', 'COUNTERED'] as const).map((status) => (
+                                        <Button
+                                            key={status}
+                                            variant={filterStatus === status ? 'default' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setFilterStatus(status)}
+                                        >
+                                            {status === 'all' ? 'All' : STATUS_CONFIG[status as OfferStatus].label}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+                    </>
+                )}
+
+                {/* Loading */}
+                {isLoading && <OfferListSkeleton />}
+
                 {/* Error */}
-                {error && (
+                {!isLoading && error && (
                     <Card className="border-destructive mb-6">
                         <CardContent className="p-4 text-destructive">
                             {error}

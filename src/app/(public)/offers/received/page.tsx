@@ -222,7 +222,7 @@ function OffersReceivedPageContent() {
 
     return (
         <div className="min-h-screen bg-background">
-            <main className="container mx-auto p-4 pb-24 lg:pb-8 max-w-5xl">
+            <main className="container mx-auto p-4 pb-24 lg:pb-8">
                 {/* Breadcrumb */}
                 <BreadcrumbList
                     items={[

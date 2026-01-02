@@ -318,3 +318,91 @@ export function MarketplaceListingSkeleton({ count = 5 }: { count?: number }) {
     </div>
   )
 }
+
+/**
+ * Conversation List Skeleton Component
+ *
+ * Displays loading skeletons for message conversation cards
+ */
+export function ConversationListSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: count }).map((_, index) => (
+        <Card key={index}>
+          <CardContent className="p-4">
+            <div className="flex gap-4">
+              {/* Thumbnail */}
+              <Skeleton className="w-16 h-16 rounded-lg flex-shrink-0" />
+              {/* Content */}
+              <div className="flex-1 min-w-0 space-y-2">
+                {/* Title and badge */}
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-5 w-6 rounded-full" />
+                </div>
+                {/* Last message */}
+                <Skeleton className="h-4 w-full" />
+                {/* Meta info */}
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-3 rounded-full" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Offer List Skeleton Component
+ *
+ * Displays loading skeletons for offer cards
+ */
+export function OfferListSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: count }).map((_, index) => (
+        <Card key={index}>
+          <CardContent className="p-4">
+            <div className="flex gap-4">
+              {/* Thumbnail */}
+              <Skeleton className="w-20 h-20 rounded-lg flex-shrink-0" />
+              {/* Content */}
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Title and badge */}
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-56" />
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                    </div>
+                    {/* Price info */}
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    {/* Meta info */}
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-3 w-32" />
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                    {/* Message */}
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                  {/* Action button */}
+                  <Skeleton className="h-9 w-24 flex-shrink-0" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}

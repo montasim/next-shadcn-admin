@@ -163,11 +163,6 @@ export const sidebarData: SidebarData = {
           icon: IconBook,
         },
         {
-          title: 'Create Listing',
-          url: '/marketplace/create',
-          icon: IconTag,
-        },
-        {
           title: 'Messages',
           url: '/messages',
           icon: IconMessageCircle,
