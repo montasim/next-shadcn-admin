@@ -1,9 +1,9 @@
 /**
  * Public Books API Route
  *
- * Provides public access to books-old catalog
+ * Provides public access to books catalog
  * Supports pagination, filtering, searching, and sorting
- * Only returns books-old that are marked as public
+ * Only returns books that are marked as public
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth/session'
 import { BookType, BindingType } from '@prisma/client'
+import { setCache, getCache, generateBooksCacheKey } from '@/lib/cache/redis'
 
 // ============================================================================
 // REQUEST VALIDATION & CONFIGURATION
@@ -53,6 +54,9 @@ const BooksQuerySchema = z.object({
 
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
+
+// Cache configuration - Cache results for 60 seconds
+const CACHE_REVALIDATE_SECONDS = 60
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -275,9 +279,9 @@ function transformBookData(book: any, userHasPremium: boolean, userId?: string) 
 // ============================================================================
 
 /**
- * GET /api/public/books-old
+ * GET /api/public/books
  *
- * Get public books-old with pagination, filtering, and search
+ * Get public books with pagination, filtering, and search
  */
 export async function GET(request: NextRequest) {
     try {
@@ -299,6 +303,33 @@ export async function GET(request: NextRequest) {
             sortOrder,
         } = validatedQuery
 
+        // Generate cache key
+        const cacheKey = generateBooksCacheKey({
+            page,
+            limit,
+            search: validatedQuery.search,
+            types: validatedQuery.types,
+            categories: validatedQuery.categories,
+            premium: validatedQuery.premium,
+            sortBy,
+            sortOrder,
+        })
+
+        // Try to get from Redis cache first
+        const cached = await getCache<{
+            success: boolean
+            data: any
+            message: string
+        }>(cacheKey)
+
+        if (cached) {
+            // Return cached response with cache headers
+            const response = NextResponse.json(cached)
+            response.headers.set('X-Cache', 'HIT')
+            response.headers.set('Cache-Control', `public, s-maxage=${CACHE_REVALIDATE_SECONDS}, stale-while-revalidate=120`)
+            return response
+        }
+
         const skip = (page - 1) * limit
 
         // Build filter and sort conditions
@@ -315,64 +346,67 @@ export async function GET(request: NextRequest) {
                 progress: true,
                 lastReadAt: true,
             }
-        } : false
+        } : undefined
+
+        // Optimize includes - only fetch what's needed
+        const include = {
+            authors: {
+                include: {
+                    author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                        }
+                    }
+                }
+            },
+            categories: {
+                include: {
+                    category: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                        }
+                    }
+                }
+            },
+            publications: {
+                include: {
+                    publication: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                        }
+                    }
+                }
+            },
+            readingProgress: readingProgressInclude,
+            entryBy: {
+                select: {
+                    id: true,
+                    username: true,
+                    firstName: true,
+                    lastName: true,
+                    name: true,
+                    avatar: true,
+                    role: true,
+                }
+            },
+            _count: {
+                select: {
+                    readingProgress: true,
+                }
+            }
+        }
 
         // Execute queries in parallel
         const [books, total] = await Promise.all([
             prisma.book.findMany({
                 where,
-                include: {
-                    authors: {
-                        include: {
-                            author: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    image: true,
-                                }
-                            }
-                        }
-                    },
-                    categories: {
-                        include: {
-                            category: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    image: true,
-                                }
-                            }
-                        }
-                    },
-                    publications: {
-                        include: {
-                            publication: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    image: true,
-                                }
-                            }
-                        }
-                    },
-                    readingProgress: readingProgressInclude,
-                    entryBy: {
-                        select: {
-                            id: true,
-                            username: true,
-                            firstName: true,
-                            lastName: true,
-                            name: true,
-                            avatar: true,
-                            role: true,
-                        }
-                    },
-                    _count: {
-                        select: {
-                            readingProgress: true,
-                        }
-                    }
-                },
+                include,
                 skip,
                 take: limit,
                 orderBy,
@@ -388,8 +422,8 @@ export async function GET(request: NextRequest) {
         const hasNextPage = page < totalPages
         const hasPreviousPage = page > 1
 
-        // Return response
-        return NextResponse.json({
+        // Prepare response data
+        const responseData = {
             success: true,
             data: {
                 books: transformedBooks,
@@ -422,10 +456,22 @@ export async function GET(request: NextRequest) {
                 }
             },
             message: 'Books retrieved successfully'
-        })
+        }
+
+        // Cache the response in Redis
+        await setCache(cacheKey, responseData, CACHE_REVALIDATE_SECONDS)
+
+        // Create response with cache headers
+        const response = NextResponse.json(responseData)
+        response.headers.set('X-Cache', 'MISS')
+        response.headers.set('Cache-Control', `public, s-maxage=${CACHE_REVALIDATE_SECONDS}, stale-while-revalidate=120`)
+        response.headers.set('CDN-Cache-Control', `public, s-maxage=${CACHE_REVALIDATE_SECONDS}`)
+        response.headers.set('Vary', 'Cookie, Authorization')
+
+        return response
 
     } catch (error) {
-        console.error('Get books-old error:', error)
+        console.error('Get books error:', error)
 
         if (error instanceof z.ZodError) {
             return NextResponse.json({
@@ -437,8 +483,8 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             success: false,
-            error: 'Failed to retrieve books-old',
-            message: 'An error occurred while fetching books-old'
+            error: 'Failed to retrieve books',
+            message: 'An error occurred while fetching books'
         }, { status: 500 })
     }
 }
