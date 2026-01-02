@@ -10,6 +10,7 @@ import { getBookshelves } from '../actions'
 import { Badge } from '@/components/ui/badge'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { Progress } from '@/components/ui/progress'
+import { BookshelfCardSkeleton } from '@/components/books/bookshelf-card-skeleton'
 
 interface Bookshelf {
   id: string
@@ -67,14 +68,8 @@ export function Bookshelves({ onEdit, onDelete, bookshelves: externalBookshelves
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 overflow-y-auto max-h-[calc(100vh-12rem)]">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="w-full h-32 bg-muted rounded-lg mb-4" />
-              <div className="h-5 bg-muted rounded w-3/4 mb-2" />
-              <div className="h-4 bg-muted rounded w-1/2" />
-            </CardContent>
-          </Card>
+        {[...Array(8)].map((_, i) => (
+          <BookshelfCardSkeleton key={i} />
         ))}
       </div>
     )

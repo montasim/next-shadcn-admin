@@ -146,6 +146,7 @@ function LibraryPageContent() {
   const [booksLoading, setBooksLoading] = useState(true)
   const [requests, setRequests] = useState<BookRequest[]>([])
   const [requestsLoading, setRequestsLoading] = useState(true)
+  const [bookshelvesLoading, setBookshelvesLoading] = useState(true)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
   const [isRequestDrawerOpen, setIsRequestDrawerOpen] = useState(false)
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
@@ -202,9 +203,11 @@ function LibraryPageContent() {
   }, [])
 
   const refreshBookshelves = useCallback(async () => {
+    setBookshelvesLoading(true)
     const shelves = await getBookshelves()
     startTransition(() => {
       setAllBookshelves(shelves)
+      setBookshelvesLoading(false)
     })
   }, [])
 
@@ -646,7 +649,7 @@ function LibraryPageContent() {
               <Bookshelves
                 key={bookshelfKey}
                 bookshelves={filteredBookshelves}
-                isLoading={false}
+                isLoading={bookshelvesLoading}
                 onEdit={handleEditBookshelf}
                 onDelete={handleDeleteBookshelf}
                 onRefresh={refreshBookshelves}
