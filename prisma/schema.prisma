@@ -204,6 +204,7 @@ model Book {
   // Analytics and chat history
   views                        BookView[]
   chatMessages                 BookChatMessage[]
+  chatContexts                 BookChatContext[]
 
   // Marketplace relations
   sellPosts                    BookSellPost[]            @relation("BookSellPosts")
@@ -1517,4 +1518,98 @@ enum LegalContentType {
   COOKIE_POLICY
   DISCLAIMER
   ABOUT
+}
+
+// ============================================================================
+// PDF PROCESSING MODELS
+// ============================================================================
+
+// PDF Processing Job Queue (managed by PDF Processor service)
+model PdfProcessingJob {
+  id              String              @id @default(uuid())
+  bookId          String              @unique
+  status          ProcessingStatus    @default(PENDING)
+
+  retryCount      Int                 @default(0)
+  maxRetries      Int                 @default(3)
+
+  lastAttemptAt   DateTime?
+  nextAttemptAt   DateTime?
+  completedAt     DateTime?
+  failedAt        DateTime?
+  errorMessage    String?             @db.Text
+
+  // Processing steps tracking
+  downloadStatus   ProcessingStepStatus @default(PENDING)
+  extractionStatus ProcessingStepStatus @default(PENDING)
+  summaryStatus    ProcessingStepStatus @default(PENDING)
+  questionsStatus  ProcessingStepStatus @default(PENDING)
+  embeddingStatus  ProcessingStepStatus @default(PENDING)
+
+  // Input data
+  pdfUrl          String
+  directPdfUrl    String?
+  bookName        String
+  authorNames     String[]            @default([])
+
+  // Output stats
+  pagesExtracted  Int?
+  wordsExtracted  Int?
+  summaryLength   Int?
+  questionsGenerated Int?
+  embeddingsCreated Int?
+  processingTime  Int?                // milliseconds
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([bookId])
+  @@map("pdf_processing_jobs")
+}
+
+// Chat Context Chunks for Fast Retrieval (vector embeddings)
+model BookChatContext {
+  id              String              @id @default(uuid())
+  bookId          String
+  chunkIndex      Int                 // Which chunk of the book
+
+  // Content
+  content         String              @db.Text
+  embedding       Unsupported("vector(1024)")? // pgvector for Zhipu AI embeddings
+
+  // Metadata for filtering and context
+  pageNumber      Int?
+  chapterName     String?
+  chapterIndex    Int?
+  wordCount       Int?
+
+  book            Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([bookId, chunkIndex])
+  @@index([bookId])
+  @@index([bookId, chunkIndex])
+  @@map("book_chat_contexts")
+}
+
+// Processing Status Enum
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  RETRYING
+  CANCELLED
+}
+
+// Processing Step Status Enum
+enum ProcessingStepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  SKIPPED
 }

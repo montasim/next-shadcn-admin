@@ -546,7 +546,7 @@ export async function GET(
             aiSummaryGeneratedAt: book.aiSummaryGeneratedAt,
             type: book.type,
             // User who uploaded the book (only if public and user role is USER)
-            entryBy: book.isPublic && book.entryBy.role === 'USER' ? {
+            entryBy: book.isPublic && book.entryBy?.role === 'USER' ? {
                 id: book.entryBy.id,
                 firstName: book.entryBy.firstName,
                 lastName: book.entryBy.lastName,
