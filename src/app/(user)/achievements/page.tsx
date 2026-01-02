@@ -131,7 +131,7 @@ export default function AchievementsPage() {
         return { label: 'Take Quiz', link: '/quiz' }
 
       case 'SELL_POSTS_CREATED':
-        return { label: 'Create Listing', link: '/marketplace/create' }
+        return { label: 'Browse Marketplace', link: '/marketplace' }
 
       case 'OFFERS_MADE':
         return { label: 'Browse Marketplace', link: '/marketplace' }

@@ -228,15 +228,6 @@ function MarketplacePageContent({
                             {hasActiveFilters && <span className="ml-1 h-2 w-2 bg-current rounded-full" />}
                         </Button>
 
-                        {/* Create Post Button - Authenticated Users */}
-                        {user && (
-                            <Link href="/marketplace/create">
-                                <Button size="sm">
-                                    <ShoppingBag className="h-4 w-4 mr-2" />
-                                    Sell a Book
-                                </Button>
-                            </Link>
-                        )}
                     </div>
                 </div>
 
