@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -172,13 +173,21 @@ export default function AdminMarketplaceReviewsPage() {
             </div>
 
             {/* Filters */}
-            <Card>
-                <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground">
-                        Showing all {totalItems} review{totalItems !== 1 ? 's' : ''}
-                    </div>
-                </CardContent>
-            </Card>
+            {isLoading ? (
+                <Card>
+                    <CardContent className="p-4">
+                        <Skeleton className="h-5 w-48" />
+                    </CardContent>
+                </Card>
+            ) : (
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="text-sm text-muted-foreground">
+                            Showing all {totalItems} review{totalItems !== 1 ? 's' : ''}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Loading */}
             {isLoading && (
@@ -207,7 +216,7 @@ export default function AdminMarketplaceReviewsPage() {
                                     {/* Reviewer Avatar */}
                                     <Avatar className="h-10 w-10">
                                         <AvatarFallback>
-                                            {getInitials(null, null, review.reviewer.name)}
+                                            {getInitials(null, null, review.reviewer?.name || 'Unknown')}
                                         </AvatarFallback>
                                     </Avatar>
 
@@ -216,14 +225,16 @@ export default function AdminMarketplaceReviewsPage() {
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-semibold">{review.reviewer.name}</span>
+                                                    <span className="font-semibold">{review.reviewer?.name || 'Unknown User'}</span>
                                                     {renderStars(review.rating)}
                                                     <span className="text-sm font-medium text-primary">
                                                         {review.rating}/5
                                                     </span>
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {review.reviewer.email}
-                                                    </span>
+                                                    {review.reviewer?.email && (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {review.reviewer.email}
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {/* Category Ratings */}

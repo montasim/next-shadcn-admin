@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/auth-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
 import {
     Area,
     AreaChart,
@@ -225,7 +227,7 @@ export default function AdminMarketplaceAnalyticsPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -291,6 +293,55 @@ export default function AdminMarketplaceAnalyticsPage() {
                         </div>
                         <p className="text-xs text-muted-foreground">
                             {analytics.overview.totalReviews} reviews
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Total Offers
+                        </CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{analytics.overview.totalOffers}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {analytics.overview.acceptedOffers} accepted (
+                            {analytics.overview.totalOffers > 0
+                                ? Math.round((analytics.overview.acceptedOffers / analytics.overview.totalOffers) * 100)
+                                : 0}
+                            %)
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Conversations
+                        </CardTitle>
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{analytics.overview.totalConversations}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Between buyers and sellers
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Active Users
+                        </CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{analytics.activitySummary.users.activeThisWeek}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Active this week
                         </p>
                     </CardContent>
                 </Card>
@@ -373,58 +424,6 @@ export default function AdminMarketplaceAnalyticsPage() {
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Engagement Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Total Offers
-                        </CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{analytics.overview.totalOffers}</div>
-                        <p className="text-xs text-muted-foreground">
-                            {analytics.overview.acceptedOffers} accepted (
-                            {analytics.overview.totalOffers > 0
-                                ? Math.round((analytics.overview.acceptedOffers / analytics.overview.totalOffers) * 100)
-                                : 0}
-                            %)
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Conversations
-                        </CardTitle>
-                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{analytics.overview.totalConversations}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Between buyers and sellers
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">
-                            Active Users
-                        </CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{analytics.activitySummary.users.activeThisWeek}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Active this week
-                        </p>
                     </CardContent>
                 </Card>
             </div>

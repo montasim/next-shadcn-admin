@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
     Select,
     SelectContent,
@@ -33,6 +34,7 @@ import Link from 'next/link'
 import { formatPrice, formatDistanceToNow, getInitials } from '@/lib/utils'
 import { ConversationStatus } from '@prisma/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ConversationListSkeleton } from '@/components/data-table/table-skeleton'
 
 // ============================================================================
 // TYPES
@@ -180,16 +182,18 @@ export default function AdminMarketplaceConversationsPage() {
         }
     }
 
-    const getSellerName = (seller: AdminConversation['seller']) => {
+    const getSellerName = (seller: AdminConversation['seller'] | null) => {
+        if (!seller) return 'Unknown Seller'
         return seller.firstName && seller.lastName
             ? `${seller.firstName} ${seller.lastName}`
-            : seller.name
+            : seller.name || 'Unknown Seller'
     }
 
-    const getBuyerName = (buyer: AdminConversation['buyer']) => {
+    const getBuyerName = (buyer: AdminConversation['buyer'] | null) => {
+        if (!buyer) return 'Unknown Buyer'
         return buyer.firstName && buyer.lastName
             ? `${buyer.firstName} ${buyer.lastName}`
-            : buyer.name
+            : buyer.name || 'Unknown Buyer'
     }
 
     if (!isAdmin) {
@@ -217,48 +221,54 @@ export default function AdminMarketplaceConversationsPage() {
             </div>
 
             {/* Filters */}
-            <Card>
-                <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Search by user, email, listing title..."
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value)
-                                    setCurrentPage(1)
-                                }}
-                                className="pl-10"
-                            />
+            {isLoading ? (
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <Skeleton className="h-10 flex-1" />
+                            <Skeleton className="h-10 w-full md:w-[200px]" />
                         </div>
-                        <Select value={statusFilter} onValueChange={(value) => {
-                            setStatusFilter(value)
-                            setCurrentPage(1)
-                        }}>
-                            <SelectTrigger className="w-full md:w-[200px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {STATUS_OPTIONS.map(option => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            ) : (
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Search by user, email, listing title..."
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value)
+                                        setCurrentPage(1)
+                                    }}
+                                    className="pl-10"
+                                />
+                            </div>
+                            <Select value={statusFilter} onValueChange={(value) => {
+                                setStatusFilter(value)
+                                setCurrentPage(1)
+                            }}>
+                                <SelectTrigger className="w-full md:w-[200px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {STATUS_OPTIONS.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Loading */}
-            {isLoading && (
-                <div className="text-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Loading conversations...</p>
-                </div>
-            )}
+            {isLoading && <ConversationListSkeleton count={10} />}
 
             {/* Error */}
             {error && (

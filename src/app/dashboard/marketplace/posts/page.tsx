@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
     Select,
     SelectContent,
@@ -34,6 +35,7 @@ import { formatPrice, formatDistanceToNow } from '@/lib/utils'
 import { SellPostStatus, BookCondition } from '@prisma/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
+import { MarketplaceListingSkeleton } from '@/components/data-table/table-skeleton'
 
 // ============================================================================
 // TYPES
@@ -227,48 +229,54 @@ export default function AdminMarketplacePostsPage() {
             </div>
 
             {/* Filters */}
-            <Card>
-                <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder="Search by title, seller..."
-                                value={searchQuery}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value)
-                                    setCurrentPage(1)
-                                }}
-                                className="pl-10"
-                            />
+            {isLoading ? (
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <Skeleton className="h-10 flex-1" />
+                            <Skeleton className="h-10 w-full md:w-[200px]" />
                         </div>
-                        <Select value={statusFilter} onValueChange={(value) => {
-                            setStatusFilter(value)
-                            setCurrentPage(1)
-                        }}>
-                            <SelectTrigger className="w-full md:w-[200px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {STATUS_OPTIONS.map(option => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            ) : (
+                <Card>
+                    <CardContent className="p-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="search"
+                                    placeholder="Search by title, seller..."
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value)
+                                        setCurrentPage(1)
+                                    }}
+                                    className="pl-10"
+                                />
+                            </div>
+                            <Select value={statusFilter} onValueChange={(value) => {
+                                setStatusFilter(value)
+                                setCurrentPage(1)
+                            }}>
+                                <SelectTrigger className="w-full md:w-[200px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {STATUS_OPTIONS.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Loading */}
-            {isLoading && (
-                <div className="text-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Loading listings...</p>
-                </div>
-            )}
+            {isLoading && <MarketplaceListingSkeleton count={10} />}
 
             {/* Error */}
             {error && (
@@ -289,10 +297,10 @@ export default function AdminMarketplacePostsPage() {
                     <div className="border rounded-lg divide-y">
                         {posts.map((post) => {
                             const statusConfig = STATUS_CONFIG[post.status]
-                            const sellerName = post.seller.firstName && post.seller.lastName
-                                ? `${post.seller.firstName} ${post.seller.lastName}`
-                                : post.seller.name
-                            const initials = getInitials(post.seller.firstName, post.seller.lastName, post.seller.name)
+                            const sellerName = post.seller?.firstName && post.seller?.lastName
+                                ? `${post?.seller?.firstName} ${post?.seller?.lastName}`
+                                : post.seller?.name || 'Unknown Seller'
+                            const initials = getInitials(post.seller?.firstName, post.seller?.lastName, post.seller?.name)
 
                             return (
                                 <div key={post.id} className="p-4 hover:bg-muted/50 transition-colors">
@@ -353,8 +361,12 @@ export default function AdminMarketplacePostsPage() {
                                                     </div>
                                                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                                         <span>Seller: {sellerName}</span>
-                                                        <span>•</span>
-                                                        <span>{post.seller.email}</span>
+                                                        {post?.seller?.email && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span>{post.seller.email}</span>
+                                                            </>
+                                                        )}
                                                         <span>•</span>
                                                         <span>{formatDistanceToNow(new Date(post.createdAt))}</span>
                                                     </div>
