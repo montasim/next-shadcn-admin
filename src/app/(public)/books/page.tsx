@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { BookGrid } from '@/components/books/book-grid'
 import { BookCardSkeleton } from '@/components/books/book-card-skeleton'
+import { BooksFilterSidebarSkeleton, BooksFilterMobileSkeleton } from '@/components/books/books-filter-sidebar-skeleton'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { SearchBar } from '@/components/books/search-bar'
 import { MoodSelector } from '@/components/books/mood-selector'
@@ -311,241 +312,249 @@ function BooksPageContent({
 
         {/* Mobile Filter Sheet */}
         {isFilterOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            {/* Backdrop */}
-            <div
-              className="fixed inset-0 bg-black/50"
-              onClick={() => setIsFilterOpen(false)}
-            />
+          categoriesLoading ? (
+            <BooksFilterMobileSkeleton />
+          ) : (
+            <div className="lg:hidden fixed inset-0 z-50 flex">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50"
+                onClick={() => setIsFilterOpen(false)}
+              />
 
-            {/* Filter Panel */}
-            <div className="relative bg-background w-80 h-full overflow-y-auto animate-in slide-in-from-left">
-              <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Filters</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsFilterOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+              {/* Filter Panel */}
+              <div className="relative bg-background w-80 h-full overflow-y-auto animate-in slide-in-from-left">
+                <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">Filters</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsFilterOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
 
-              <div className="p-4 space-y-6">
-                {/* Book Type Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Book Type</Label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'EBOOK', label: 'Ebook', icon: FileText },
-                      { value: 'AUDIO', label: 'Audiobook', icon: Headphones },
-                    ].map((type) => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Switch
-                          id={`mobile-${type.value}`}
-                          checked={filters.types.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            const newTypes = checked
-                              ? [...filters.types, type.value]
-                              : filters.types.filter(t => t !== type.value);
-                            handleFilterChange('types', newTypes);
-                          }}
-                        />
-                        <Label htmlFor={`mobile-${type.value}`} className="text-sm flex items-center gap-2 cursor-pointer">
-                          <type.icon className="h-4 w-4" />
-                          {type.label}
-                        </Label>
-                      </div>
-                    ))}
+                <div className="p-4 space-y-6">
+                  {/* Book Type Filter */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Book Type</Label>
+                    <div className="space-y-2">
+                      {[
+                        { value: 'EBOOK', label: 'Ebook', icon: FileText },
+                        { value: 'AUDIO', label: 'Audiobook', icon: Headphones },
+                      ].map((type) => (
+                        <div key={type.value} className="flex items-center space-x-2">
+                          <Switch
+                            id={`mobile-${type.value}`}
+                            checked={filters.types.includes(type.value)}
+                            onCheckedChange={(checked) => {
+                              const newTypes = checked
+                                ? [...filters.types, type.value]
+                                : filters.types.filter(t => t !== type.value);
+                              handleFilterChange('types', newTypes);
+                            }}
+                          />
+                          <Label htmlFor={`mobile-${type.value}`} className="text-sm flex items-center gap-2 cursor-pointer">
+                            <type.icon className="h-4 w-4" />
+                            {type.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Category Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Categories</Label>
-                  <MultiSelect
-                    options={CATEGORY_OPTIONS}
-                    selected={filters.categories}
-                    onChange={(values) => handleFilterChange('categories', values)}
-                    placeholder="Select categories"
-                    maxVisible={3}
-                  />
-                </div>
+                  {/* Category Filter */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Categories</Label>
+                    <MultiSelect
+                      options={CATEGORY_OPTIONS}
+                      selected={filters.categories}
+                      onChange={(values) => handleFilterChange('categories', values)}
+                      placeholder="Select categories"
+                      maxVisible={3}
+                    />
+                  </div>
 
-                {/* Premium Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Access Level</Label>
-                  <Select value={filters.premium} onValueChange={(value) => handleFilterChange('premium', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Books</SelectItem>
-                      <SelectItem value="free">Free Books</SelectItem>
-                      <SelectItem value="premium">Premium Books</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sort Options */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Sort By</Label>
-                  <div className="space-y-3">
-                    <Select value={filters.sortBy} onValueChange={(value) => handleFilterChange('sortBy', value)}>
+                  {/* Premium Filter */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Access Level</Label>
+                    <Select value={filters.premium} onValueChange={(value) => handleFilterChange('premium', value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="createdAt">Latest Added</SelectItem>
-                        <SelectItem value="name">Name</SelectItem>
-                        <SelectItem value="publishedDate">Published Date</SelectItem>
+                        <SelectItem value="all">All Books</SelectItem>
+                        <SelectItem value="free">Free Books</SelectItem>
+                        <SelectItem value="premium">Premium Books</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="mobile-sortOrder"
-                        checked={filters.sortOrder === 'asc'}
-                        onCheckedChange={(checked) =>
-                          handleFilterChange('sortOrder', checked ? 'asc' : 'desc')
-                        }
-                      />
-                      <Label htmlFor="mobile-sortOrder" className="text-sm cursor-pointer">
-                        Ascending Order
-                      </Label>
+                  {/* Sort Options */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Sort By</Label>
+                    <div className="space-y-3">
+                      <Select value={filters.sortBy} onValueChange={(value) => handleFilterChange('sortBy', value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="createdAt">Latest Added</SelectItem>
+                          <SelectItem value="name">Name</SelectItem>
+                          <SelectItem value="publishedDate">Published Date</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="mobile-sortOrder"
+                          checked={filters.sortOrder === 'asc'}
+                          onCheckedChange={(checked) =>
+                            handleFilterChange('sortOrder', checked ? 'asc' : 'desc')
+                          }
+                        />
+                        <Label htmlFor="mobile-sortOrder" className="text-sm cursor-pointer">
+                          Ascending Order
+                        </Label>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Filter Actions */}
-                <div className="flex gap-2 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={clearFilters}
-                  >
-                    Clear All
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => setIsFilterOpen(false)}
-                  >
-                    Apply Filters
-                  </Button>
+                  {/* Filter Actions */}
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={clearFilters}
+                    >
+                      Clear All
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      onClick={() => setIsFilterOpen(false)}
+                    >
+                      Apply Filters
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )
         )}
 
         <div className="flex gap-8">
           {/* Filters Sidebar */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Filters</CardTitle>
-                  {hasActiveFilters && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearFilters}
-                      className="h-auto px-2 py-1"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Clear
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Book Type Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Book Type</Label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 'EBOOK', label: 'Ebook', icon: FileText },
-                      { value: 'AUDIO', label: 'Audiobook', icon: Headphones },
-                    ].map((type) => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Switch
-                          id={type.value}
-                          checked={filters.types.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            const newTypes = checked
-                              ? [...filters.types, type.value]
-                              : filters.types.filter(t => t !== type.value);
-                            handleFilterChange('types', newTypes);
-                          }}
-                        />
-                        <Label htmlFor={type.value} className="text-sm flex items-center gap-2 cursor-pointer">
-                          <type.icon className="h-4 w-4" />
-                          {type.label}
-                        </Label>
-                      </div>
-                    ))}
+          {categoriesLoading ? (
+            <BooksFilterSidebarSkeleton />
+          ) : (
+            <div className="hidden lg:block w-64 flex-shrink-0">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Filters</CardTitle>
+                    {hasActiveFilters && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-auto px-2 py-1"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Clear
+                      </Button>
+                    )}
                   </div>
-                </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Book Type Filter */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Book Type</Label>
+                    <div className="space-y-2">
+                      {[
+                        { value: 'EBOOK', label: 'Ebook', icon: FileText },
+                        { value: 'AUDIO', label: 'Audiobook', icon: Headphones },
+                      ].map((type) => (
+                        <div key={type.value} className="flex items-center space-x-2">
+                          <Switch
+                            id={type.value}
+                            checked={filters.types.includes(type.value)}
+                            onCheckedChange={(checked) => {
+                              const newTypes = checked
+                                ? [...filters.types, type.value]
+                                : filters.types.filter(t => t !== type.value);
+                              handleFilterChange('types', newTypes);
+                            }}
+                          />
+                          <Label htmlFor={type.value} className="text-sm flex items-center gap-2 cursor-pointer">
+                            <type.icon className="h-4 w-4" />
+                            {type.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-                {/* Premium Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Access Level</Label>
-                  <Select value={filters.premium} onValueChange={(value) => handleFilterChange('premium', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Books</SelectItem>
-                      <SelectItem value="free">Free Books</SelectItem>
-                      <SelectItem value="premium">Premium Books</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sort Options */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Sort By</Label>
-                  <div className="space-y-3">
-                    <Select value={filters.sortBy} onValueChange={(value) => handleFilterChange('sortBy', value)}>
+                  {/* Premium Filter */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Access Level</Label>
+                    <Select value={filters.premium} onValueChange={(value) => handleFilterChange('premium', value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="createdAt">Latest Added</SelectItem>
-                        <SelectItem value="name">Name</SelectItem>
-                        <SelectItem value="publishedDate">Published Date</SelectItem>
+                        <SelectItem value="all">All Books</SelectItem>
+                        <SelectItem value="free">Free Books</SelectItem>
+                        <SelectItem value="premium">Premium Books</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="sortOrder"
-                        checked={filters.sortOrder === 'asc'}
-                        onCheckedChange={(checked) =>
-                          handleFilterChange('sortOrder', checked ? 'asc' : 'desc')
-                        }
-                      />
-                      <Label htmlFor="sortOrder" className="text-sm cursor-pointer">
-                        Ascending Order
-                      </Label>
+                  {/* Sort Options */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Sort By</Label>
+                    <div className="space-y-3">
+                      <Select value={filters.sortBy} onValueChange={(value) => handleFilterChange('sortBy', value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="createdAt">Latest Added</SelectItem>
+                          <SelectItem value="name">Name</SelectItem>
+                          <SelectItem value="publishedDate">Published Date</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="sortOrder"
+                          checked={filters.sortOrder === 'asc'}
+                          onCheckedChange={(checked) =>
+                            handleFilterChange('sortOrder', checked ? 'asc' : 'desc')
+                          }
+                        />
+                        <Label htmlFor="sortOrder" className="text-sm cursor-pointer">
+                          Ascending Order
+                        </Label>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Category Filter */}
-                <div>
-                  <Label className="text-sm font-medium mb-3 block">Categories</Label>
-                  <MultiSelect
-                    options={CATEGORY_OPTIONS}
-                    selected={filters.categories}
-                    onChange={(values) => handleFilterChange('categories', values)}
-                    placeholder="Select categories"
-                    maxVisible={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  {/* Category Filter */}
+                  <div>
+                    <Label className="text-sm font-medium mb-3 block">Categories</Label>
+                    <MultiSelect
+                      options={CATEGORY_OPTIONS}
+                      selected={filters.categories}
+                      onChange={(values) => handleFilterChange('categories', values)}
+                      placeholder="Select categories"
+                      maxVisible={3}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Books Grid */}
           <div className="flex-1">
