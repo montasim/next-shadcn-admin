@@ -6,6 +6,7 @@
  */
 
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
 interface TableSkeletonProps {
   rowCount?: number
@@ -108,6 +109,97 @@ function TablePaginationSkeleton() {
           <Skeleton className='h-8 w-8' />
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Dashboard Summary Skeleton Component
+ *
+ * Displays loading skeletons for stat cards in the dashboard summary
+ */
+export function DashboardSummarySkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-4">
+      {Array.from({ length: count }).map((_, index) => (
+        <Card key={index}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-4 rounded-full" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-7 w-16 mb-2" />
+            <Skeleton className="h-3 w-32" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Filter Section Skeleton Component
+ *
+ * Displays loading skeletons for filter inputs and selects
+ */
+export function FilterSectionSkeleton() {
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-5 w-20" />
+      </div>
+
+      {/* Filter grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
+      </div>
+
+      {/* Apply button */}
+      <div className="mt-4 flex justify-end">
+        <Skeleton className="h-10 w-32" />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Ticket List Skeleton Component
+ *
+ * Displays loading skeletons for support ticket cards
+ */
+export function TicketListSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: count }).map((_, index) => (
+        <Card key={index}>
+          <CardContent className="pt-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 min-w-0 space-y-3">
+                {/* Title and badges */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                {/* Description */}
+                <Skeleton className="h-10 w-full" />
+                {/* Meta info */}
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-3 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }

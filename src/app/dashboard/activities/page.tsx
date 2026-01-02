@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { HeaderContainer } from '@/components/ui/header-container'
 import { DataTable } from '@/components/data-table/data-table'
+import { TableSkeleton, DashboardSummarySkeleton, FilterSectionSkeleton } from '@/components/data-table/table-skeleton'
 import { columns } from './components/columns'
 import { Activity, activitiesListSchema } from './data/schema'
 import { ActivityAction, ActivityResourceType } from '@prisma/client'
@@ -157,30 +158,59 @@ export default function AdminActivitiesPage() {
   return (
     <>
       <HeaderContainer>
-        <div className='flex items-center justify-between'>
-          <div>
-            <h1 className='text-2xl font-bold'>Activity Logs</h1>
-            <p className='text-sm text-muted-foreground'>
-              Track all user and system activities across the platform
-            </p>
-          </div>
-          <div className='flex items-center gap-2'>
-            {activeFiltersCount > 0 && (
-              <Badge variant='secondary' className='gap-1'>
-                <Filter className='h-3 w-3' />
-                {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active
-              </Badge>
-            )}
-            <Button onClick={handleExport} variant='outline' size='sm'>
-              <Download className='mr-2 h-4 w-4' />
-              Export CSV
-            </Button>
-          </div>
+        <div>
+          <h1 className='text-2xl font-bold'>Activity Logs</h1>
+          <p className='text-sm text-muted-foreground'>
+            Track all user and system activities across the platform
+          </p>
+        </div>
+        <div className='flex items-center gap-2'>
+          {activeFiltersCount > 0 && (
+            <Badge variant='secondary' className='gap-1'>
+              <Filter className='h-3 w-3' />
+              {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active
+            </Badge>
+          )}
+          <Button onClick={handleExport} variant='outline' size='sm'>
+            <Download className='mr-2 h-4 w-4' />
+            Export CSV
+          </Button>
         </div>
       </HeaderContainer>
 
-      <div className='space-y-4 px-4'>
+      <div className='space-y-4'>
+        {/* Stats */}
+        {loading ? (
+          <DashboardSummarySkeleton count={4} />
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+            <div className='rounded-lg border bg-card p-4'>
+              <div className='text-sm text-muted-foreground'>Total Activities</div>
+              <div className='text-2xl font-bold'>{pagination.total.toLocaleString()}</div>
+            </div>
+            <div className='rounded-lg border bg-card p-4'>
+              <div className='text-sm text-muted-foreground'>Current Page</div>
+              <div className='text-2xl font-bold'>
+                {pagination.currentPage} / {pagination.totalPages}
+              </div>
+            </div>
+            <div className='rounded-lg border bg-card p-4'>
+              <div className='text-sm text-muted-foreground'>Success Rate</div>
+              <div className='text-2xl font-bold'>
+                {activities.length > 0
+                  ? Math.round((activities.filter(a => a.success).length / activities.length) * 100)
+                  : 0}%
+              </div>
+            </div>
+            <div className='rounded-lg border bg-card p-4'>
+              <div className='text-sm text-muted-foreground'>Filtered Results</div>
+              <div className='text-2xl font-bold'>{activities.length}</div>
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
+        {loading ? <FilterSectionSkeleton /> : (
         <div className='rounded-lg border bg-card p-4'>
           <div className='flex items-center justify-between mb-4'>
             <h3 className='font-semibold flex items-center gap-2'>
@@ -352,40 +382,11 @@ export default function AdminActivitiesPage() {
             </Button>
           </div>
         </div>
-
-        {/* Stats */}
-        <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Total Activities</div>
-            <div className='text-2xl font-bold'>{pagination.total.toLocaleString()}</div>
-          </div>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Current Page</div>
-            <div className='text-2xl font-bold'>
-              {pagination.currentPage} / {pagination.totalPages}
-            </div>
-          </div>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Success Rate</div>
-            <div className='text-2xl font-bold'>
-              {activities.length > 0
-                ? Math.round((activities.filter(a => a.success).length / activities.length) * 100)
-                : 0}%
-            </div>
-          </div>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Filtered Results</div>
-            <div className='text-2xl font-bold'>{activities.length}</div>
-          </div>
-        </div>
+        )}
 
         {/* Table */}
         <div className='-mx-4 overflow-auto px-4 py-1'>
-          {loading ? (
-            <div className='flex items-center justify-center py-8'>
-              <div className='text-muted-foreground'>Loading activities...</div>
-            </div>
-          ) : (
+          {loading ? <TableSkeleton rowCount={pagination.limit} /> : (
             <DataTable
               data={activities as any}
               columns={columns}

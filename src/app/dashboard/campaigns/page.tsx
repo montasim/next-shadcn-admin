@@ -5,6 +5,7 @@ import { getCampaigns } from './actions'
 import { HeaderContainer } from '@/components/ui/header-container'
 import { CampaignsHeader } from './components/campaigns-header'
 import { DataTable } from '@/components/data-table/data-table'
+import { TableSkeleton, DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { columns } from './components/columns'
 import CampaignsContextProvider, { CampaignsDialogType } from './context/campaigns-context'
@@ -18,14 +19,18 @@ function CampaignsPageContent() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [currentRow, setCurrentRow] = useState<Campaign | null>(null)
   const [open, setOpen] = useState<CampaignsDialogType | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Fetch campaigns and update state
   const refreshCampaigns = useCallback(async () => {
+    setIsLoading(true)
     try {
       const data = await getCampaigns()
       setCampaigns(data)
     } catch (error) {
       console.error('Error refreshing campaigns:', error)
+    } finally {
+      setIsLoading(false)
     }
   }, [])
 
@@ -108,11 +113,11 @@ function CampaignsPageContent() {
 
       <div className="space-y-4 mt-4">
         {/* Campaign Summary */}
-        <DashboardSummary summaries={summaryItems} />
+        {isLoading ? <DashboardSummarySkeleton count={6} /> : <DashboardSummary summaries={summaryItems} />}
 
         {/* Campaigns Table */}
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-          <DataTable data={campaigns} columns={columns} />
+          {isLoading ? <TableSkeleton /> : <DataTable data={campaigns} columns={columns} />}
         </div>
       </div>
 

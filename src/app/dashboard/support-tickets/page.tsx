@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton, FilterSectionSkeleton, TicketListSkeleton } from '@/components/data-table/table-skeleton'
 import { SupportTicket, TicketPriority, TicketStatus } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
-import { MessageSquare, Send, Clock, AlertCircle, CheckCircle2, User, LifeBuoy } from 'lucide-react'
+import { MessageSquare, Send, Clock, AlertCircle, CheckCircle2, User, LifeBuoy, Filter } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 
 interface TicketWithRelations extends SupportTicket {
@@ -252,7 +253,9 @@ export default function AdminSupportTicketsPage() {
         {/* Tickets List */}
         <div className='flex-1 space-y-4'>
           {/* Stats Summary */}
-          {stats && (
+          {loading ? (
+            <DashboardSummarySkeleton count={5} />
+          ) : stats && (
             <DashboardSummary
               summaries={[
                 {
@@ -290,7 +293,14 @@ export default function AdminSupportTicketsPage() {
           )}
 
           {/* Filters */}
+          {loading ? <FilterSectionSkeleton /> : (
           <Card className='p-4'>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='font-semibold flex items-center gap-2'>
+                <Filter className='h-4 w-4' />
+                Filters
+              </h3>
+            </div>
             <div className='flex items-center gap-4'>
               <div className='flex-1'>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -309,14 +319,11 @@ export default function AdminSupportTicketsPage() {
               </div>
             </div>
           </Card>
+          )}
 
           {/* Tickets List */}
           {loading ? (
-            <Card>
-              <CardContent className='pt-6 text-center text-muted-foreground'>
-                Loading tickets...
-              </CardContent>
-            </Card>
+            <TicketListSkeleton />
           ) : tickets.length === 0 ? (
             <Card>
               <CardContent className='pt-6 text-center'>
@@ -353,7 +360,7 @@ export default function AdminSupportTicketsPage() {
                           {ticket.description}
                         </p>
                         <div className='flex items-center gap-3 mt-2 text-xs text-muted-foreground'>
-                          <span>{ticket.user.name || ticket.user.email}</span>
+                          <span>{ticket.user?.name || ticket.user?.email || 'Unknown User'}</span>
                           <span>•</span>
                           <span>{formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}</span>
                           <span>•</span>
@@ -396,12 +403,12 @@ export default function AdminSupportTicketsPage() {
                     </div>
                     <div className='flex-1 min-w-0'>
                       <div className='font-medium text-sm truncate'>
-                        {selectedTicket.user.firstName && selectedTicket.user.lastName
+                        {selectedTicket.user?.firstName && selectedTicket.user?.lastName
                           ? `${selectedTicket.user.firstName} ${selectedTicket.user.lastName}`
-                          : selectedTicket.user.name}
+                          : selectedTicket.user?.name || 'Unknown User'}
                       </div>
                       <div className='text-xs text-muted-foreground truncate'>
-                        {selectedTicket.user.email}
+                        {selectedTicket.user?.email || 'No email'}
                       </div>
                     </div>
                   </div>
@@ -436,7 +443,7 @@ export default function AdminSupportTicketsPage() {
                         </div>
                         <div className='flex-1'>
                           <div className='flex items-center gap-2 mb-1'>
-                            <span className='font-medium text-sm'>{selectedTicket.user.name}</span>
+                            <span className='font-medium text-sm'>{selectedTicket.user?.name || 'Unknown User'}</span>
                             <span className='text-xs text-muted-foreground'>
                               {formatDistanceToNow(new Date(selectedTicket.createdAt), { addSuffix: true })}
                             </span>

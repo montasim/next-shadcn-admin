@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from '@/hooks/use-toast'
 import { Loader2, Save, RefreshCw, Construction } from 'lucide-react'
 import { HeaderContainer } from '@/components/ui/header-container'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface SiteSettings {
   id: string
@@ -100,8 +101,45 @@ export default function SiteSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-24" />
+        </div>
+
+        {/* Settings Card skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-56 mb-2" />
+            <Skeleton className="h-4 w-full" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Switch skeleton */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-56" />
+                <Skeleton className="h-3 w-80" />
+              </div>
+              <Skeleton className="h-6 w-12" />
+            </div>
+
+            {/* Textarea skeleton */}
+            <div className="space-y-2 pt-4">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-3 w-64" />
+            </div>
+
+            {/* Save button skeleton */}
+            <div className="flex justify-end pt-4">
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

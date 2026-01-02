@@ -10,6 +10,7 @@ import UsersContextProvider, { UsersDialogType } from './context/users-context'
 import { toast } from '@/hooks/use-toast'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 import { DataTable } from '@/components/data-table/data-table'
+import { TableSkeleton } from '@/components/data-table/table-skeleton'
 import { columns } from './components/columns'
 import { UsersInviteDialog } from './components/users-invite-dialog'
 import { UsersMutateDrawer } from './components/users-mutate-drawer'
@@ -17,12 +18,20 @@ import { UsersImportDialog } from './components/users-import-dialog'
 
 export default function Page() {
   const [users, setUsers] = useState<User[]>([])
- 
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     const updateUsers = async () => {
-      const rawUsers = await getUsers()
-      const users = userListSchema.parse(rawUsers)
-      setUsers(users)
+      setIsLoading(true)
+      try {
+        const rawUsers = await getUsers()
+        const users = userListSchema.parse(rawUsers)
+        setUsers(users)
+      } catch (error) {
+        console.error('Error fetching users:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     updateUsers()
@@ -33,12 +42,15 @@ export default function Page() {
   const [open, setOpen] = useDialogState<UsersDialogType>(null)
 
   const refreshUsers = async () => {
+    setIsLoading(true)
     try {
       const rawUsers = await getUsers()
       const users = userListSchema.parse(rawUsers)
       setUsers(users)
     } catch (error) {
       console.error('Error refreshing users:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -75,7 +87,7 @@ export default function Page() {
       </HeaderContainer>
 
       <div className='-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0'>
-        <DataTable data={users} columns={columns} />
+        {isLoading ? <TableSkeleton /> : <DataTable data={users} columns={columns} />}
       </div>
 
       <UsersMutateDrawer

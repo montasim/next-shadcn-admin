@@ -94,12 +94,12 @@ export const sidebarData: SidebarData = {
         },
         {
           title: 'Activity Logs',
-          url: '/dashboard/admin/activities',
+          url: '/dashboard/activities',
           icon: IconHistory,
         },
         {
           title: 'Support Tickets',
-          url: '/dashboard/admin/support-tickets',
+          url: '/dashboard/support-tickets',
           icon: IconMessages,
         },
       ],

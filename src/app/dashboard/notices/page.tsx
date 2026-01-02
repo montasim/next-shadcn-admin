@@ -9,17 +9,26 @@ import useDialogState from '@/hooks/use-dialog-state'
 import { NoticesContextProvider, NoticesDialogType } from './context/notices-context'
 import { toast } from '@/hooks/use-toast'
 import { DataTable } from '@/components/data-table/data-table'
+import { TableSkeleton } from '@/components/data-table/table-skeleton'
 import { columns } from './components/columns'
 import { NoticesMutateDrawer } from './components/notices-mutate-drawer'
 import { NoticesDeleteDialog } from './components/notices-delete-dialog'
 
 export default function NoticesPage() {
   const [notices, setNotices] = useState<Notice[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const updateNotices = async () => {
-      const rawNotices = await getNotices()
-      setNotices(rawNotices)
+      setIsLoading(true)
+      try {
+        const rawNotices = await getNotices()
+        setNotices(rawNotices)
+      } catch (error) {
+        console.error('Error fetching notices:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     updateNotices()
@@ -30,11 +39,14 @@ export default function NoticesPage() {
   const [open, setOpen] = useDialogState<NoticesDialogType>(null)
 
   const refreshNotices = async () => {
+    setIsLoading(true)
     try {
       const rawNotices = await getNotices()
       setNotices(rawNotices)
     } catch (error) {
       console.error('Error refreshing notices:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -71,7 +83,7 @@ export default function NoticesPage() {
       </HeaderContainer>
 
       <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <DataTable data={notices} columns={columns} />
+        {isLoading ? <TableSkeleton /> : <DataTable data={notices} columns={columns} />}
       </div>
 
       <NoticesMutateDrawer
