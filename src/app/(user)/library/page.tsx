@@ -35,6 +35,7 @@ import { LibraryFilterToolbar } from './components/library-filter-toolbar'
 import { BookshelfFilterToolbar } from './components/bookshelf-filter-toolbar'
 import { RequestBookDrawer } from './request-book-drawer'
 import { BookGridSkeleton, DashboardSummarySkeleton, FilterToolbarSkeleton } from '@/components/books/book-grid-skeleton'
+import { BookRequestCardSkeleton } from '@/components/books/book-request-card-skeleton'
 import { Book } from '@/app/dashboard/books/data/schema'
 import { deleteBook } from '@/app/dashboard/books/actions'
 import { getBookshelves, deleteBookshelf, getUserBooks } from './actions'
@@ -512,6 +513,10 @@ function LibraryPageContent() {
               <Plus className="h-4 w-4 mr-2" />
               Create Bookshelf
             </Button>
+            <Button onClick={() => setIsRequestDrawerOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Request Book
+            </Button>
           </div>
         </div>
 
@@ -603,10 +608,6 @@ function LibraryPageContent() {
                 <span className="text-sm text-muted-foreground">
                   {requests.length} request{requests.length !== 1 ? 's' : ''}
                 </span>
-                <Button onClick={() => setIsRequestDrawerOpen(true)} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Request Book
-                </Button>
               </div>
             )}
           </div>
@@ -658,8 +659,10 @@ function LibraryPageContent() {
           </TabsContent>
           <TabsContent value="my-requests" className="space-y-6 md:overflow-y-visible md:max-h-none">
             {requestsLoading ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-muted-foreground">Loading requests...</div>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <BookRequestCardSkeleton key={i} />
+                ))}
               </div>
             ) : requests.length === 0 ? (
               <Card>
