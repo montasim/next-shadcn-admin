@@ -169,6 +169,29 @@ export function FilterSectionSkeleton() {
 }
 
 /**
+ * Filter Tabs Skeleton Component
+ *
+ * Displays loading skeletons for tab-based filters
+ */
+export function FilterTabsSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <Card className="p-4 mb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <Skeleton className="h-5 w-20" />
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2">
+        {Array.from({ length: count }).map((_, index) => (
+          <Skeleton key={index} className="h-9 w-24" />
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+/**
  * Ticket List Skeleton Component
  *
  * Displays loading skeletons for support ticket cards
@@ -194,6 +217,98 @@ export function TicketListSkeleton({ count = 5 }: { count?: number }) {
                   <Skeleton className="h-3 w-32" />
                   <Skeleton className="h-3 w-24" />
                   <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Book Request List Skeleton Component
+ *
+ * Displays loading skeletons for book request cards
+ */
+export function BookRequestListSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="border rounded-lg divide-y">
+      {Array.from({ length: count }).map((_, index) => (
+        <div key={index} className="p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 space-y-3">
+              {/* Title and badge */}
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-6 w-64" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
+              {/* Author */}
+              <Skeleton className="h-4 w-48" />
+              {/* Details grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              {/* Requested by info */}
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-9 w-32" />
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Marketplace Listing Skeleton Component
+ *
+ * Displays loading skeletons for marketplace listing cards
+ */
+export function MarketplaceListingSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: count }).map((_, index) => (
+        <Card key={index}>
+          <CardContent className="p-4">
+            <div className="flex gap-4">
+              {/* Thumbnail */}
+              <Skeleton className="w-24 h-24 rounded-lg flex-shrink-0" />
+              {/* Content */}
+              <div className="flex-1 min-w-0 space-y-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Title and badge */}
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-5 w-20 rounded-full" />
+                    </div>
+                    {/* Price */}
+                    <Skeleton className="h-6 w-32" />
+                    {/* Meta info */}
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                  </div>
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-9 w-24" />
+                    <Skeleton className="h-9 w-8" />
+                  </div>
                 </div>
               </div>
             </div>

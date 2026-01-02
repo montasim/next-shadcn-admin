@@ -106,10 +106,10 @@ export function SellPostCard({
     compact = false,
 }: SellPostCardProps) {
     const coverImage = images[0]
-    const displayName = seller.firstName && seller.lastName
+    const displayName = seller?.firstName && seller?.lastName
         ? `${seller.firstName} ${seller.lastName}`
-        : seller.name
-    const initials = getInitials(seller.firstName, seller.lastName, seller.name)
+        : seller?.name || 'Unknown Seller'
+    const initials = getInitials(seller?.firstName, seller?.lastName, seller?.name)
 
     return (
         <Link href={`/marketplace/${id}`}>
@@ -198,7 +198,7 @@ export function SellPostCard({
                     <CardFooter className="border-t p-4 pt-3">
                         <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={seller.avatar || seller.directAvatarUrl} />
+                                <AvatarImage src={seller?.avatar || seller?.directAvatarUrl} />
                                 <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">

@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RequestStatus, BookType } from '@prisma/client'
-import { FileText, RefreshCw, MessageCircle } from 'lucide-react'
+import { FileText, RefreshCw, MessageCircle, Filter } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { useBookRequestsContext } from './context/book-requests-context'
 import { BookRequestsProvider } from './context/book-requests-context'
@@ -21,6 +21,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton, FilterSectionSkeleton, BookRequestListSkeleton } from '@/components/data-table/table-skeleton'
 
 interface BookRequest {
   id: string
@@ -206,37 +207,50 @@ function BookRequestsPageContent() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <DashboardSummary
-        summaries={[
-          { title: 'Total Requests', value: statusCounts.all, description: 'All requests' },
-          { title: 'Pending', value: statusCounts[RequestStatus.PENDING], description: 'Awaiting review' },
-          { title: 'In Progress', value: statusCounts[RequestStatus.IN_PROGRESS], description: 'Being processed' },
-          { title: 'Approved', value: statusCounts[RequestStatus.APPROVED], description: 'Approved requests' },
-        ]}
-      />
+      <div className="space-y-4">
+        {/* Stats Cards */}
+        {loading ? (
+          <DashboardSummarySkeleton count={4} />
+        ) : (
+          <DashboardSummary
+            summaries={[
+              { title: 'Total Requests', value: statusCounts.all, description: 'All requests' },
+              { title: 'Pending', value: statusCounts[RequestStatus.PENDING], description: 'Awaiting review' },
+              { title: 'In Progress', value: statusCounts[RequestStatus.IN_PROGRESS], description: 'Being processed' },
+              { title: 'Approved', value: statusCounts[RequestStatus.APPROVED], description: 'Approved requests' },
+            ]}
+          />
+        )}
 
-      {/* Filter */}
-      <div className="flex items-center gap-4">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Requests</SelectItem>
-            <SelectItem value={RequestStatus.PENDING}>Pending</SelectItem>
-            <SelectItem value={RequestStatus.IN_PROGRESS}>In Progress</SelectItem>
-            <SelectItem value={RequestStatus.APPROVED}>Approved</SelectItem>
-            <SelectItem value={RequestStatus.REJECTED}>Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        {/* Filters */}
+        {loading ? <FilterSectionSkeleton /> : (
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filters
+            </h3>
+          </div>
+          <div className="flex items-center gap-4">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Requests</SelectItem>
+                <SelectItem value={RequestStatus.PENDING}>Pending</SelectItem>
+                <SelectItem value={RequestStatus.IN_PROGRESS}>In Progress</SelectItem>
+                <SelectItem value={RequestStatus.APPROVED}>Approved</SelectItem>
+                <SelectItem value={RequestStatus.REJECTED}>Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </Card>
+      )}
 
       {/* Requests Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">Loading requests...</div>
-        </div>
+        <BookRequestListSkeleton />
       ) : filteredRequests.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -394,6 +408,7 @@ function BookRequestsPageContent() {
           })}
         </div>
       )}
+      </div>
 
       <BookRequestApproveDrawer
         open={isApproveDrawerOpen}

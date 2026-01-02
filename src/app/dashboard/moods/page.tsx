@@ -9,6 +9,7 @@ import useDialogState from '@/hooks/use-dialog-state'
 import MoodsContextProvider, { MoodsDialogType } from './context/moods-context'
 import { toast } from '@/hooks/use-toast'
 import { DataTable } from '@/components/data-table/data-table'
+import { TableSkeleton } from '@/components/data-table/table-skeleton'
 import { columns } from './components/columns'
 import { MoodsMutateDrawer } from './components/moods-mutate-drawer'
 import { MoodsDeleteDialog } from './components/moods-delete-dialog'
@@ -30,16 +31,20 @@ export default function MoodsPage() {
   const [moods, setMoods] = useState<Mood[]>([])
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Track component mount
   const isMountedRef = useRef(false)
 
   const fetchMoods = useCallback(async () => {
+    setIsLoading(true)
     try {
       const rawMoods = await getMoods()
       setMoods(rawMoods)
     } catch (error) {
       console.error('Error fetching moods:', error)
+    } finally {
+      setIsLoading(false)
     }
   }, [])
 
@@ -159,7 +164,9 @@ export default function MoodsPage() {
       )}
 
       <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-        {moods.length === 0 ? (
+        {isLoading ? (
+          <TableSkeleton />
+        ) : moods.length === 0 ? (
           <EmptyStateCard
             title='No moods found'
             description='There are no moods in the system yet. Create your first mood to get started.'

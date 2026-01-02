@@ -15,6 +15,7 @@ import { BookOpen, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { useRouter } from 'next/navigation'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton, TableSkeleton } from '@/components/data-table/table-skeleton'
 
 export default function LoansPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -23,6 +24,7 @@ export default function LoansPage() {
   const [currentRow, setCurrentRow] = useState<Loan | null>(null)
   const [open, setOpen] = useState<LoansDialogType>(null)
   const [isLendDialogOpen, setIsLendDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const isMountedRef = useRef(false)
 
   useEffect(() => {
@@ -34,11 +36,14 @@ export default function LoansPage() {
   }, [user, authLoading, router])
 
   const fetchLoans = useCallback(async () => {
+    setIsLoading(true)
     try {
       const rawLoans = await getLoans()
       setLoans(rawLoans)
     } catch (error) {
       console.error('Error fetching loans:', error)
+    } finally {
+      setIsLoading(false)
     }
   }, [])
 
@@ -88,37 +93,43 @@ export default function LoansPage() {
       </HeaderContainer>
 
       {/* Dashboard Summary */}
-      <DashboardSummary
-        summaries={[
-          {
-            title: 'Total Loans',
-            value: loans.length,
-            description: `${activeCount} currently active`,
-            icon: BookOpen,
-          },
-          {
-            title: 'Active Loans',
-            value: activeCount,
-            description: overdueCount > 0 ? `${overdueCount} overdue` : 'All on track',
-            icon: Clock,
-          },
-          {
-            title: 'Overdue Books',
-            value: overdueCount,
-            description: overdueCount > 0 ? 'Need attention' : 'No overdue books',
-            icon: AlertTriangle,
-          },
-          {
-            title: 'Returned',
-            value: returnedCount,
-            description: `${cancelledCount} cancelled`,
-            icon: CheckCircle,
-          },
-        ]}
-      />
+      {isLoading ? (
+        <DashboardSummarySkeleton count={4} />
+      ) : (
+        <DashboardSummary
+          summaries={[
+            {
+              title: 'Total Loans',
+              value: loans.length,
+              description: `${activeCount} currently active`,
+              icon: BookOpen,
+            },
+            {
+              title: 'Active Loans',
+              value: activeCount,
+              description: overdueCount > 0 ? `${overdueCount} overdue` : 'All on track',
+              icon: Clock,
+            },
+            {
+              title: 'Overdue Books',
+              value: overdueCount,
+              description: overdueCount > 0 ? 'Need attention' : 'No overdue books',
+              icon: AlertTriangle,
+            },
+            {
+              title: 'Returned',
+              value: returnedCount,
+              description: `${cancelledCount} cancelled`,
+              icon: CheckCircle,
+            },
+          ]}
+        />
+      )}
 
       <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-        {loans.length === 0 ? (
+        {isLoading ? (
+          <TableSkeleton />
+        ) : loans.length === 0 ? (
           <EmptyStateCard
             title="No loans found"
             description="There are no book loans in the system yet."

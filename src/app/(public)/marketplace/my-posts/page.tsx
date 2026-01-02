@@ -15,6 +15,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SellPostCard } from '@/components/marketplace'
+import { MarketplaceListingSkeleton, DashboardSummarySkeleton, FilterTabsSkeleton } from '@/components/data-table/table-skeleton'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import {
     ShoppingBag,
     Plus,
@@ -26,6 +28,8 @@ import {
     CheckCircle,
     XCircle,
     Loader2,
+    Filter,
+    Clock,
 } from 'lucide-react'
 import Link from 'next/link'
 import { SellPostStatus, BookCondition } from '@prisma/client'
@@ -229,36 +233,50 @@ function MySellPostsPageContent() {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="text-2xl font-bold">{stats.total}</div>
-                            <div className="text-sm text-muted-foreground">Total</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="text-2xl font-bold text-green-600">{stats.available}</div>
-                            <div className="text-sm text-muted-foreground">Available</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                            <div className="text-sm text-muted-foreground">Pending</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="text-2xl font-bold text-blue-600">{stats.sold}</div>
-                            <div className="text-sm text-muted-foreground">Sold</div>
-                        </CardContent>
-                    </Card>
-                </div>
+                {isLoading ? (
+                    <DashboardSummarySkeleton count={4} />
+                ) : (
+                    <DashboardSummary
+                        summaries={[
+                            {
+                                title: 'Total Listings',
+                                value: stats.total,
+                                description: `${stats.available} available`,
+                                icon: ShoppingBag,
+                            },
+                            {
+                                title: 'Available',
+                                value: stats.available,
+                                description: 'Ready to sell',
+                                icon: CheckCircle,
+                            },
+                            {
+                                title: 'Pending',
+                                value: stats.pending,
+                                description: 'Awaiting approval',
+                                icon: Clock,
+                            },
+                            {
+                                title: 'Sold',
+                                value: stats.sold,
+                                description: 'Successfully sold',
+                                icon: CheckCircle,
+                            },
+                        ]}
+                    />
+                )}
 
                 {/* Filter Tabs */}
-                <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                    {(['all', 'AVAILABLE', 'PENDING', 'SOLD'] as const).map((status) => (
+                {isLoading ? <FilterTabsSkeleton count={4} /> : (
+                <Card className="p-4 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold flex items-center gap-2">
+                            <Filter className="h-4 w-4" />
+                            Filters
+                        </h3>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                        {(['all', 'AVAILABLE', 'PENDING', 'SOLD'] as const).map((status) => (
                         <Button
                             key={status}
                             variant={filterStatus === status ? 'default' : 'outline'}
@@ -268,18 +286,17 @@ function MySellPostsPageContent() {
                             {status === 'all' ? 'All' : STATUS_CONFIG[status as SellPostStatus].label}
                         </Button>
                     ))}
-                </div>
+                    </div>
+                </Card>
+                )}
 
                 {/* Loading State */}
                 {isLoading && (
-                    <div className="text-center py-12">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">Loading your listings...</p>
-                    </div>
+                    <MarketplaceListingSkeleton />
                 )}
 
                 {/* Error State */}
-                {error && (
+                {!isLoading && error && (
                     <Card className="border-destructive mb-6">
                         <CardContent className="p-4 text-destructive">
                             {error}
