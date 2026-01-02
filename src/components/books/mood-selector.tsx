@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2 } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { SmilePlus } from 'lucide-react'
 
 export interface Mood {
   id: string
@@ -48,17 +49,45 @@ export function MoodSelector({ onSelectMood, selectedMood }: MoodSelectorProps) 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-4">
+        {/* Title Skeleton */}
+        <div className="text-center mb-6 space-y-2">
+          <Skeleton className="h-7 w-64 mx-auto" />
+          <Skeleton className="h-5 w-96 mx-auto" />
+        </div>
+
+        {/* Mood Grid Skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-10 w-10 mx-auto rounded-full" />
+                  <Skeleton className="h-5 w-24 mx-auto" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
 
   if (moods.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No moods available. Please check back later.</p>
-      </div>
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <SmilePlus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Moods Available</h3>
+            <p className="text-muted-foreground mb-4">
+              Sorry, we couldn&apos;t load any moods at the moment. Please check back later!
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 

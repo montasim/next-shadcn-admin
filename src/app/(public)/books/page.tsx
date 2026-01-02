@@ -14,7 +14,7 @@ import { BookGrid } from '@/components/books/book-grid'
 import { BookCardSkeleton } from '@/components/books/book-card-skeleton'
 import { BooksFilterSidebarSkeleton, BooksFilterMobileSkeleton } from '@/components/books/books-filter-sidebar-skeleton'
 import { BooksHeaderSkeleton } from '@/components/books/books-header-skeleton'
-import { MoodRecommendationsSkeleton } from '@/components/books/mood-recommendations-skeleton'
+import { MoodRecommendationsSkeleton, MoodRecommendationsBooksSkeleton } from '@/components/books/mood-recommendations-skeleton'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { SearchBar } from '@/components/books/search-bar'
 import { MoodSelector } from '@/components/books/mood-selector'
@@ -590,11 +590,7 @@ function BooksPageContent({
                             </div>
 
                             {isLoadingMood ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {[...Array(6)].map((_, i) => (
-                                  <BookCardSkeleton key={i} viewMode="grid" />
-                                ))}
-                              </div>
+                              <MoodRecommendationsBooksSkeleton />
                             ) : moodBooks.length > 0 ? (
                               <BookGrid
                                 books={moodBooks}
