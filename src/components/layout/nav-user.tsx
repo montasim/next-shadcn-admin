@@ -117,7 +117,7 @@ export function NavUser({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href='/settings/billing'>
+                  <Link href='/settings/account'>
                     <CreditCard className="mr-2 h-4 w-4" />
                     Billing
                   </Link>
