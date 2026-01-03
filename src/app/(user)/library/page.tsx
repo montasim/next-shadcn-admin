@@ -504,7 +504,7 @@ function LibraryPageContent() {
               Organize your books into custom collections and manage your uploads.
             </p>
           </div>
-          <div className="flex items-center gap-2 mt-4 md:mt-0">
+          <div className="flex items-center justify-start gap-2 flex-wrap mt-4 md:mt-0 md:justify-end">
             <Button onClick={() => setIsBookDrawerOpen(true)}>
               <Upload className="mr-2 h-4 w-4" />
               Upload Book
