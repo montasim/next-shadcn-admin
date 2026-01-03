@@ -15,7 +15,7 @@ interface TopNavProps extends React.HTMLAttributes<HTMLElement> {
   links: {
     title: string
     href: string
-    isActive: boolean
+    isActive?: boolean
     disabled?: boolean
   }[]
 }
