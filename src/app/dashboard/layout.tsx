@@ -7,7 +7,6 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import { AuthGuard } from '@/components/auth-guard'
 import { cn } from '@/lib/utils'
 import { UserTopbar } from "@/components/layout/user-topbar";
-import { Main } from "@/components/ui/main";
 import { MDXViewerProvider } from 'mdx-craft';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 
@@ -70,11 +69,11 @@ export default function DashboardLayout({
                     topNavLinks={adminTopNav}
                   />
 
-                  <Main fixed>
+                  <div className="flex-1 overflow-auto bg-background">
                     <MDXViewerProvider>
                       {children}
                     </MDXViewerProvider>
-                  </Main>
+                  </div>
 
                   {/* Mobile Bottom Navigation */}
                   <MobileBottomNav />

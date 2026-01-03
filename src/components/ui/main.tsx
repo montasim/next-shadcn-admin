@@ -13,6 +13,7 @@ export const Main = ({ fixed, noPadding, noMobileNavPadding, ...props }: MainPro
     <main
       className={cn(
         'peer-[.header-fixed]/header:mt-16',
+        !noPadding && 'p-4',
         !noMobileNavPadding && 'pb-mobile-nav-safe',
         fixed && 'fixed-main flex flex-col flex-grow overflow-hidden'
       )}
