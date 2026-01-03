@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from '@/components/ui/progress'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Overview } from "@/components/dashboard/overview"
 import { RecentSales } from "@/components/dashboard/recent-sales"
 import { DashboardSummary, SummaryItem } from "@/components/dashboard/dashboard-summary"
+import { DashboardSummarySkeleton } from "@/components/dashboard/dashboard-summary-skeleton"
 import { Header } from "@/components/layout/header"
 import { TopNav } from "@/components/layout/top-nav"
 import { ProfileDropdown } from "@/components/profile-dropdown"
@@ -85,6 +87,91 @@ function calculateLibraryStats(books: Book[]): LibraryStats {
 }
 
 function AdminDashboard() {
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate initial data loading
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-24" />
+          </div>
+        </div>
+
+        {/* Tabs Skeleton */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-10 w-24" />
+            ))}
+          </div>
+
+          {/* Stats Skeleton */}
+          <DashboardSummarySkeleton count={4} />
+
+          {/* Overview and Recent Sales Skeleton */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
+            <Card className="col-span-1 lg:col-span-4">
+              <CardHeader>
+                <Skeleton className="h-6 w-24" />
+              </CardHeader>
+              <CardContent className="pl-2">
+                {/* Chart skeleton */}
+                <div className="space-y-4">
+                  <div className="flex items-end gap-2 h-48">
+                    {[...Array(12)].map((_, i) => (
+                      <Skeleton key={i} className="flex-1" style={{ height: `${Math.random() * 60 + 40}%` }} />
+                    ))}
+                  </div>
+                  {/* X-axis labels */}
+                  <div className="flex justify-between px-2">
+                    {[...Array(6)].map((_, i) => (
+                      <Skeleton key={i} className="h-3 w-12" />
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="col-span-1 lg:col-span-3">
+              <CardHeader>
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-4 w-48" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <Main fixed>
@@ -621,14 +708,6 @@ function UserDashboard() {
 
 export default function DashboardPage() {
   const { user, isLoading } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-lg">Loading...</div>
-      </div>
-    )
-  }
 
   // If no user, show loading while redirecting
   if (!user) {
