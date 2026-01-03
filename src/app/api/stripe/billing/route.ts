@@ -19,13 +19,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's subscription to find Stripe customer ID
-    const subscription = await prisma.subscription.findUnique({
-      where: { userId: session.userId },
+    // Get user to find Stripe customer ID
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
       select: { stripeCustomerId: true },
     })
 
-    if (!subscription?.stripeCustomerId) {
+    if (!user?.stripeCustomerId) {
       return NextResponse.json({
         customerId: null,
         defaultPaymentMethod: null,
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch customer details from Stripe
-    const customer = await stripe.customers.retrieve(subscription.stripeCustomerId) as any
+    const customer = await stripe.customers.retrieve(user.stripeCustomerId) as any
 
     // Get default payment method
     let defaultPaymentMethod = null
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch invoices
     const invoices = await stripe.invoices.list({
-      customer: subscription.stripeCustomerId,
+      customer: user.stripeCustomerId,
       limit: 50,
     })
 
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     }))
 
     return NextResponse.json({
-      customerId: subscription.stripeCustomerId,
+      customerId: user.stripeCustomerId,
       defaultPaymentMethod,
       invoices: formattedInvoices,
     })
