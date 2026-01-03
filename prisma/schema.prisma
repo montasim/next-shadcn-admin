@@ -505,7 +505,6 @@ model User {
   socialEmails        Boolean?          @default(false)
   mobileNotifications Boolean?          @default(false)
   isPremium           Boolean           @default(false)
-  stripeCustomerId    String?           @unique
   isActive            Boolean           @default(true)
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -520,7 +519,6 @@ model User {
   publishedBooks      Publication[]     @relation("UserPublications")
   readingProgress     ReadingProgress[]
   achievements        UserAchievement[]  @relation("UserAchievements")
-  subscription        Subscription?
   sessions            UserSession[]
   quizAttempts       QuizAttempt[]
   quizStreak          QuizStreak?
@@ -635,24 +633,6 @@ model UserSession {
 
   @@index([token])
   @@map("user_sessions")
-}
-
-model Subscription {
-  id                  String           @id @default(uuid())
-  userId              String           @unique
-  plan                SubscriptionPlan @default(FREE)
-  startDate           DateTime         @default(now())
-  endDate             DateTime?
-  isActive            Boolean          @default(true)
-  paymentId           String?
-  stripeSubscriptionId String?         @unique
-  stripePriceId       String?
-  cancelAtPeriodEnd   Boolean          @default(false)
-  createdAt           DateTime         @default(now())
-  updatedAt           DateTime         @updatedAt
-  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("subscriptions")
 }
 
 model ReadingProgress {
@@ -896,12 +876,6 @@ enum BookType {
 enum BindingType {
   HARDCOVER
   PAPERBACK
-}
-
-enum SubscriptionPlan {
-  FREE
-  PREMIUM
-  PREMIUM_PLUS
 }
 
 enum UserRole {
