@@ -9,6 +9,7 @@ import { config } from '@/config'
 import { RequestStatus } from '@prisma/client'
 import { logActivity } from '@/lib/activity/logger'
 import { ActivityAction, ActivityResourceType } from '@prisma/client'
+import { invalidateBooksCache } from '@/lib/cache/redis'
 
 const bookSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -133,6 +134,9 @@ export async function createBook(formData: FormData) {
         data: { status: RequestStatus.APPROVED }
       })
     }
+
+    // Invalidate books cache
+    await invalidateBooksCache()
 
     revalidatePath('/library')
     revalidatePath('/dashboard/book-requests')
@@ -271,6 +275,9 @@ export async function updateBook(id: string, formData: FormData) {
         }
       }
     })
+
+    // Invalidate books cache
+    await invalidateBooksCache()
 
     revalidatePath('/library')
     return { success: true, message: 'Book updated successfully' }

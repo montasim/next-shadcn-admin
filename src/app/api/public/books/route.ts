@@ -55,8 +55,9 @@ const BooksQuerySchema = z.object({
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
 
-// Cache configuration - Cache results for 60 seconds
-const CACHE_REVALIDATE_SECONDS = 60
+// Cache configuration - Cache results for 1 year (books data rarely changes)
+// Cache will be invalidated when books are created, updated, or deleted
+const CACHE_REVALIDATE_SECONDS = 365 * 24 * 60 * 60 // 1 year in seconds
 
 // ============================================================================
 // HELPER FUNCTIONS

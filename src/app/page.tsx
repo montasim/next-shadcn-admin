@@ -453,7 +453,7 @@ export default async function HomePage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/auth/sign-in" className="hover:text-foreground transition-colors">Sign In</Link></li>
                 <li><Link href="/auth/sign-up" className="hover:text-foreground transition-colors">Sign Up</Link></li>
-                <li><Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link></li>
+                <li><Link href="/dashboard/settings" className="hover:text-foreground transition-colors">Settings</Link></li>
               </ul>
             </div>
           </div>

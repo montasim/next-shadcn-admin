@@ -3,6 +3,7 @@
 import { requireAuth } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
 import { BookType, BindingType } from '@prisma/client'
+import { invalidateBooksCache } from '@/lib/cache/redis'
 
 export interface BulkImportResult {
   success: boolean
@@ -355,6 +356,9 @@ export async function bulkImportBooks(rows: BookImportRow[]): Promise<BulkImport
       })
     }
   }
+
+  // Invalidate books cache after bulk import
+  await invalidateBooksCache()
 
   return {
     success: errors.length === 0,
