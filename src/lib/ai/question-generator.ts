@@ -120,7 +120,7 @@ export async function generateBookQuestions(
     : 'Unknown Author';
 
   // Multi-language aware system prompt
-  const systemPrompt = `You are an educational content creator for a library application called Book Heaven.
+  const systemPrompt = `You are an educational content creator for a digital library platform.
 
 TASK: Generate ${questionCount} thoughtful questions and answers about the book "${options.bookName}" by ${authorsText}.
 

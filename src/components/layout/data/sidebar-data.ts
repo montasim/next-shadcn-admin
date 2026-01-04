@@ -49,7 +49,7 @@ export const sidebarData: SidebarData = {
   },
   teams: [
     {
-      name: 'Book Heaven',
+      name: 'My Library',
       logo: BookOpenIcon,
       plan: 'Digital Library',
     },

@@ -1,20 +1,23 @@
 import { HeaderContainer } from '@/components/ui/header-container'
 import { LegalContentEditor } from '@/components/legal/legal-content-editor'
 import { LegalContentType } from '@prisma/client'
+import { getSiteName } from '@/lib/utils/site-settings'
 
-export default function AdminAboutPage() {
+export default async function AdminAboutPage() {
+  const siteName = await getSiteName()
+
   return (
     <HeaderContainer>
       <LegalContentEditor
         type={LegalContentType.ABOUT}
         title="About Us"
         description="Manage the About Us page content. Changes will be visible to all users immediately after saving."
-        placeholderTitle="About Book Heaven"
-        placeholderContent={`# About Book Heaven
+        placeholderTitle={`About ${siteName}`}
+        placeholderContent={`# About ${siteName}
 
 ## Our Story
 
-Book Heaven was founded with a simple mission: to make reading accessible, enjoyable, and engaging for everyone. We believe that books have the power to transform lives, spark imagination, and connect people across the globe.
+${siteName} was founded with a simple mission: to make reading accessible, enjoyable, and engaging for everyone. We believe that books have the power to transform lives, spark imagination, and connect people across the globe.
 
 ## What We Do
 
@@ -45,7 +48,7 @@ We're a diverse team of book lovers, tech enthusiasts, and community builders wo
 
 Have questions, suggestions, or just want to say hello? We'd love to hear from you!
 
-- Email: support@bookheaven.com
+- Email: support@${siteName.toLowerCase().replace(/\s+/g, '')}.com
 - Follow us on social media`}
 
       />
