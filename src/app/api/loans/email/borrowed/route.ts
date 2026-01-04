@@ -107,7 +107,7 @@ async function getBookBorrowedEmailTemplate(
     </h2>
 
     <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-      Hi ${userName}, you've successfully borrowed a book from ${APP_NAME}.
+      Hi ${userName}, you've successfully borrowed a book from ${appName}.
     </p>
 
     <!-- Book Details -->

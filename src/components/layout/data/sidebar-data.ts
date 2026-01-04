@@ -37,6 +37,9 @@ import {
   IconHandStop,
   IconLibrary,
   IconCurrency,
+  IconCreditCard,
+  IconReceipt,
+  IconCrown,
 } from '@tabler/icons-react'
 import { AudioWaveform, BookOpen as BookOpenIcon, Brain, Command, GalleryVerticalEnd } from 'lucide-react'
 import { type SidebarData } from '../types'
@@ -273,6 +276,16 @@ export const sidebarData: SidebarData = {
               icon: IconTool,
             },
             {
+              title: 'Subscription',
+              url: '/settings/subscription',
+              icon: IconCreditCard,
+            },
+            {
+              title: 'Billing',
+              url: '/settings/billing',
+              icon: IconReceipt,
+            },
+            {
               title: 'Appearance',
               url: '/settings/appearance',
               icon: IconPalette,
@@ -288,6 +301,11 @@ export const sidebarData: SidebarData = {
               icon: IconBrowserCheck,
             },
           ],
+        },
+        {
+          title: 'Pricing',
+          url: '/pricing',
+          icon: IconCrown,
         },
         {
           title: 'Help Center',
