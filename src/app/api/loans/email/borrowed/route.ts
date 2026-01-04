@@ -9,17 +9,19 @@ import { prisma } from '@/lib/prisma'
 import { getUserDisplayName } from '@/lib/utils/user'
 import { Resend } from 'resend'
 import { config } from '@/config'
+import { getSiteName, getSupportEmail } from '@/lib/utils/site-settings'
 
 const resend = new Resend(config.resendApiKey)
 const FROM_EMAIL = config.fromEmail || 'onboarding@resend.dev'
-// TODO: Make APP_NAME dynamic - currently using fallback
-const APP_NAME = 'Book Heaven'
 const BASE_URL = config.baseUrl || 'http://localhost:3000'
 
 /**
  * Email template wrapper using the existing system
  */
-function emailTemplateWrapper(content: string, previewText?: string): string {
+function emailTemplateWrapper(content: string, previewText?: string, appName?: string, supportEmail?: string): string {
+  const siteName = appName || 'Book Heaven'
+  const support = supportEmail || 'support@bookheaven.com'
+
   return `
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -28,8 +30,8 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
-  <meta name="subject" content="${previewText || APP_NAME}">
-  <title>${APP_NAME}</title>
+  <meta name="subject" content="${previewText || siteName}">
+  <title>${siteName}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     body { margin: 0; padding: 0; min-width: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; }
@@ -65,7 +67,7 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
               <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">${APP_NAME}</h1>
+          <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">${siteName}</h1>
         </div>
       </div>
       <!-- Content -->
@@ -75,7 +77,7 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
       <!-- Footer -->
       <div style="background-color: #f8fafc; padding: 32px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px; font-weight: 500;">
-          &copy; ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+          &copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.
         </p>
         <p style="margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.6;">
           This email was sent to <a href="mailto:{{email}}" style="color: #64748b; text-decoration: none; font-weight: 500;">{{email}}</a>.
@@ -91,12 +93,14 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
 /**
  * Book Borrowed Email Template
  */
-function getBookBorrowedEmailTemplate(
+async function getBookBorrowedEmailTemplate(
   userName: string,
   bookName: string,
   dueDate: string,
   notes?: string
-): { subject: string; html: string } {
+): Promise<{ subject: string; html: string }> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
   const content = `
     <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
       Book Borrowed Successfully! 📚
@@ -143,7 +147,7 @@ function getBookBorrowedEmailTemplate(
 
   return {
     subject: `Book Borrowed: ${bookName}`,
-    html: emailTemplateWrapper(content, 'Book Borrowed Successfully')
+    html: emailTemplateWrapper(content, 'Book Borrowed Successfully', appName, supportEmail)
   }
 }
 
@@ -188,7 +192,7 @@ export async function POST(request: NextRequest) {
       day: 'numeric'
     })
 
-    const { subject, html } = getBookBorrowedEmailTemplate(
+    const { subject, html } = await getBookBorrowedEmailTemplate(
       userName,
       loan.book.name,
       dueDateStr,

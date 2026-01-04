@@ -16,6 +16,7 @@
 import { Resend } from 'resend'
 import { config } from '@/config'
 import { markdownToHtml, generateUnsubscribeUrl } from '@/lib/utils/markdown'
+import { getSiteName, getSupportEmail } from '@/lib/utils/site-settings'
 
 // Re-export utility functions from the markdown module
 // These are safe to use in both client and server components
@@ -32,10 +33,7 @@ const resend = new Resend(config.resendApiKey)
 // ============================================================================
 
 const FROM_EMAIL = config.fromEmail || 'onboarding@resend.dev'
-// TODO: Make APP_NAME dynamic - currently using fallback until email templates are refactored to async
-const APP_NAME = 'Book Heaven'
 const BASE_URL = config.baseUrl || 'http://localhost:3000'
-const SUPPORT_EMAIL = 'support@bookheaven.com'
 
 // ============================================================================
 // EMAIL TEMPLATES
@@ -43,9 +41,12 @@ const SUPPORT_EMAIL = 'support@bookheaven.com'
 
 /**
  * Industry-standard email template wrapper
- * Modern, clean design with responsive layout using Book Heaven branding colors
+ * Modern, clean design with responsive layout
  */
-function emailTemplateWrapper(content: string, previewText?: string): string {
+function emailTemplateWrapper(content: string, previewText?: string, appName?: string, supportEmail?: string): string {
+  const siteName = appName || 'Book Heaven'
+  const support = supportEmail || 'support@bookheaven.com'
+
   return `
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -54,8 +55,8 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="x-apple-disable-message-reformatting">
-  <meta name="subject" content="${previewText || APP_NAME}">
-  <title>${APP_NAME}</title>
+  <meta name="subject" content="${previewText || siteName}">
+  <title>${siteName}</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -110,7 +111,7 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
               <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <h1 style="color: #1e3a5f; margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">${APP_NAME}</h1>
+          <h1 style="color: #1e3a5f; margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">${siteName}</h1>
         </div>
       </div>
 
@@ -122,7 +123,7 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
       <!-- Footer -->
       <div style="background-color: #f8fafc; padding: 32px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px; font-weight: 500;">
-          &copy; ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+          &copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.
         </p>
         <p style="margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.6;">
           This email was sent to <a href="mailto:{{email}}" style="color: #64748b; text-decoration: none; font-weight: 500;">{{email}}</a>.
@@ -134,7 +135,7 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
     <!-- Footer Links -->
     <div style="text-align: center; margin-top: 24px; padding: 0 16px;">
       <p style="margin: 0 0 12px 0; color: #94a3b8; font-size: 12px;">
-        Need help? <a href="mailto:${SUPPORT_EMAIL}" style="color: #64748b; text-decoration: underline; font-weight: 500;">Contact Support</a>
+        Need help? <a href="mailto:${support}" style="color: #64748b; text-decoration: underline; font-weight: 500;">Contact Support</a>
       </p>
       <p style="margin: 0; color: #94a3b8; font-size: 12px;">
         <a href="${BASE_URL}/privacy" style="color: #94a3b8; text-decoration: none; margin: 0 8px;">Privacy</a>
@@ -152,15 +153,18 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
  * Generate registration OTP email HTML
  * Modern, clean design with prominent OTP display
  */
-function getRegistrationOtpEmailTemplate(otp: string, email?: string): {
+async function getRegistrationOtpEmailTemplate(otp: string, email?: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
         <!-- Greeting -->
         <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
-          Welcome to ${APP_NAME}! 🎉
+          Welcome to ${appName}! 🎉
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
@@ -212,12 +216,12 @@ function getRegistrationOtpEmailTemplate(otp: string, email?: string): {
       `
 
   return {
-    subject: `Verify your email - ${APP_NAME}`,
-    html: emailTemplateWrapper(content, 'Email Verification Required'),
+    subject: `Verify your email - ${appName}`,
+    html: emailTemplateWrapper(content, 'Email Verification Required', appName, supportEmail),
     text: `
-${APP_NAME} - Verify Your Email
+${appName} - Verify Your Email
 
-Welcome to ${APP_NAME}!
+Welcome to ${appName}!
 
 Thanks for signing up! Your verification code is:
 
@@ -227,9 +231,9 @@ This code will expire in 10 minutes.
 
 If you didn't create an account, please ignore this email.
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -238,11 +242,14 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate password reset OTP email HTML
  * Modern design with security-focused styling
  */
-function getPasswordResetOtpEmailTemplate(otp: string, email?: string): {
+async function getPasswordResetOtpEmailTemplate(otp: string, email?: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
         <!-- Header -->
         <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
@@ -250,7 +257,7 @@ function getPasswordResetOtpEmailTemplate(otp: string, email?: string): {
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-          We received a request to reset the password for your ${APP_NAME} account.
+          We received a request to reset the password for your ${appName} account.
         </p>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
@@ -298,10 +305,10 @@ function getPasswordResetOtpEmailTemplate(otp: string, email?: string): {
       `
 
   return {
-    subject: `Reset your password - ${APP_NAME}`,
-    html: emailTemplateWrapper(content, 'Password Reset Request'),
+    subject: `Reset your password - ${appName}`,
+    html: emailTemplateWrapper(content, 'Password Reset Request', appName, supportEmail),
     text: `
-${APP_NAME} - Reset Your Password
+${appName} - Reset Your Password
 
 We received a request to reset your password.
 
@@ -311,9 +318,9 @@ This code will expire in 10 minutes.
 
 If you didn't request this, please ignore this email.
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -322,11 +329,13 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate email change OTP email HTML
  * Clean, modern design for email verification
  */
-function getEmailChangeOtpEmailTemplate(otp: string, newEmail?: string, oldEmail?: string): {
+async function getEmailChangeOtpEmailTemplate(otp: string, newEmail?: string, oldEmail?: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
   const content = `
         <!-- Header -->
         <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
@@ -380,10 +389,10 @@ function getEmailChangeOtpEmailTemplate(otp: string, newEmail?: string, oldEmail
       `
 
   return {
-    subject: `Confirm your email change - ${APP_NAME}`,
-    html: emailTemplateWrapper(content, 'Email Change Confirmation'),
+    subject: `Confirm your email change - ${appName}`,
+    html: emailTemplateWrapper(content, 'Email Change Confirmation', appName, supportEmail),
     text: `
-${APP_NAME} - Confirm Email Change
+${appName} - Confirm Email Change
 
 You requested to change your email from ${oldEmail || 'your current email'} to ${newEmail || 'a new email'}.
 
@@ -393,9 +402,9 @@ This code will expire in 10 minutes.
 
 If you didn't request this change, please ignore this email.
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -404,11 +413,14 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate invitation email HTML
  * Modern, attractive invitation design
  */
-function getInvitationEmailTemplate(inviteLink: string, role?: string, desc?: string): {
+async function getInvitationEmailTemplate(inviteLink: string, role?: string, desc?: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const roleText = role ? ` as <strong style="color: #1e3a5f;">${role}</strong>` : ''
   const descText = desc
     ? `<div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 24px 0; border-radius: 8px;">
@@ -430,7 +442,7 @@ function getInvitationEmailTemplate(inviteLink: string, role?: string, desc?: st
         </p>
 
         <div style="text-align: center; margin-bottom: 24px;">
-          <strong style="color: #1e3a5f; font-size: 20px;">${APP_NAME}</strong>${roleText}
+          <strong style="color: #1e3a5f; font-size: 20px;">${appName}</strong>${roleText}
         </div>
 
         ${descText}
@@ -459,18 +471,18 @@ function getInvitationEmailTemplate(inviteLink: string, role?: string, desc?: st
         <!-- Help Section -->
         <div style="text-align: center; padding-top: 24px; border-top: 1px solid #e2e8f0;">
           <p style="color: #94a3b8; font-size: 13px; margin: 0;">
-            Questions? <a href="mailto:${SUPPORT_EMAIL}" style="color: #64748b; text-decoration: underline; font-weight: 500;">Contact our support team</a>
+            Questions? <a href="mailto:${supportEmail}" style="color: #64748b; text-decoration: underline; font-weight: 500;">Contact our support team</a>
           </p>
         </div>
       `
 
   return {
-    subject: `You're invited to join ${APP_NAME}`,
-    html: emailTemplateWrapper(content, 'Invitation to Join Book Heaven'),
+    subject: `You're invited to join ${appName}`,
+    html: emailTemplateWrapper(content, `Invitation to Join ${appName}`, appName, supportEmail),
     text: `
-${APP_NAME} - You're Invited!
+${appName} - You're Invited!
 
-You've been invited to join ${APP_NAME}${role ? ` as a ${role}` : ''}.
+You've been invited to join ${appName}${role ? ` as a ${role}` : ''}.
 
 ${desc ? `Message: "${desc}"\n` : ''}
 
@@ -480,9 +492,9 @@ This invitation expires in 7 days.
 
 If you weren't expecting this invitation, please ignore this email.
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -491,11 +503,14 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate login notification email HTML
  * Notifies user when they login to their account
  */
-function getLoginNotificationEmailTemplate(email: string, loginTime: Date, ipAddress?: string, location?: string): {
+async function getLoginNotificationEmailTemplate(email: string, loginTime: Date, ipAddress?: string, location?: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const formattedTime = loginTime.toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -513,7 +528,7 @@ function getLoginNotificationEmailTemplate(email: string, loginTime: Date, ipAdd
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-          We detected a new login to your ${APP_NAME} account.
+          We detected a new login to your ${appName} account.
         </p>
 
         <!-- Login Details -->
@@ -566,12 +581,12 @@ function getLoginNotificationEmailTemplate(email: string, loginTime: Date, ipAdd
       `
 
   return {
-    subject: `New login to your ${APP_NAME} account`,
-    html: emailTemplateWrapper(content, 'New Login Detected'),
+    subject: `New login to your ${appName} account`,
+    html: emailTemplateWrapper(content, 'New Login Detected', appName, supportEmail),
     text: `
-${APP_NAME} - New Login Detected
+${appName} - New Login Detected
 
-We detected a new login to your ${APP_NAME} account.
+We detected a new login to your ${appName} account.
 
 Email: ${email}
 Time: ${formattedTime}
@@ -582,9 +597,9 @@ If this was you, you can safely ignore this email.
 
 If you didn't login to your account, please reset your password immediately: ${BASE_URL}/forgot-password
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -593,11 +608,14 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate book upload notification email HTML
  * Notifies user when they successfully upload a new book
  */
-function getBookUploadNotificationTemplate(email: string, bookTitle: string, bookId: string): {
+async function getBookUploadNotificationTemplate(email: string, bookTitle: string, bookId: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
         <!-- Header -->
         <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
@@ -605,7 +623,7 @@ function getBookUploadNotificationTemplate(email: string, bookTitle: string, boo
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-          Great news! Your book has been successfully uploaded to ${APP_NAME}.
+          Great news! Your book has been successfully uploaded to ${appName}.
         </p>
 
         <!-- Book Details -->
@@ -637,9 +655,9 @@ function getBookUploadNotificationTemplate(email: string, bookTitle: string, boo
 
   return {
     subject: `Book uploaded successfully - ${bookTitle}`,
-    html: emailTemplateWrapper(content, 'Book Upload Successful'),
+    html: emailTemplateWrapper(content, 'Book Upload Successful', appName, supportEmail),
     text: `
-${APP_NAME} - Book Uploaded Successfully
+${appName} - Book Uploaded Successfully
 
 Your book has been successfully uploaded!
 
@@ -649,9 +667,9 @@ Your book is currently in draft status. You can edit the details and make it pub
 
 Manage your book here: ${BASE_URL}/dashboard/books/${bookId}
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -660,11 +678,14 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate book published notification email HTML
  * Notifies user when they make a book public
  */
-function getBookPublishedNotificationTemplate(email: string, bookTitle: string, bookId: string): {
+async function getBookPublishedNotificationTemplate(email: string, bookTitle: string, bookId: string): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
         <!-- Header -->
         <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
@@ -672,13 +693,13 @@ function getBookPublishedNotificationTemplate(email: string, bookTitle: string, 
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-          Congratulations! Your book is now published and visible to all users on ${APP_NAME}.
+          Congratulations! Your book is now published and visible to all users on ${appName}.
         </p>
 
         <!-- Book Details -->
         <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px dashed #fbbf24; border-radius: 16px; padding: 32px 24px; margin: 32px 0; text-align: center;">
           <p style="margin: 0 0 8px 0; color: #92400e; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">
-            Now Live on ${APP_NAME}
+            Now Live on ${appName}
           </p>
           <p style="margin: 0; color: #0f172a; font-size: 24px; font-weight: 700; line-height: 1.4;">
             "${bookTitle}"
@@ -710,11 +731,11 @@ function getBookPublishedNotificationTemplate(email: string, bookTitle: string, 
 
   return {
     subject: `Your book is now live - ${bookTitle}`,
-    html: emailTemplateWrapper(content, 'Book Published Successfully'),
+    html: emailTemplateWrapper(content, 'Book Published Successfully', appName, supportEmail),
     text: `
-${APP_NAME} - Book Published Successfully
+${appName} - Book Published Successfully
 
-Congratulations! Your book is now published and live on ${APP_NAME}.
+Congratulations! Your book is now published and live on ${appName}.
 
 Book Title: "${bookTitle}"
 
@@ -723,9 +744,9 @@ Your book is now discoverable by all users. Share it to increase visibility!
 View your book: ${BASE_URL}/books/${bookId}
 Manage your book: ${BASE_URL}/dashboard/books/${bookId}
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -734,16 +755,19 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate achievement unlocked notification email HTML
  * Notifies user when they earn an achievement
  */
-function getAchievementUnlockedNotificationTemplate(
+async function getAchievementUnlockedNotificationTemplate(
   email: string,
   achievementTitle: string,
   achievementDescription: string,
   badgeIcon?: string
-): {
+): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
         <!-- Header -->
         <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
@@ -751,7 +775,7 @@ function getAchievementUnlockedNotificationTemplate(
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-          Congratulations! You've earned a new achievement on ${APP_NAME}.
+          Congratulations! You've earned a new achievement on ${appName}.
         </p>
 
         <!-- Achievement Badge -->
@@ -774,7 +798,7 @@ function getAchievementUnlockedNotificationTemplate(
         <div class="info-box">
           <p style="margin: 0; color: #1e40af; font-size: 14px; line-height: 1.6;">
             <strong>🌟 Keep Going!</strong><br />
-            You're making great progress! Continue exploring ${APP_NAME} to unlock more achievements and reach new milestones.
+            You're making great progress! Continue exploring ${appName} to unlock more achievements and reach new milestones.
           </p>
         </div>
 
@@ -789,9 +813,9 @@ function getAchievementUnlockedNotificationTemplate(
 
   return {
     subject: `Achievement Unlocked: ${achievementTitle}`,
-    html: emailTemplateWrapper(content, 'New Achievement Earned'),
+    html: emailTemplateWrapper(content, 'New Achievement Earned', appName, supportEmail),
     text: `
-${APP_NAME} - Achievement Unlocked!
+${appName} - Achievement Unlocked!
 
 Congratulations! You've earned a new achievement.
 
@@ -802,9 +826,9 @@ Keep going to unlock more achievements!
 
 View all your achievements: ${BASE_URL}/achievements
 
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -813,11 +837,14 @@ Need help? Contact us at ${SUPPORT_EMAIL}
  * Generate password changed notification email HTML
  * Notifies user when their password is successfully changed
  */
-function getPasswordChangedNotificationTemplate(email: string, changedAt: Date): {
+async function getPasswordChangedNotificationTemplate(email: string, changedAt: Date): Promise<{
   subject: string
   html: string
   text: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const formattedTime = changedAt.toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -835,7 +862,7 @@ function getPasswordChangedNotificationTemplate(email: string, changedAt: Date):
         </h2>
 
         <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
-          Your ${APP_NAME} account password has been successfully changed.
+          Your ${appName} account password has been successfully changed.
         </p>
 
         <!-- Change Details -->
@@ -873,12 +900,12 @@ function getPasswordChangedNotificationTemplate(email: string, changedAt: Date):
       `
 
   return {
-    subject: `Password changed successfully - ${APP_NAME}`,
-    html: emailTemplateWrapper(content, 'Password Changed'),
+    subject: `Password changed successfully - ${appName}`,
+    html: emailTemplateWrapper(content, 'Password Changed', appName, supportEmail),
     text: `
-${APP_NAME} - Password Changed Successfully
+${appName} - Password Changed Successfully
 
-Your ${APP_NAME} account password has been successfully changed.
+Your ${appName} account password has been successfully changed.
 
 Email: ${email}
 Time: ${formattedTime}
@@ -886,9 +913,9 @@ Time: ${formattedTime}
 If you didn't make this change, please contact us immediately.
 
 Manage your account: ${BASE_URL}/settings/account
-Need help? Contact us at ${SUPPORT_EMAIL}
+Need help? Contact us at ${supportEmail}
 
-© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
     `.trim(),
   }
 }
@@ -904,7 +931,7 @@ export async function sendRegistrationOtp(
   email: string,
   otp: string
 ): Promise<boolean> {
-  const { subject, html, text } = getRegistrationOtpEmailTemplate(otp, email)
+  const { subject, html, text } = await getRegistrationOtpEmailTemplate(otp, email)
 
   try {
     const { error } = await resend.emails.send({
@@ -937,7 +964,7 @@ export async function sendPasswordResetOtp(
   email: string,
   otp: string
 ): Promise<boolean> {
-  const { subject, html, text } = getPasswordResetOtpEmailTemplate(otp, email)
+  const { subject, html, text } = await getPasswordResetOtpEmailTemplate(otp, email)
 
   try {
     const result = await resend.emails.send({
@@ -972,7 +999,7 @@ export async function sendEmailChangeOtp(
   otp: string,
   oldEmail?: string
 ): Promise<boolean> {
-  const { subject, html, text } = getEmailChangeOtpEmailTemplate(otp, email, oldEmail)
+  const { subject, html, text } = await getEmailChangeOtpEmailTemplate(otp, email, oldEmail)
 
   try {
     const { error } = await resend.emails.send({
@@ -1008,7 +1035,7 @@ export async function sendInvitationEmail(
   desc?: string
 ): Promise<boolean> {
   const inviteLink = `${BASE_URL}/sign-up?token=${token}&email=${encodeURIComponent(email)}`
-  const { subject, html, text } = getInvitationEmailTemplate(inviteLink, role, desc)
+  const { subject, html, text } = await getInvitationEmailTemplate(inviteLink, role, desc)
 
   try {
     const { error } = await resend.emails.send({
@@ -1044,7 +1071,7 @@ export async function sendLoginNotificationEmail(
   ipAddress?: string,
   location?: string
 ): Promise<boolean> {
-  const { subject, html, text } = getLoginNotificationEmailTemplate(email, loginTime, ipAddress, location)
+  const { subject, html, text } = await getLoginNotificationEmailTemplate(email, loginTime, ipAddress, location)
 
   try {
     const { error } = await resend.emails.send({
@@ -1081,7 +1108,7 @@ export async function sendBookUploadNotificationEmail(
   bookTitle: string,
   bookId: string
 ): Promise<boolean> {
-  const { subject, html, text } = getBookUploadNotificationTemplate(email, bookTitle, bookId)
+  const { subject, html, text } = await getBookUploadNotificationTemplate(email, bookTitle, bookId)
 
   try {
     const { error } = await resend.emails.send({
@@ -1116,7 +1143,7 @@ export async function sendBookPublishedNotificationEmail(
   bookTitle: string,
   bookId: string
 ): Promise<boolean> {
-  const { subject, html, text } = getBookPublishedNotificationTemplate(email, bookTitle, bookId)
+  const { subject, html, text } = await getBookPublishedNotificationTemplate(email, bookTitle, bookId)
 
   try {
     const { error } = await resend.emails.send({
@@ -1152,7 +1179,7 @@ export async function sendAchievementUnlockedNotificationEmail(
   achievementDescription: string,
   badgeIcon?: string
 ): Promise<boolean> {
-  const { subject, html, text } = getAchievementUnlockedNotificationTemplate(
+  const { subject, html, text } = await getAchievementUnlockedNotificationTemplate(
     email,
     achievementTitle,
     achievementDescription,
@@ -1191,7 +1218,7 @@ export async function sendPasswordChangedNotificationEmail(
   email: string,
   changedAt: Date
 ): Promise<boolean> {
-  const { subject, html, text } = getPasswordChangedNotificationTemplate(email, changedAt)
+  const { subject, html, text } = await getPasswordChangedNotificationTemplate(email, changedAt)
 
   try {
     const { error } = await resend.emails.send({
@@ -1264,22 +1291,25 @@ function replaceTemplateVariables(
 /**
  * Generate campaign email HTML template
  */
-function getCampaignEmailTemplate(
+async function getCampaignEmailTemplate(
   subject: string,
   previewText: string | undefined,
   htmlContent: string,
   unsubscribeUrl: string
-): {
+): Promise<{
   subject: string
   html: string
-} {
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
         ${htmlContent}
 
         <!-- Unsubscribe Section -->
         <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
           <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">
-            You received this email because you subscribed to marketing emails from ${APP_NAME}.
+            You received this email because you subscribed to marketing emails from ${appName}.
             <br />
             <a href="${unsubscribeUrl}" style="color: #6b7280; text-decoration: underline;">Unsubscribe</a> from these emails.
           </p>
@@ -1288,7 +1318,7 @@ function getCampaignEmailTemplate(
 
   return {
     subject,
-    html: emailTemplateWrapper(content, previewText),
+    html: emailTemplateWrapper(content, previewText, appName, supportEmail),
   }
 }
 
@@ -1313,7 +1343,7 @@ export async function sendCampaignEmail(
     : htmlContent
 
   // Generate the email template with unsubscribe link
-  const { html } = getCampaignEmailTemplate(
+  const { html } = await getCampaignEmailTemplate(
     subject,
     previewText,
     personalizedHtml,

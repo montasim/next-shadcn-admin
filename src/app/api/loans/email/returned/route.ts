@@ -9,14 +9,16 @@ import { prisma } from '@/lib/prisma'
 import { getUserDisplayName } from '@/lib/utils/user'
 import { Resend } from 'resend'
 import { config } from '@/config'
+import { getSiteName, getSupportEmail } from '@/lib/utils/site-settings'
 
 const resend = new Resend(config.resendApiKey)
 const FROM_EMAIL = config.fromEmail || 'onboarding@resend.dev'
-// TODO: Make APP_NAME dynamic - currently using fallback
-const APP_NAME = 'Book Heaven'
 const BASE_URL = config.baseUrl || 'http://localhost:3000'
 
-function emailTemplateWrapper(content: string, previewText?: string): string {
+function emailTemplateWrapper(content: string, previewText?: string, appName?: string, supportEmail?: string): string {
+  const siteName = appName || 'Book Heaven'
+  const support = supportEmail || 'support@bookheaven.com'
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -34,14 +36,14 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
   <div style="background-color: #f8fafc; padding: 32px 16px;">
     <div class="email-container" style="border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden;">
       <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8f 100%); padding: 48px 32px 32px 32px; text-align: center;">
-        <div style="color: #ffffff; font-size: 32px; font-weight: 800;">📚 ${APP_NAME}</div>
+        <div style="color: #ffffff; font-size: 32px; font-weight: 800;">📚 ${siteName}</div>
       </div>
       <div style="padding: 48px 40px 32px 40px;">
         ${content}
       </div>
       <div style="background-color: #f8fafc; padding: 32px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
         <p style="margin: 0; color: #94a3b8; font-size: 12px;">
-          &copy; ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.
+          &copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.
         </p>
       </div>
     </div>
@@ -51,19 +53,22 @@ function emailTemplateWrapper(content: string, previewText?: string): string {
   `.trim()
 }
 
-function getBookReturnedEmailTemplate(
+async function getBookReturnedEmailTemplate(
   userName: string,
   bookName: string,
   returnDate: string,
   isAdmin: boolean
-): { subject: string; html: string } {
+): Promise<{ subject: string; html: string }> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
   const content = `
     <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 24px; font-weight: 700; text-align: center;">
       Book Returned Successfully! ✅
     </h2>
 
     <p style="color: #475569; font-size: 16px; line-height: 1.7; text-align: center;">
-      ${isAdmin ? `${userName} has returned the book.` : 'You have successfully returned the book to'} ${APP_NAME}.
+      ${isAdmin ? `${userName} has returned the book.` : 'You have successfully returned the book to'} ${appName}.
     </p>
 
     <div style="background: #f0fdf4; border: 2px dashed #86efac; border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center;">
@@ -101,7 +106,7 @@ function getBookReturnedEmailTemplate(
 
   return {
     subject: `Book Returned: ${bookName}`,
-    html: emailTemplateWrapper(content, 'Book Returned Successfully')
+    html: emailTemplateWrapper(content, 'Book Returned Successfully', appName, supportEmail)
   }
 }
 
@@ -148,7 +153,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Send email to user
-    const userEmailTemplate = getBookReturnedEmailTemplate(
+    const userEmailTemplate = await getBookReturnedEmailTemplate(
       userName,
       loan.book.name,
       returnDateStr,
@@ -163,7 +168,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Send email to admin
-    const adminEmailTemplate = getBookReturnedEmailTemplate(
+    const adminEmailTemplate = await getBookReturnedEmailTemplate(
       userName,
       loan.book.name,
       returnDateStr,
