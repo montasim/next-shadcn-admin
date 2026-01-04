@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/hooks/use-toast'
-import { Loader2, Save, RefreshCw, Construction, Settings, Palette, Search, Mail } from 'lucide-react'
+import { Loader2, Save, RefreshCw, Construction, Palette, Search, Mail } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GeneralTab } from './components/general-tab'
@@ -46,12 +48,13 @@ interface SiteSettings {
   updatedAt: string
 }
 
-export default function SiteSettingsPage() {
+function SiteSettingsPageWrapper() {
+  const searchParams = useSearchParams()
+  const activeTab = searchParams.get('tab') || 'general'
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [underConstructionMessage, setUnderConstructionMessage] = useState('')
-  const [activeTab, setActiveTab] = useState('general')
 
   // Fetch settings on mount
   useEffect(() => {
@@ -159,49 +162,74 @@ export default function SiteSettingsPage() {
     )
   }
 
+  const TABS = [
+    { value: 'general', label: 'General', icon: Construction },
+    { value: 'branding', label: 'Branding', icon: Palette },
+    { value: 'seo', label: 'SEO', icon: Search },
+    { value: 'contact', label: 'Contact', icon: Mail },
+  ] as const
+
+  const currentTab = TABS.find(t => t.value === activeTab)
+
   return (
     <div className="pb-safe-bottom">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Settings className="h-6 w-6" />
-            Site Settings
-          </h1>
-          <p className="text-muted-foreground">
-            Manage site-wide settings, branding, SEO, and contact information
-          </p>
+      <Tabs value={activeTab} className="space-y-4">
+        {/* Dynamic Header */}
+        {activeTab && (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              {currentTab && <currentTab.icon className="h-5 w-5 text-primary" />}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">{currentTab?.label}</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Manage your site {currentTab?.label.toLowerCase()} settings
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-4">
+          <div className="w-full overflow-x-auto">
+            <TabsList>
+              <Link href="/dashboard/site-settings?tab=general">
+                <TabsTrigger value="general" className="flex items-center gap-2">
+                  <Construction className="h-4 w-4" />
+                  <span className="hidden sm:inline">General</span>
+                </TabsTrigger>
+              </Link>
+              <Link href="/dashboard/site-settings?tab=branding">
+                <TabsTrigger value="branding" className="flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  <span className="hidden sm:inline">Branding</span>
+                </TabsTrigger>
+              </Link>
+              <Link href="/dashboard/site-settings?tab=seo">
+                <TabsTrigger value="seo" className="flex items-center gap-2">
+                  <Search className="h-4 w-4" />
+                  <span className="hidden sm:inline">SEO</span>
+                </TabsTrigger>
+              </Link>
+              <Link href="/dashboard/site-settings?tab=contact">
+                <TabsTrigger value="contact" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span className="hidden sm:inline">Contact</span>
+                </TabsTrigger>
+              </Link>
+            </TabsList>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={fetchSettings}
+              disabled={isLoading}
+              size="sm"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin mr-2' : 'mr-2'}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+          </div>
         </div>
-
-        <Button
-          variant="outline"
-          onClick={fetchSettings}
-          disabled={isLoading}
-          size="sm"
-        >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          <span className="hidden sm:inline ml-2">Refresh</span>
-        </Button>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="pb-20">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-6">
-          <TabsTrigger value="general" className="gap-2">
-            <Construction className="h-4 w-4" />
-            <span className="hidden sm:inline">General</span>
-          </TabsTrigger>
-          <TabsTrigger value="branding" className="gap-2">
-            <Palette className="h-4 w-4" />
-            <span className="hidden sm:inline">Branding</span>
-          </TabsTrigger>
-          <TabsTrigger value="seo" className="gap-2">
-            <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">SEO</span>
-          </TabsTrigger>
-          <TabsTrigger value="contact" className="gap-2">
-            <Mail className="h-4 w-4" />
-            <span className="hidden sm:inline">Contact</span>
-          </TabsTrigger>
-        </TabsList>
 
         <TabsContent value="general">
           <GeneralTab
@@ -242,5 +270,36 @@ export default function SiteSettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+// Wrapper with Suspense boundary for useSearchParams
+export default function SiteSettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-24" />
+        </div>
+
+        {/* Tabs skeleton */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+          </div>
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    }>
+      <SiteSettingsPageWrapper />
+    </Suspense>
   )
 }

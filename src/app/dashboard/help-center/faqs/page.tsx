@@ -1,0 +1,487 @@
+'use client'
+
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Plus, Trash2, Save, GripVertical, Search, Filter, ArrowUpDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyStateCard } from '@/components/ui/empty-state-card'
+
+interface FAQ {
+  id?: string
+  question: string
+  answer: string
+  category: string
+  isActive: boolean
+  order: number
+}
+
+const FAQ_CATEGORIES = {
+  pricing: 'Pricing & Plans',
+  account: 'Account & Settings',
+  reading: 'Reading & Library',
+  technical: 'Technical Support',
+  general: 'General',
+} as const
+
+function HelpCenterFAQsPageWrapper() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const categoryFilter = searchParams.get('category') || 'all'
+
+  const [faqs, setFaqs] = useState<FAQ[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filteredCategory, setFilteredCategory] = useState(categoryFilter)
+
+  // Dialog state
+  const [seedDialogOpen, setSeedDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [faqToDelete, setFaqToDelete] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetchFAQs()
+  }, [])
+
+  const fetchFAQs = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/admin/faq?includeInactive=true')
+      const result = await response.json()
+      if (result.success) {
+        setFaqs(result.data)
+      } else {
+        toast.error('Failed to fetch FAQs')
+      }
+    } catch (error) {
+      toast.error('Failed to fetch FAQs')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSeedFAQs = async () => {
+    try {
+      const response = await fetch('/api/admin/faq/seed', { method: 'POST' })
+      const result = await response.json()
+      if (result.success) {
+        toast.success('FAQs seeded successfully')
+        fetchFAQs()
+      } else {
+        toast.error(result.message || 'Failed to seed FAQs')
+      }
+    } catch (error) {
+      toast.error('Failed to seed FAQs')
+    } finally {
+      setSeedDialogOpen(false)
+    }
+  }
+
+  const addFAQ = () => {
+    const newFAQ: FAQ = {
+      question: '',
+      answer: '',
+      category: 'general',
+      isActive: true,
+      order: faqs.length,
+    }
+    setFaqs([...faqs, newFAQ])
+  }
+
+  const removeFAQ = (index: number) => {
+    setFaqToDelete(index)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (faqToDelete === null) return
+
+    const newFaqs = faqs.filter((_, i) => i !== faqToDelete)
+    newFaqs.forEach((faq, i) => (faq.order = i))
+    setFaqs(newFaqs)
+    setDeleteDialogOpen(false)
+    setFaqToDelete(null)
+    toast.success('FAQ removed')
+  }
+
+  const updateFAQ = (index: number, updates: Partial<FAQ>) => {
+    const newFaqs = [...faqs]
+    newFaqs[index] = { ...newFaqs[index], ...updates }
+    setFaqs(newFaqs)
+  }
+
+  const moveFAQ = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= faqs.length) return
+
+    const newFaqs = [...faqs]
+    ;[newFaqs[index], newFaqs[newIndex]] = [newFaqs[newIndex], newFaqs[index]]
+    newFaqs.forEach((faq, i) => (faq.order = i))
+    setFaqs(newFaqs)
+  }
+
+  const handleSaveFAQs = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch('/api/admin/faq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(faqs),
+      })
+      const result = await response.json()
+
+      if (result.success) {
+        toast.success('FAQs saved successfully')
+        fetchFAQs()
+      } else {
+        toast.error(result.message || 'Failed to save FAQs')
+      }
+    } catch (error) {
+      toast.error('Failed to save FAQs')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Filter FAQs
+  const filteredFaqs = faqs.filter(faq => {
+    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = filteredCategory === 'all' || faq.category === filteredCategory
+    return matchesSearch && matchesCategory
+  })
+
+  // Group FAQs by category
+  const groupedFaqs = filteredFaqs.reduce((acc, faq) => {
+    if (!acc[faq.category]) acc[faq.category] = []
+    acc[faq.category].push(faq)
+    return acc
+  }, {} as Record<string, FAQ[]>)
+
+  const activeCount = faqs.filter(f => f.isActive).length
+  const inactiveCount = faqs.length - activeCount
+
+  return (
+    <div className="pb-safe-bottom">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Help Center FAQs</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage frequently asked questions for the help center
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setSeedDialogOpen(true)} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Seed Initial Data
+          </Button>
+          <Button onClick={addFAQ} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Add FAQ
+          </Button>
+          <Button onClick={handleSaveFAQs} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            Save All
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-3 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total FAQs</CardTitle>
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{faqs.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <Badge variant="default" className="h-4 w-4 rounded-full p-0" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{activeCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
+            <Badge variant="secondary" className="h-4 w-4 rounded-full p-0" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-muted-foreground">{inactiveCount}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search FAQs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="w-full md:w-48">
+              <Select value={filteredCategory} onValueChange={setFilteredCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {Object.entries(FAQ_CATEGORIES).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* FAQ List */}
+      {loading ? (
+        <>
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="mb-4">
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </>
+      ) : filteredFaqs.length === 0 ? (
+        <EmptyStateCard
+          title="No FAQs found"
+          description={searchQuery || filteredCategory !== 'all'
+            ? 'Try adjusting your search or filter to find what you\'re looking for.'
+            : 'Get started by adding FAQs or seeding initial data.'}
+        />
+      ) : (
+        <div className="space-y-4">
+          {Object.entries(groupedFaqs).map(([category, categoryFaqs]) => (
+            <Card key={category}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">
+                    {FAQ_CATEGORIES[category as keyof typeof FAQ_CATEGORIES] || category}
+                  </CardTitle>
+                  <Badge variant="outline">{categoryFaqs.length} FAQs</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {categoryFaqs.map((faq, index) => {
+                  const globalIndex = faqs.findIndex(f => f.id === faq.id || (f.question === faq.question && f.answer === faq.answer))
+                  return (
+                    <div key={faq.id || index} className="border rounded-lg p-4 space-y-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+                          <Badge variant="outline" className="text-xs">
+                            #{faq.order + 1}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => moveFAQ(globalIndex, 'up')}
+                            disabled={globalIndex === 0}
+                          >
+                            <ArrowUpDown className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeFAQ(globalIndex)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Category</Label>
+                            <Select
+                              value={faq.category}
+                              onValueChange={(value) => updateFAQ(globalIndex, { category: value })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(FAQ_CATEGORIES).map(([key, label]) => (
+                                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex items-end space-x-2">
+                            <Switch
+                              checked={faq.isActive}
+                              onCheckedChange={(checked) => updateFAQ(globalIndex, { isActive: checked })}
+                            />
+                            <Label className="mb-2">Active</Label>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Question</Label>
+                          <Input
+                            value={faq.question}
+                            onChange={(e) => updateFAQ(globalIndex, { question: e.target.value })}
+                            placeholder="Enter question..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Answer</Label>
+                          <Textarea
+                            value={faq.answer}
+                            onChange={(e) => updateFAQ(globalIndex, { answer: e.target.value })}
+                            placeholder="Enter answer..."
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Seed Confirmation Dialog */}
+      <AlertDialog open={seedDialogOpen} onOpenChange={setSeedDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Seed FAQ Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will seed initial FAQ data for the help center. This action cannot be undone. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSeedFAQs}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete FAQ</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this FAQ? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+}
+
+// Wrapper with Suspense boundary for useSearchParams
+export default function HelpCenterFAQsPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-4">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Filters Skeleton */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <Skeleton className="h-10 flex-1" />
+              <Skeleton className="h-10 w-48" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* FAQ List Skeleton */}
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="mb-4">
+            <CardHeader>
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    }>
+      <HelpCenterFAQsPageWrapper />
+    </Suspense>
+  )
+}

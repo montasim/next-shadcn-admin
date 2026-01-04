@@ -1396,5 +1396,136 @@ export async function sendCampaignEmailFromMarkdown(
   return sendCampaignEmail(to, subject, previewText, htmlContent, variables)
 }
 
+/**
+ * Generate contact form submission email HTML
+ * Sends an email to the site admin when someone submits the contact form
+ */
+async function getContactFormEmailTemplate(
+  name: string,
+  email: string,
+  subject: string,
+  message: string
+): Promise<{
+  subject: string
+  html: string
+  text: string
+}> {
+  const appName = await getSiteName()
+  const supportEmail = await getSupportEmail()
+
+  const content = `
+        <!-- Header -->
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; text-align: center;">
+          New Contact Form Submission 📧
+        </h2>
+
+        <p style="color: #475569; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0; text-align: center;">
+          You received a new message through the contact form on ${appName}.
+        </p>
+
+        <!-- Contact Details -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin: 32px 0;">
+          <p style="margin: 0 0 16px 0; color: #1e3a5f; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
+            Sender Information
+          </p>
+          <div style="display: table; width: 100%; border-collapse: collapse;">
+            <div style="display: table-row; border-bottom: 1px solid #e2e8f0;">
+              <div style="display: table-cell; padding: 12px 0; color: #64748b; font-size: 14px; font-weight: 500;">Name:</div>
+              <div style="display: table-cell; padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">${name}</div>
+            </div>
+            <div style="display: table-row; border-bottom: 1px solid #e2e8f0;">
+              <div style="display: table-cell; padding: 12px 0; color: #64748b; font-size: 14px; font-weight: 500;">Email:</div>
+              <div style="display: table-cell; padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">
+                <a href="mailto:${email}" style="color: #1e3a5f; text-decoration: none;">${email}</a>
+              </div>
+            </div>
+            <div style="display: table-row;">
+              <div style="display: table-cell; padding: 12px 0; color: #64748b; font-size: 14px; font-weight: 500;">Subject:</div>
+              <div style="display: table-cell; padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">${subject}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message -->
+        <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #1e3a5f; padding: 24px; margin: 24px 0; border-radius: 8px;">
+          <p style="margin: 0 0 12px 0; color: #1e40af; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            Message
+          </p>
+          <div style="color: #0f172a; font-size: 15px; line-height: 1.7; white-space: pre-wrap;">${message}</div>
+        </div>
+
+        <!-- Action Button -->
+        <div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">
+            Click below to reply to this message:
+          </p>
+          <a href="mailto:${email}" class="button">Reply to Sender</a>
+        </div>
+      `
+
+  const emailSubject = subject ? `[Contact Form] ${subject} - from ${name}` : `New Contact Form Submission from ${name}`
+
+  return {
+    subject: emailSubject,
+    html: emailTemplateWrapper(content, 'New Contact Form Submission', appName, supportEmail),
+    text: `
+${appName} - New Contact Form Submission
+
+You received a new message through the contact form.
+
+From: ${name} (${email})
+Subject: ${subject || 'No subject'}
+
+Message:
+${message}
+
+---
+Reply to this message: ${email}
+
+© ${new Date().getFullYear()} ${appName}. All rights reserved.
+    `.trim(),
+  }
+}
+
+/**
+ * Send contact form submission email
+ * Sends the contact form data to the site admin
+ */
+export async function sendContactFormEmail(
+  name: string,
+  email: string,
+  subject: string,
+  message: string
+): Promise<{ success: boolean; error?: string }> {
+  // Get the contact email from site settings (or fallback to support email)
+  const toEmail = await getSupportEmail()
+
+  const { subject: emailSubject, html, text } = await getContactFormEmailTemplate(name, email, subject, message)
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: toEmail,
+      subject: emailSubject,
+      html,
+      text,
+    })
+
+    if (error) {
+      console.error('Failed to send contact form email:', {
+        from: email,
+        to: toEmail,
+        error: error.message,
+      })
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Contact form email sending error:', error)
+    return { success: false, error: error?.message || 'Unknown error' }
+  }
+}
+
 // generateUnsubscribeUrl is now exported from '@/lib/utils/markdown'
 // and re-exported here for backward compatibility

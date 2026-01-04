@@ -31,6 +31,7 @@ export default function MoodsPage() {
   const [moods, setMoods] = useState<Mood[]>([])
   const [selectedRows, setSelectedRows] = useState<string[]>([])
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false)
+  const [seedDialogOpen, setSeedDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   // Track component mount
@@ -129,10 +130,38 @@ export default function MoodsPage() {
     }
   }
 
+  const handleSeedMoods = async () => {
+    try {
+      const response = await fetch('/api/admin/moods/seed', { method: 'POST' })
+      const result = await response.json()
+      if (result.success) {
+        toast({
+          title: 'Moods seeded successfully',
+          description: result.message,
+        })
+        await refreshMoods()
+      } else {
+        toast({
+          title: 'Error',
+          description: result.message || 'Failed to seed moods',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to seed moods',
+        variant: 'destructive',
+      })
+    } finally {
+      setSeedDialogOpen(false)
+    }
+  }
+
   return (
     <MoodsContextProvider value={{ open, setOpen, currentRow, setCurrentRow, refreshMoods }}>
       <HeaderContainer>
-        <MoodsHeader />
+        <MoodsHeader onSeedMoods={() => setSeedDialogOpen(true)} />
       </HeaderContainer>
 
       {selectedRows.length > 0 && (
@@ -226,6 +255,21 @@ export default function MoodsPage() {
             <AlertDialogAction onClick={handleBulkDelete} className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
               Delete
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={seedDialogOpen} onOpenChange={setSeedDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Seed Mood Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will seed initial mood data. This action cannot be undone. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSeedMoods}>Continue</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

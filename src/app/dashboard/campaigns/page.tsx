@@ -7,6 +7,7 @@ import { CampaignsHeader } from './components/campaigns-header'
 import { DataTable } from '@/components/data-table/data-table'
 import { TableSkeleton, DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { columns } from './components/columns'
 import CampaignsContextProvider, { CampaignsDialogType } from './context/campaigns-context'
 import { Campaign } from './data/schema'
@@ -117,7 +118,16 @@ function CampaignsPageContent() {
 
         {/* Campaigns Table */}
         <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-          {isLoading ? <TableSkeleton /> : <DataTable data={campaigns} columns={columns} />}
+          {isLoading ? (
+            <TableSkeleton />
+          ) : campaigns.length === 0 ? (
+            <EmptyStateCard
+              title="No campaigns yet"
+              description="Get started by creating your first email campaign to engage with your audience."
+            />
+          ) : (
+            <DataTable data={campaigns} columns={columns} />
+          )}
         </div>
       </div>
 

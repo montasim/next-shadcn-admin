@@ -10,6 +10,7 @@ import { NoticesContextProvider, NoticesDialogType } from './context/notices-con
 import { toast } from '@/hooks/use-toast'
 import { DataTable } from '@/components/data-table/data-table'
 import { TableSkeleton } from '@/components/data-table/table-skeleton'
+import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { columns } from './components/columns'
 import { NoticesMutateDrawer } from './components/notices-mutate-drawer'
 import { NoticesDeleteDialog } from './components/notices-delete-dialog'
@@ -83,7 +84,16 @@ export default function NoticesPage() {
       </HeaderContainer>
 
       <div className="-mx-4 flex-1 overflow-auto px-4 py-1 lg:flex-row lg:space-x-12 lg:space-y-0">
-        {isLoading ? <TableSkeleton /> : <DataTable data={notices} columns={columns} />}
+        {isLoading ? (
+          <TableSkeleton />
+        ) : notices.length === 0 ? (
+          <EmptyStateCard
+            title="No notices yet"
+            description="Get started by creating your first notice to communicate important updates to your users."
+          />
+        ) : (
+          <DataTable data={notices} columns={columns} />
+        )}
       </div>
 
       <NoticesMutateDrawer

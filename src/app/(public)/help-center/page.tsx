@@ -42,11 +42,11 @@ interface UserTicket extends SupportTicket {
 }
 
 const FAQ_CATEGORIES = {
+  pricing: 'Pricing & Plans',
   account: 'Account & Settings',
   reading: 'Reading & Library',
-  marketplace: 'Marketplace',
-  technical: 'Technical Issues',
-  billing: 'Billing & Premium',
+  technical: 'Technical Support',
+  general: 'General',
 } as const
 
 const TICKET_CATEGORIES = {
