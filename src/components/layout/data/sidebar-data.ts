@@ -283,37 +283,37 @@ export const sidebarData: SidebarData = {
           items: [
             {
               title: 'Profile',
-              url: '/settings',
+              url: '/dashboard/settings',
               icon: IconUserCog,
             },
             {
               title: 'Account',
-              url: '/settings/account',
+              url: '/dashboard/settings/account',
               icon: IconTool,
             },
             {
               title: 'Subscription',
-              url: '/settings/subscription',
-              icon: IconCreditCard,
+                url: '/dashboard/settings/subscription',
+                icon: IconCreditCard,
             },
             {
-              title: 'Billing',
-              url: '/settings/billing',
-              icon: IconReceipt,
+                title: 'Billing',
+                url: '/dashboard/settings/billing',
+                icon: IconReceipt,
             },
             {
               title: 'Appearance',
-              url: '/settings/appearance',
+              url: '/dashboard/settings/appearance',
               icon: IconPalette,
             },
             {
               title: 'Notifications',
-              url: '/settings/notifications',
+              url: '/dashboard/settings/notifications',
               icon: IconNotification,
             },
             {
               title: 'Display',
-              url: '/settings/display',
+              url: '/dashboard/settings/display',
               icon: IconBrowserCheck,
             },
           ],
