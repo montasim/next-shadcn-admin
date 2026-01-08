@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
+import { BookType } from '@prisma/client'
 
 /**
  * GET /api/user/continue-reading
@@ -20,12 +21,15 @@ export async function GET(request: NextRequest) {
     // Check user's premium status
     const userHasPremium = session.role === 'ADMIN' || session.role === 'SUPER_ADMIN'
 
-    // Get reading progress for unfinished books (progress < 95%)
+    // Get reading progress for unfinished books (progress < 95%, excluding hard copy books)
     const readingProgress = await prisma.readingProgress.findMany({
       where: {
         userId: session.userId,
         progress: {
           lt: 95, // Not completed
+        },
+        book: {
+          type: { in: [BookType.EBOOK, BookType.AUDIO] },
         },
       },
       include: {

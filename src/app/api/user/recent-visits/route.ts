@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/prisma'
+import { BookType } from '@prisma/client'
 
 /**
  * GET /api/user/recent-visits
@@ -20,10 +21,13 @@ export async function GET(request: NextRequest) {
     // Check user's premium status
     const userHasPremium = session.role === 'ADMIN' || session.role === 'SUPER_ADMIN'
 
-    // Get recent book visits for this user
+    // Get recent book visits for this user (excluding hard copy books)
     const recentVisits = await prisma.bookView.findMany({
       where: {
         userId: session.userId,
+        book: {
+          type: { in: [BookType.EBOOK, BookType.AUDIO] },
+        },
       },
       include: {
         book: {

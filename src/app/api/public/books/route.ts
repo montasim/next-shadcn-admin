@@ -90,6 +90,12 @@ function buildFilterConditions(
         isPublic: true, // Only return public books-old
     }
 
+    // Exclude hard copy books from public books page (they should be in /physical-library)
+    // Only include HARD_COPY if explicitly requested via types filter
+    if (!types || types.length === 0) {
+        where.type = { in: [BookType.EBOOK, BookType.AUDIO] }
+    }
+
     // Search functionality
     if (search) {
         where.OR = [

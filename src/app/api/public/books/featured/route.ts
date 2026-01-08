@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth/session'
+import { BookType } from '@prisma/client'
 
 // ============================================================================
 // REQUEST VALIDATION & CONFIGURATION
@@ -137,11 +138,12 @@ export async function GET(request: NextRequest) {
             }
         } : false
 
-        // Fetch featured books (must be both public AND featured)
+        // Fetch featured books (must be both public AND featured, excluding hard copy books)
         const books = await prisma.book.findMany({
             where: {
                 isPublic: true,
                 featured: true,
+                type: { in: [BookType.EBOOK, BookType.AUDIO] },
             },
             include: {
                 authors: {

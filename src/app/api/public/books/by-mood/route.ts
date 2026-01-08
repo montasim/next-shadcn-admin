@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth/session'
 import { getMoodByIdentifier } from '@/lib/lms/repositories/mood.repository'
+import { BookType } from '@prisma/client'
 
 // Query schema
 const MoodQuerySchema = z.object({
@@ -60,10 +61,11 @@ export async function GET(request: NextRequest) {
         }
       : false
 
-    // Get books in these categories
+    // Get books in these categories (excluding hard copy books - they should be in /physical-library)
     const books = await prisma.book.findMany({
       where: {
         isPublic: true,
+        type: { in: [BookType.EBOOK, BookType.AUDIO] },
         categories: {
           some: {
             categoryId: {

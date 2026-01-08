@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { BookGrid } from '@/components/books/book-grid'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { MDXViewer } from '@/components/ui/mdx-viewer'
-import { EntityDetailsSkeleton } from '@/components/entities/entity-details-skeleton'
+import { PublicationDetailsSkeleton } from '@/components/entities/publication-details-skeleton'
 import { usePublication } from '@/hooks/use-publication'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { getUserDisplayName } from '@/lib/utils/user'
@@ -56,7 +56,7 @@ export default function PublicationDetailsPage() {
   }
 
   if (isLoading) {
-    return <EntityDetailsSkeleton entityType="publication" />
+    return <PublicationDetailsSkeleton />
   }
 
   if (error || !publication) {
