@@ -10,6 +10,59 @@ type RouteContext = {
 }
 
 /**
+ * GET /api/admin/books/[id]/content
+ * Get book extracted content (called by PDF processor for regeneration)
+ */
+export async function GET(request: NextRequest, context: RouteContext) {
+  try {
+    const params = await context.params
+    const bookId = params.id
+
+    // Check authentication with API key (for PDF processor)
+    const authHeader = request.headers.get('authorization')
+    const apiKey = process.env.PDF_PROCESSOR_API_KEY
+
+    // Allow PDF processor with API key
+    if (authHeader !== `Bearer ${apiKey}`) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    // Get book
+    const book = await getBookById(bookId)
+    if (!book) {
+      return NextResponse.json(
+        { error: 'Book not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if extracted content exists
+    if (!book.extractedContent) {
+      return NextResponse.json(
+        { error: 'Extracted content not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({
+      extractedContent: book.extractedContent,
+      contentHash: book.contentHash,
+      contentPageCount: book.contentPageCount,
+      contentWordCount: book.contentWordCount,
+    })
+  } catch (error) {
+    console.error('Error fetching extracted content:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch extracted content' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
  * PATCH /api/admin/books/[id]/content
  * Update book extracted content (called by PDF processor)
  */
