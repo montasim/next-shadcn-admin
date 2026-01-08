@@ -52,16 +52,12 @@ import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 // Expandable description component with MDX support (defined outside component to avoid recreation)
 interface ExpandableDescriptionProps {
   description: string
-  sectionId: string
   isExpanded: boolean
-  onToggle: (sectionId: string) => void
 }
 
 function ExpandableDescription({
   description,
-  sectionId,
   isExpanded,
-  onToggle,
 }: ExpandableDescriptionProps) {
   // Estimate if text is long enough to potentially exceed 4 lines
   const isLong = description.length > 300 || description.split('\n').length > 4
@@ -69,37 +65,11 @@ function ExpandableDescription({
   return (
     <div className="text-sm leading-relaxed">
       {!isExpanded && isLong ? (
-        <div className="relative max-h-[5.6rem] overflow-hidden">
-          <div
-            className="pr-16"
-            style={{
-              maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-            }}
-          >
-            <MDXViewer content={description} className='text-sm [&>*]:leading-relaxed' />
-          </div>
-          <button
-            onClick={() => onToggle(sectionId)}
-            className="absolute bottom-0 right-0 text-primary text-sm hover:underline bg-background"
-          >
-            View more...
-          </button>
+        <div className="line-clamp-4">
+          <MDXViewer content={description} className='text-sm [&>*]:leading-relaxed' />
         </div>
       ) : (
-        <>
-          <MDXViewer content={description} className='text-sm' />
-          {isLong && (
-            <div className="text-right">
-              <button
-                onClick={() => onToggle(sectionId)}
-                className="text-primary text-sm mt-2 hover:underline"
-              >
-                View less...
-              </button>
-            </div>
-          )}
-        </>
+        <MDXViewer content={description} className='text-sm' />
       )}
     </div>
   )
@@ -745,24 +715,38 @@ export default function BookDetailsPage() {
                 {book.aiOverview && (
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        Book Overview
-                      </CardTitle>
-                      {book.aiOverviewGeneratedAt && (
-                        <p className="text-xs text-muted-foreground">
-                          Generated {new Date(book.aiOverviewGeneratedAt).toLocaleDateString()}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Sparkles className="h-5 w-5 text-primary" />
+                          Book Overview
+                        </CardTitle>
+                        {book.aiOverviewGeneratedAt && (
+                          <p className="text-xs text-muted-foreground">
+                            Generated {new Date(book.aiOverviewGeneratedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded('ai-overview')}
+                        className="shrink-0"
+                      >
+                        {expandedSections['ai-overview'] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </CardHeader>
+                    {expandedSections['ai-overview'] !== false && (
                     <CardContent>
                       <ExpandableDescription
                         description={book.aiOverview}
-                        sectionId="ai-overview"
                         isExpanded={expandedSections['ai-overview'] || false}
-                        onToggle={toggleExpanded}
                       />
                     </CardContent>
+                    )}
                   </Card>
                 )}
 
@@ -775,9 +759,7 @@ export default function BookDetailsPage() {
                     <CardContent>
                       <ExpandableDescription
                         description={book.summary}
-                        sectionId="book-summary"
                         isExpanded={expandedSections['book-summary'] || false}
-                        onToggle={toggleExpanded}
                       />
                     </CardContent>
                   </Card>
@@ -786,9 +768,22 @@ export default function BookDetailsPage() {
                 {/* Authors with Descriptions */}
                 {book.authors && book.authors.length > 0 && (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-lg">About the Author{book.authors.length > 1 ? 's' : ''}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded('authors-section')}
+                        className="shrink-0"
+                      >
+                        {expandedSections['authors-section'] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </CardHeader>
+                    {expandedSections['authors-section'] !== false && (
                     <CardContent className="space-y-6">
                       {book.authors.map((author) => (
                         <div key={author.id} className="flex gap-4">
@@ -811,9 +806,7 @@ export default function BookDetailsPage() {
                               <div className="text-muted-foreground mt-1">
                                 <ExpandableDescription
                                   description={author.description}
-                                  sectionId={`author-${author.id}`}
                                   isExpanded={expandedSections[`author-${author.id}`] || false}
-                                  onToggle={toggleExpanded}
                                 />
                               </div>
                             )}
@@ -821,15 +814,29 @@ export default function BookDetailsPage() {
                         </div>
                       ))}
                     </CardContent>
+                    )}
                   </Card>
                 )}
 
                 {/* Publications */}
                 {book.publications && book.publications.length > 0 && (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-lg">About the Publisher{book.publications.length > 1 ? 's' : ''}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded('publications-section')}
+                        className="shrink-0"
+                      >
+                        {expandedSections['publications-section'] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </CardHeader>
+                    {expandedSections['publications-section'] !== false && (
                     <CardContent className="space-y-6">
                       {book.publications.map((publication) => (
                         <div key={publication.id} className="flex gap-4">
@@ -857,9 +864,7 @@ export default function BookDetailsPage() {
                               <div className="text-muted-foreground mt-1">
                                 <ExpandableDescription
                                   description={publication.description}
-                                  sectionId={`publication-${publication.id}`}
                                   isExpanded={expandedSections[`publication-${publication.id}`] || false}
-                                  onToggle={toggleExpanded}
                                 />
                               </div>
                             )}
@@ -867,6 +872,7 @@ export default function BookDetailsPage() {
                         </div>
                       ))}
                     </CardContent>
+                    )}
                   </Card>
                 )}
 

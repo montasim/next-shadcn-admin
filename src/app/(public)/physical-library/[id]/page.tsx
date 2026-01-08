@@ -32,6 +32,8 @@ import {
   XCircle,
   Clock,
   Download,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react'
 import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -39,16 +41,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 // Expandable description component with MDX support (defined outside component to avoid recreation)
 interface ExpandableDescriptionProps {
   description: string
-  sectionId: string
   isExpanded: boolean
-  onToggle: (sectionId: string) => void
 }
 
 function ExpandableDescription({
   description,
-  sectionId,
   isExpanded,
-  onToggle,
 }: ExpandableDescriptionProps) {
   // Estimate if text is long enough to potentially exceed 4 lines
   const isLong = description.length > 300 || description.split('\n').length > 4
@@ -56,37 +54,11 @@ function ExpandableDescription({
   return (
     <div className="text-sm leading-relaxed">
       {!isExpanded && isLong ? (
-        <div className="relative max-h-[5.6rem] overflow-hidden">
-          <div
-            className="pr-16"
-            style={{
-              maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-            }}
-          >
-            <MDXViewer content={description} className='text-sm [&>*]:leading-relaxed' />
-          </div>
-          <button
-            onClick={() => onToggle(sectionId)}
-            className="absolute bottom-0 right-0 text-primary text-sm hover:underline bg-background"
-          >
-            View more...
-          </button>
+        <div className="line-clamp-4">
+          <MDXViewer content={description} className='text-sm [&>*]:leading-relaxed' />
         </div>
       ) : (
-        <>
-          <MDXViewer content={description} className='text-sm' />
-          {isLong && (
-            <div className="text-right">
-              <button
-                onClick={() => onToggle(sectionId)}
-                className="text-primary text-sm mt-2 hover:underline"
-              >
-                View less...
-              </button>
-            </div>
-          )}
-        </>
+        <MDXViewer content={description} className='text-sm' />
       )}
     </div>
   )
@@ -598,26 +570,51 @@ export default function PhysicalLibraryBookPage() {
                 {/* Description */}
                 {book.description && (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-lg">About This Book</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded('book-description')}
+                        className="shrink-0"
+                      >
+                        {expandedSections['book-description'] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </CardHeader>
+                    {expandedSections['book-description'] !== false && (
                     <CardContent>
                       <ExpandableDescription
                         description={book.description}
-                        sectionId="book-description"
                         isExpanded={expandedSections['book-description'] || false}
-                        onToggle={toggleExpanded}
                       />
                     </CardContent>
+                    )}
                   </Card>
                 )}
 
                 {/* Authors with Descriptions */}
                 {book.authors && book.authors.length > 0 && (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-lg">About the Author{book.authors.length > 1 ? 's' : ''}</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded('authors-section')}
+                        className="shrink-0"
+                      >
+                        {expandedSections['authors-section'] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </CardHeader>
+                    {expandedSections['authors-section'] !== false && (
                     <CardContent className="space-y-6">
                       {book.authors.map((author) => (
                         <div key={author.id} className="flex gap-4">
@@ -640,9 +637,7 @@ export default function PhysicalLibraryBookPage() {
                               <div className="text-muted-foreground mt-1">
                                 <ExpandableDescription
                                   description={author.description}
-                                  sectionId={`author-${author.id}`}
                                   isExpanded={expandedSections[`author-${author.id}`] || false}
-                                  onToggle={toggleExpanded}
                                 />
                               </div>
                             )}
@@ -650,15 +645,29 @@ export default function PhysicalLibraryBookPage() {
                         </div>
                       ))}
                     </CardContent>
+                    )}
                   </Card>
                 )}
 
                 {/* Publications */}
                 {book.publication && (
                   <Card>
-                    <CardHeader>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-lg">About the Publisher</CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleExpanded('publication-section')}
+                        className="shrink-0"
+                      >
+                        {expandedSections['publication-section'] ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
                     </CardHeader>
+                    {expandedSections['publication-section'] !== false && (
                     <CardContent className="space-y-6">
                       <div className="flex gap-4">
                         <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden relative">
@@ -685,15 +694,14 @@ export default function PhysicalLibraryBookPage() {
                             <div className="text-muted-foreground mt-1">
                               <ExpandableDescription
                                 description={book.publication.description}
-                                sectionId={`publication-${book.publication.id}`}
                                 isExpanded={expandedSections[`publication-${book.publication.id}`] || false}
-                                onToggle={toggleExpanded}
                               />
                             </div>
                           )}
                         </div>
                       </div>
                     </CardContent>
+                    )}
                   </Card>
                 )}
               </TabsContent>
