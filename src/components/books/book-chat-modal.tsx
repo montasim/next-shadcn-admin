@@ -48,15 +48,16 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
 
   // Helper functions defined first to avoid "before initialization" errors
   const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
+    // Use requestAnimationFrame to ensure DOM has updated
+    requestAnimationFrame(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
+    })
   }, [])
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    scrollToBottom()
+  }, [messages, scrollToBottom])
 
   // Check extraction status when modal opens and fetch chat history
   useEffect(() => {
@@ -98,6 +99,8 @@ export function BookChatModal({ open, onOpenChange, book }: BookChatModalProps) 
             content: m.content,
             timestamp: new Date(m.timestamp)
           })))
+          // Scroll to bottom after loading history
+          setTimeout(() => scrollToBottom(), 50)
         }
 
         // Check extraction status
