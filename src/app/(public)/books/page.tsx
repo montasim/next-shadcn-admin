@@ -170,14 +170,14 @@ function BooksPageContent({
               {/* Desktop Header */}
               <div className="hidden lg:flex lg:items-center justify-between mb-4 gap-6">
                 <div>
-                  <h1 className="text-xl font-bold">Discover Books</h1>
+                  <h1 className="text-xl font-bold">Find your favourite Books</h1>
                   <p className="text-muted-foreground">
                     {booksData?.pagination?.totalBooks || 0} books available
                   </p>
                 </div>
 
                 {/* Search Bar - Desktop */}
-                <div className="flex-1 max-w-md">
+                <div className="flex-1 max-w-xl">
                   <SearchBar
                     onSearch={handleSearch}
                     initialValue={filters.search}

@@ -103,7 +103,7 @@ export function SearchBar({
           placeholder={placeholder}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
-          className="pl-10 pr-12"
+          className="pl-10 pr-12 h-12"
         />
         {query && (
           <Button

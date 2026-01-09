@@ -1,6 +1,7 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import useSWR, { mutate } from 'swr'
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
 import {
   BookOpen,
   Users,
@@ -26,8 +28,10 @@ import {
   Tag,
   Sparkles,
   Loader2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
 } from 'lucide-react'
-import { NavigationBreadcrumb } from '@/components/ui/breadcrumb'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
 import { ViewsOverTimeChart } from '@/components/analytics/views-over-time-chart'
@@ -45,12 +49,298 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { Book } from '../data/schema'
+import {router} from "next/client";
+import { MDXViewer } from '@/components/ui/mdx-viewer'
+import { Skeleton } from '@/components/ui/skeleton'
+
+// Common styles
+const STYLES = {
+  metadataLabel: 'text-muted-foreground',
+  metadataValue: 'font-medium mt-1',
+  metadataValueText: 'text-foreground',
+  adminLabel: 'text-xs text-muted-foreground',
+  adminValue: 'text-xs font-medium mt-1',
+  userLink: 'text-xs font-medium hover:text-primary hover:underline transition-colors',
+  expandButton: 'h-8 w-8 p-0',
+} as const
+
+// Helper Components
+function MetadataItem({ label, value, valueClassName = '' }: { label: string; value: React.ReactNode; valueClassName?: string }) {
+  return (
+    <div>
+      <span className={STYLES.metadataLabel}>{label}</span>
+      <div className={`${STYLES.metadataValue} ${STYLES.metadataValueText} ${valueClassName}`}>{value}</div>
+    </div>
+  )
+}
+
+function AdminMetadataItem({ label, value, valueClassName = '' }: { label: string; value: React.ReactNode; valueClassName?: string }) {
+  return (
+    <div>
+      <span className={STYLES.adminLabel}>{label}</span>
+      <div className={`${STYLES.adminValue} ${valueClassName}`}>{value}</div>
+    </div>
+  )
+}
+
+function UserLinkButton({ user, className = '' }: { user: any; className?: string }) {
+  if (!user) return null
+  return (
+    <button
+      onClick={() => user.id && router.push(`/dashboard/users/${user.id}`)}
+      className={`${STYLES.userLink} ${className}`}
+    >
+      {user.name || user.username || 'Unknown'}
+    </button>
+  )
+}
+
+function ExpandableCardHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  isExpanded,
+  onToggle,
+  actionButton,
+}: {
+  icon: any
+  title: string
+  subtitle?: React.ReactNode
+  isExpanded: boolean
+  onToggle: () => void
+  actionButton?: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" className={STYLES.expandButton} onClick={onToggle}>
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </Button>
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <Icon className="h-5 w-5 text-primary" />
+            {title}
+          </CardTitle>
+          {subtitle && <div className="text-xs text-muted-foreground mt-1">{subtitle}</div>}
+        </div>
+      </div>
+      {actionButton}
+    </div>
+  )
+}
+
+// Book Details Skeleton Component
+function BookDetailsSkeleton() {
+  return (
+    <div className="bg-background h-screen overflow-y-auto no-scrollbar pb-4">
+      {/* Action Buttons Skeleton */}
+      <div className="flex lg:justify-end justify-between gap-2 mb-4 px-4">
+        <Skeleton className="h-9 w-32" />
+        <Skeleton className="h-9 w-20" />
+      </div>
+
+      <div className="space-y-6 px-4">
+        {/* Header Skeleton */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Book Image Skeleton */}
+          <div className="relative w-full sm:max-w-[350px] lg:w-[410px] lg:h-[600px] aspect-[410/600] rounded-lg bg-muted mx-auto lg:mx-0">
+            <Skeleton className="w-full h-full rounded-lg" />
+          </div>
+
+          <div className="flex-1 space-y-6">
+            {/* Title and Badges Skeleton */}
+            <div className="space-y-4">
+              <Skeleton className="h-7 w-3/4 max-w-md" />
+              <div className="flex gap-2">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-6 w-16" />
+              </div>
+              <Skeleton className="h-5 w-1/2 max-w-xs" />
+            </div>
+
+            {/* Categories Skeleton */}
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-28" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+
+            {/* Metadata Grid Skeleton */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+              <MetadataItemSkeleton />
+            </div>
+
+            <Skeleton className="h-px w-full" />
+
+            {/* Admin Information Skeleton */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+              <AdminMetadataItemSkeleton />
+              <AdminMetadataItemSkeleton />
+              <AdminMetadataItemSkeleton />
+              <AdminMetadataItemSkeleton />
+            </div>
+
+            {/* Dashboard Summary Skeleton */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              <SummaryCardSkeleton />
+              <SummaryCardSkeleton />
+              <SummaryCardSkeleton />
+              <SummaryCardSkeleton />
+              <SummaryCardSkeleton />
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Skeleton */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex gap-2">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-20" />
+              <Skeleton className="h-10 w-28" />
+            </div>
+            <Skeleton className="h-9 w-28" />
+          </div>
+
+          {/* Tab Content Skeleton */}
+          <div className="space-y-4">
+            {/* AI Summary Card Skeleton */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <div>
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-9 w-32" />
+                </div>
+                <Skeleton className="h-4 w-64 mt-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Overview Card Skeleton */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <div>
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-9 w-32" />
+                </div>
+                <Skeleton className="h-4 w-64 mt-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Key Questions Card Skeleton */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8" />
+                    <div>
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-9 w-32" />
+                </div>
+                <Skeleton className="h-4 w-64 mt-2" />
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <QuestionCardSkeleton />
+                  <QuestionCardSkeleton />
+                  <QuestionCardSkeleton />
+                  <QuestionCardSkeleton />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Metadata Item Skeleton
+function MetadataItemSkeleton() {
+  return (
+    <div>
+      <Skeleton className="h-4 w-20 mb-2" />
+      <Skeleton className="h-5 w-24" />
+    </div>
+  )
+}
+
+// Admin Metadata Item Skeleton
+function AdminMetadataItemSkeleton() {
+  return (
+    <div>
+      <Skeleton className="h-3 w-24 mb-2" />
+      <Skeleton className="h-4 w-32" />
+    </div>
+  )
+}
+
+// Summary Card Skeleton
+function SummaryCardSkeleton() {
+  return (
+    <div className="p-4 border rounded-lg bg-card">
+      <div className="flex items-center gap-2 mb-2">
+        <Skeleton className="h-8 w-8" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <Skeleton className="h-8 w-16 mb-1" />
+      <Skeleton className="h-3 w-32" />
+    </div>
+  )
+}
+
+// Question Card Skeleton
+function QuestionCardSkeleton() {
+  return (
+    <div className="p-3 border rounded-lg">
+      <Skeleton className="h-4 w-full mb-2" />
+      <Skeleton className="h-3 w-full" />
+    </div>
+  )
+}
 
 export default function AdminBookDetailsPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const bookId = params.id as string
-  const [activeTab, setActiveTab] = useState('overview')
+  const activeTab = searchParams.get('tab') || 'overview'
 
   // Edit drawer state
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false)
@@ -67,6 +357,30 @@ export default function AdminBookDetailsPage() {
   const [isRegeneratingQuestions, setIsRegeneratingQuestions] = useState(false)
   const [pollCount, setPollCount] = useState(0)
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Expand/collapse state using Set pattern
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set(['ai-summary', 'ai-overview', 'key-questions']))
+
+  const toggleCard = (cardId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(cardId)) {
+        newSet.delete(cardId)
+      } else {
+        newSet.add(cardId)
+      }
+      return newSet
+    })
+  }
+
+  const toggleAllCards = () => {
+    const allCards = ['ai-summary', 'ai-overview', 'key-questions']
+    if (expandedCards.size === allCards.length) {
+      setExpandedCards(new Set())
+    } else {
+      setExpandedCards(new Set(allCards))
+    }
+  }
 
   const fetcher = async (url: string) => {
     const res = await fetch(url)
@@ -262,20 +576,7 @@ export default function AdminBookDetailsPage() {
     fetcher
   )
 
-  const book = bookData?.data
-
-  // Debug logging to check overview
-  useEffect(() => {
-    if (book) {
-      console.log('[BookDetails] Book data:', {
-        id: book.id,
-        name: book.name,
-        hasAiOverview: !!book.aiOverview,
-        aiOverviewStatus: book.aiOverviewStatus,
-        aiOverview: book.aiOverview?.substring(0, 50) + '...',
-      })
-    }
-  }, [book])
+  const book = bookData?.data as Book | null;
 
   // Stop polling when summary is ready or failed
   useEffect(() => {
@@ -368,14 +669,7 @@ export default function AdminBookDetailsPage() {
   }, [book, isRegeneratingQuestions])
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <p>Loading book details...</p>
-        </div>
-      </div>
-    )
+    return <BookDetailsSkeleton />
   }
 
   if (error || !book) {
@@ -398,38 +692,46 @@ export default function AdminBookDetailsPage() {
     || '/placeholder-book.png'
 
   return (
-    <div className="bg-background overflow-auto pb-20 md:pb-6">
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Breadcrumb */}
-        <NavigationBreadcrumb
-          items={[
-            { label: 'Dashboard', href: '/dashboard' },
-            { label: 'Books', href: '/dashboard/books' },
-            { label: book.name, href: `/dashboard/books/${book.id}` },
-          ]}
-        />
+    <div className="bg-background h-screen overflow-y-auto no-scrollbar pb-4">
+      {/* Action Buttons - Mobile Friendly */}
+      <div className="flex lg:justify-end justify-between gap-2 mb-4">
+        <Button variant="outline" size="sm" onClick={() => router.push(`/books/${book.id}`)}>
+          <ExternalLink className="h-4 w-4 mr-2" />
+          View Public Page
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => setIsEditDrawerOpen(true)}>
+          <Edit className="h-4 w-4 mr-2" />
+          Edit
+        </Button>
+      </div>
 
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex gap-6">
-            <div className="relative w-32 h-44 rounded-lg overflow-hidden shadow-lg flex-shrink-0">
-              <Image
-                src={imageUrl}
-                alt={book.name}
-                fill
-                className="object-cover"
-                sizes="128px"
-                unoptimized
-              />
-            </div>
-            <div className="space-y-2">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Book Image - Responsive */}
+          <div className="relative w-full sm:max-w-[350px] lg:w-[410px] lg:h-[600px] aspect-[410/600] rounded-lg overflow-hidden shadow-lg bg-muted">
+            <Image
+              src={imageUrl}
+              alt={book.name}
+              fill
+              className="object-contain"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 350px, 410px"
+              unoptimized
+            />
+          </div>
+
+          <div className="flex-1 space-y-6">
+            {/* Book Title and Badges */}
+            <div className="space-y-4">
               <h1 className="text-xl font-bold">{book.name}</h1>
-              <div className="flex items-center gap-2 flex-wrap">
+
+              <div className="flex flex-wrap items-center gap-2">
                 <BookTypeBadge type={book.type} />
                 {book.isPublic && <Badge variant="secondary">Public</Badge>}
                 {book.requiresPremium && <Badge variant="outline">Premium</Badge>}
               </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 {book.authors?.length > 0 && (
                   <span>
                     By{' '}
@@ -447,124 +749,171 @@ export default function AdminBookDetailsPage() {
                   </span>
                 )}
               </div>
-              {book.categories?.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  {book.categories.map((c: any) => (
-                    <Badge
-                      key={c.category.id}
-                      variant="secondary"
-                      className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
-                      onClick={() => router.push(`/categories/${c.category.id}`)}
-                    >
-                      {c.category.name}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                {book.pageNumber && (
-                  <div className="flex items-center gap-2">
-                    <span>Pages:</span>
-                    <span className="font-medium text-foreground">{book.pageNumber}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <span>Copies:</span>
-                  <span className="font-medium text-foreground">{book.numberOfCopies || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>Buying Price:</span>
-                  <span className="font-medium text-foreground">${book.buyingPrice || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>Selling Price:</span>
-                  <span className="font-medium text-foreground">${book.sellingPrice || 'N/A'}</span>
-                </div>
+            </div>
+
+            {/* Categories */}
+            {book.categories?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                {book.categories.map((c: any) => (
+                  <Badge
+                    key={c.category.id}
+                    variant="secondary"
+                    className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                    onClick={() => router.push(`/categories/${c.category.id}`)}
+                  >
+                    {c.category.name}
+                  </Badge>
+                ))}
               </div>
+            )}
+
+            {/* Metadata - Responsive Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4 text-sm">
+              {book.language && <MetadataItem label="Language:" value={book.language} valueClassName="capitalize" />}
+              {book.pageNumber && <MetadataItem label="Pages:" value={book.pageNumber} />}
+              {book.contentWordCount && <MetadataItem label="Words:" value={book.contentWordCount.toLocaleString()} />}
+              <MetadataItem label="Copies:" value={book.numberOfCopies || 'N/A'} />
+              <MetadataItem label="Buying Price:" value={`৳${book.buyingPrice || 'N/A'}`} />
+              <MetadataItem label="Selling Price:" value={`৳${book.sellingPrice || 'N/A'}`} />
+              {book.extractionStatus && (
+                <MetadataItem
+                  label="Extraction Status:"
+                  value={book.extractionStatus}
+                  valueClassName={book.extractionStatus === 'completed' ? 'text-green-600' : ''}
+                />
+              )}
+              {book.contentHash && <MetadataItem label="Content Hash:" value={book.contentHash} valueClassName="text-xs break-all" />}
+            </div>
+
+            <Separator />
+
+            {/* Admin Information */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+              <AdminMetadataItem
+                label="Created:"
+                value={book.createdAt ? new Date(book.createdAt).toLocaleString() : 'N/A'}
+              />
+              <AdminMetadataItem
+                label="Last Updated:"
+                value={book.updatedAt ? new Date(book.updatedAt).toLocaleString() : 'N/A'}
+              />
+              {book.entryBy && (
+                <AdminMetadataItem label="Entered By:" value={
+                  <div className="flex items-center gap-2 -mt-1">
+                    <Avatar className="h-4 w-4">
+                      <AvatarImage src={book.entryBy.directAvatarUrl} />
+                      <AvatarFallback className="text-[10px]">
+                        {book.entryBy.name?.[0] || book.entryBy.username?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <UserLinkButton user={book.entryBy} />
+                  </div>
+                } />
+              )}
+              {book.series && <AdminMetadataItem label="Series:" value={book.series.name} />}
+            </div>
+
+              {/* Quick Stats */}
+              <DashboardSummary
+                summaries={[
+                  {
+                    title: 'Total Views',
+                    value: book.analytics?.totalViews || 0,
+                    description: 'All time views',
+                    icon: Eye,
+                  },
+                  {
+                    title: 'Readers',
+                    value: book.analytics?.totalReaders || 0,
+                    description: `${book.analytics?.currentlyReading || 0} currently reading`,
+                    icon: Users,
+                  },
+                  {
+                    title: 'Chat Messages',
+                    value: book.analytics?.totalChatMessages || 0,
+                    description: 'Total messages',
+                    icon: MessageSquare,
+                  },
+                  {
+                    title: 'Avg Progress',
+                    value: `${Math.round(book.analytics?.avgProgress || 0)}%`,
+                    description: 'Average reader progress',
+                    icon: TrendingUp,
+                  },
+                  {
+                    title: 'Avg Response Time',
+                    value: book.analytics?.avgResponseTime || 'N/A',
+                    description: 'Average chat response',
+                    icon: MessageSquare,
+                  },
+                ]}
+              />
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => router.push(`/books/${book.id}`)}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View Public Page
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsEditDrawerOpen(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <DashboardSummary
-          summaries={[
-            {
-              title: 'Total Views',
-              value: book.analytics?.totalViews || 0,
-              description: 'All time views',
-              icon: Eye,
-            },
-            {
-              title: 'Readers',
-              value: book.analytics?.totalReaders || 0,
-              description: `${book.analytics?.currentlyReading || 0} currently reading`,
-              icon: Users,
-            },
-            {
-              title: 'Chat Messages',
-              value: book.analytics?.totalChatMessages || 0,
-              description: 'Total messages',
-              icon: MessageSquare,
-            },
-            {
-              title: 'Avg Progress',
-              value: `${Math.round(book.analytics?.avgProgress || 0)}%`,
-              description: 'Average reader progress',
-              icon: TrendingUp,
-            },
-          ]}
-        />
-
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="overflow-x-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="readers">Readers</TabsTrigger>
-            <TabsTrigger value="chat">Chat History</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} className="space-y-4">
+          <div className="w-full overflow-x-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <TabsList className="overflow-x-auto w-full sm:w-auto">
+                <Link href={`/dashboard/books/${bookId}?tab=overview`}>
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                </Link>
+                <Link href={`/dashboard/books/${bookId}?tab=analytics`}>
+                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                </Link>
+                <Link href={`/dashboard/books/${bookId}?tab=readers`}>
+                  <TabsTrigger value="readers">Readers</TabsTrigger>
+                </Link>
+                <Link href={`/dashboard/books/${bookId}?tab=chat`}>
+                  <TabsTrigger value="chat">Chat History</TabsTrigger>
+                </Link>
+              </TabsList>
+              {activeTab === 'overview' && (
+                <div className="flex gap-2 flex-shrink-0 sm:self-end">
+                  <Button onClick={toggleAllCards} variant="outline" size="sm">
+                    {expandedCards.size === 3 ? 'Collapse All' : 'Expand All'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
             {/* AI Summary */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    AI Summary
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRegenerateSummary}
-                    disabled={isRegeneratingSummary}
-                  >
-                    {isRegeneratingSummary ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        {book.aiSummary ? 'Regenerate' : 'Generate'} Summary
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <ExpandableCardHeader
+                  icon={Sparkles}
+                  title="AI Summary"
+                  subtitle={
+                    (book.aiSummary || (book.aiSummaryStatus === 'completed' && book.aiSummaryGeneratedAt)) &&
+                    `Generated on ${book.aiSummaryGeneratedAt ? new Date(book.aiSummaryGeneratedAt).toLocaleString() : 'recently'}`
+                  }
+                  isExpanded={expandedCards.has('ai-summary')}
+                  onToggle={() => toggleCard('ai-summary')}
+                  actionButton={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRegenerateSummary}
+                      disabled={isRegeneratingSummary}
+                    >
+                      {isRegeneratingSummary ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="hidden sm:inline ml-2">Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          <span className="hidden sm:inline ml-2">{book.aiSummary ? 'Regenerate' : 'Generate'} Summary</span>
+                        </>
+                      )}
+                    </Button>
+                  }
+                />
                 <CardDescription>
                   {isRegeneratingSummary && (
                     <span className="flex items-center gap-2">
@@ -574,50 +923,57 @@ export default function AdminBookDetailsPage() {
                   )}
                   {!isRegeneratingSummary && book.aiSummaryStatus === 'pending' && 'Summary is being generated...'}
                   {!isRegeneratingSummary && book.aiSummaryStatus === 'failed' && 'Failed to generate summary. Please try again.'}
-                  {!isRegeneratingSummary && book.aiSummaryStatus === 'completed' && `Generated on ${book.aiSummaryGeneratedAt ? new Date(book.aiSummaryGeneratedAt).toLocaleString() : 'recently'}`}
                   {!isRegeneratingSummary && !book.aiSummaryStatus && 'Generate an AI summary of this book'}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {book.aiSummary ? (
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{book.aiSummary}</p>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No AI summary available yet.</p>
-                    <p className="text-xs mt-1">Click the button above to generate one.</p>
-                  </div>
-                )}
-              </CardContent>
+              {expandedCards.has('ai-summary') && (
+                <CardContent>
+                  {book.aiSummary ? (
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{book.aiSummary}</p>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Sparkles className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No AI summary available yet.</p>
+                      <p className="text-xs mt-1">Click the button above to generate one.</p>
+                    </div>
+                  )}
+                </CardContent>
+              )}
             </Card>
 
             {/* AI Overview */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    AI Overview
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRegenerateOverview}
-                    disabled={isRegeneratingOverview}
-                  >
-                    {isRegeneratingOverview ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        {book.aiOverview ? 'Regenerate' : 'Generate'} Overview
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <ExpandableCardHeader
+                  icon={FileText}
+                  title="AI Overview"
+                  subtitle={
+                    book.aiOverviewStatus === 'completed' && book.aiOverviewGeneratedAt &&
+                    `Generated on ${new Date(book.aiOverviewGeneratedAt).toLocaleString()}`
+                  }
+                  isExpanded={expandedCards.has('ai-overview')}
+                  onToggle={() => toggleCard('ai-overview')}
+                  actionButton={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRegenerateOverview}
+                      disabled={isRegeneratingOverview}
+                    >
+                      {isRegeneratingOverview ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="hidden sm:inline ml-2">Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          <span className="hidden sm:inline ml-2">{book.aiOverview ? 'Regenerate' : 'Generate'} Overview</span>
+                        </>
+                      )}
+                    </Button>
+                  }
+                />
                 <CardDescription>
                   {isRegeneratingOverview && (
                     <span className="flex items-center gap-2">
@@ -627,52 +983,57 @@ export default function AdminBookDetailsPage() {
                   )}
                   {!isRegeneratingOverview && book.aiOverviewStatus === 'pending' && 'Overview is being generated...'}
                   {!isRegeneratingOverview && book.aiOverviewStatus === 'failed' && 'Failed to generate overview. Please try again.'}
-                  {!isRegeneratingOverview && book.aiOverviewStatus === 'completed' && `Generated on ${book.aiOverviewGeneratedAt ? new Date(book.aiOverviewGeneratedAt).toLocaleString() : 'recently'}`}
                   {!isRegeneratingOverview && !book.aiOverviewStatus && 'Generate an AI overview of this book'}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {book.aiOverview ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <div className="text-sm leading-relaxed whitespace-pre-wrap">{book.aiOverview}</div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No AI overview available yet.</p>
-                    <p className="text-xs mt-1">Click the button above to generate one.</p>
-                  </div>
-                )}
-              </CardContent>
+              {expandedCards.has('ai-overview') && (
+                <CardContent>
+                  {book.aiOverview ? (
+                    <MDXViewer content={book.aiOverview} />
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No AI overview available yet.</p>
+                      <p className="text-xs mt-1">Click the button above to generate one.</p>
+                    </div>
+                  )}
+                </CardContent>
+              )}
             </Card>
 
-            {/* Suggested Questions */}
+            {/* Key Questions */}
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5 text-primary" />
-                    Key Questions
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRegenerateQuestions}
-                    disabled={isRegeneratingQuestions}
-                  >
-                    {isRegeneratingQuestions ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        {book.questions && book.questions.length > 0 ? 'Regenerate' : 'Generate'} Questions
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <ExpandableCardHeader
+                  icon={MessageSquare}
+                  title="Key Questions"
+                  subtitle={
+                    book.questionsStatus === 'completed' && book.questionsGeneratedAt &&
+                    `Generated ${book.questions?.length || 0} questions on ${new Date(book.questionsGeneratedAt).toLocaleString()}`
+                  }
+                  isExpanded={expandedCards.has('key-questions')}
+                  onToggle={() => toggleCard('key-questions')}
+                  actionButton={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRegenerateQuestions}
+                      disabled={isRegeneratingQuestions}
+                    >
+                      {isRegeneratingQuestions ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="hidden sm:inline ml-2">Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          <span className="hidden sm:inline ml-2">{book.questions && book.questions.length > 0 ? 'Regenerate' : 'Generate'} Questions</span>
+                        </>
+                      )}
+                    </Button>
+                  }
+                />
                 <CardDescription>
                   {isRegeneratingQuestions && (
                     <span className="flex items-center gap-2">
@@ -682,75 +1043,40 @@ export default function AdminBookDetailsPage() {
                   )}
                   {!isRegeneratingQuestions && book.questionsStatus === 'pending' && 'Questions are being generated...'}
                   {!isRegeneratingQuestions && book.questionsStatus === 'failed' && 'Failed to generate questions. Please try again.'}
-                  {!isRegeneratingQuestions && book.questionsStatus === 'completed' && `Generated ${book.questions?.length || 0} questions${book.questionsGeneratedAt ? ` on ${new Date(book.questionsGeneratedAt).toLocaleString()}` : ''}`}
-                  {!isRegeneratingQuestions && !book.questionsStatus && 'Generate AI-powered questions about this book'}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {book.questions && book.questions.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {book.questions.map((q: any) => (
-                      <div key={q.id} className="group relative p-3 border rounded-lg hover:border-primary/50 transition-colors">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{q.question}</p>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{q.answer}</p>
+              {expandedCards.has('key-questions') && (
+                <CardContent>
+                  {book.questions && book.questions.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {book.questions.map((q: any) => (
+                        <div key={q.id} className="group relative p-3 border rounded-lg hover:border-primary/50 transition-colors">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{q.question}</p>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{q.answer}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              onClick={() => handleEditQuestion(q)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 flex-shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleEditQuestion(q)}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No key questions available yet.</p>
-                    <p className="text-xs mt-1">Click the button above to generate AI-powered questions.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Content Extraction Status */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Content Extraction Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Status:</span>
-                    <Badge className="ml-2" variant={book.extractionStatus === 'completed' ? 'default' : 'secondary'}>
-                      {book.extractionStatus || 'Not started'}
-                    </Badge>
-                  </div>
-                  {book.contentPageCount && (
-                    <div>
-                      <span className="text-muted-foreground">Pages:</span>
-                      <span className="ml-2">{book.contentPageCount}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No key questions available yet.</p>
+                      <p className="text-xs mt-1">Click the button above to generate AI-powered questions.</p>
                     </div>
                   )}
-                  {book.contentWordCount && (
-                    <div>
-                      <span className="text-muted-foreground">Words:</span>
-                      <span className="ml-2">{book.contentWordCount.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {book.contentExtractedAt && (
-                    <div>
-                      <span className="text-muted-foreground">Extracted:</span>
-                      <span className="ml-2">{new Date(book.contentExtractedAt).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           </TabsContent>
 
@@ -767,11 +1093,6 @@ export default function AdminBookDetailsPage() {
           {/* Chat History Tab */}
           <TabsContent value="chat">
             <ChatHistoryTab bookId={bookId} />
-          </TabsContent>
-
-          {/* Content Tab */}
-          <TabsContent value="content">
-            <ContentTab book={book} />
           </TabsContent>
         </Tabs>
       </div>
@@ -844,8 +1165,13 @@ export default function AdminBookDetailsPage() {
 
 // Analytics Tab Component
 function AnalyticsTab({ bookId }: { bookId: string }) {
-  const { data } = useSWR(`/api/admin/books/${bookId}/visits?chart=true`, (url) => fetch(url).then(r => r.json()))
+  const { data, isLoading } = useSWR(`/api/admin/books/${bookId}/visits?chart=true`, (url) => fetch(url).then(r => r.json()))
   const chartData = data?.data?.chart
+  const recentVisits = data?.data?.recentVisits || []
+
+  if (isLoading) {
+    return <AnalyticsTabSkeleton />
+  }
 
   return (
     <div className="space-y-4">
@@ -863,7 +1189,101 @@ function AnalyticsTab({ bookId }: { bookId: string }) {
           <CardDescription>Latest views on this book</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Recent visits list coming soon</p>
+          {recentVisits.length > 0 ? (
+            <div className="space-y-3">
+              {recentVisits.map((visit: any, index: number) => (
+                <div key={index} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Eye className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm font-medium">
+                        {visit.user?.name || visit.user?.username || 'Anonymous User'}
+                      </p>
+                      {visit.user?.name && (
+                        <span className="text-xs text-muted-foreground">
+                          viewed this book
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(visit.visitedAt || visit.createdAt).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(visit.visitedAt || visit.createdAt).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+              <p className="text-sm text-muted-foreground">No recent activity yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Views will appear here when users visit this book</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Analytics Tab Skeleton Component
+function AnalyticsTabSkeleton() {
+  return (
+    <div className="space-y-4">
+      {/* Chart Skeleton */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-40 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent>
+          {/* Chart area skeleton */}
+          <div className="space-y-3">
+            <div className="flex items-end justify-between gap-2 h-48 px-2">
+              {/* Generate 12 chart bars */}
+              {[...Array(12)].map((_, i) => (
+                <Skeleton key={i} className="flex-1 rounded-t-md" style={{ height: `${40 + Math.random() * 60}%` }} />
+              ))}
+            </div>
+            {/* X-axis labels skeleton */}
+            <div className="flex justify-between px-2">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-3 w-12" />
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity Card Skeleton */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-40 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 border rounded-lg">
+                <Skeleton className="flex-shrink-0 w-8 h-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <div className="flex gap-3">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -872,8 +1292,12 @@ function AnalyticsTab({ bookId }: { bookId: string }) {
 
 // Readers Tab Component
 function ReadersTab({ bookId }: { bookId: string }) {
-  const { data } = useSWR(`/api/admin/books/${bookId}/readers`, (url) => fetch(url).then(r => r.json()))
+  const { data, isLoading } = useSWR(`/api/admin/books/${bookId}/readers`, (url) => fetch(url).then(r => r.json()))
   const readers = data?.data?.readers?.readers || []
+
+  if (isLoading) {
+    return <ReadersTabSkeleton />
+  }
 
   return (
     <Card>
@@ -884,7 +1308,7 @@ function ReadersTab({ bookId }: { bookId: string }) {
       <CardContent>
         <div className="space-y-4">
           {readers.map((reader: any) => (
-            <div key={reader.id} className="flex items-center justify-between p-3 border rounded-lg">
+            <div key={reader.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg">
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarImage src={reader.user.directAvatarUrl} />
@@ -895,9 +1319,9 @@ function ReadersTab({ bookId }: { bookId: string }) {
                   <p className="text-sm text-muted-foreground">Last read: {new Date(reader.lastReadAt).toLocaleDateString()}</p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6">
                 <p className="font-medium">{Math.round(reader.progress)}%</p>
-                <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                <div className="w-24 h-2 bg-muted rounded-full overflow-hidden flex-shrink-0">
                   <div className="h-full bg-primary" style={{ width: `${reader.progress}%` }} />
                 </div>
               </div>
@@ -912,61 +1336,223 @@ function ReadersTab({ bookId }: { bookId: string }) {
   )
 }
 
+// Readers Tab Skeleton Component
+function ReadersTabSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-24 mb-2" />
+        <Skeleton className="h-4 w-32" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-40" />
+                </div>
+              </div>
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="w-24 h-2 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // Chat History Tab Component
 function ChatHistoryTab({ bookId }: { bookId: string }) {
-  const { data } = useSWR(`/api/admin/books/${bookId}/chats`, (url) => fetch(url).then(r => r.json()))
+  const { data, isLoading } = useSWR(`/api/admin/books/${bookId}/chats`, (url) => fetch(url).then(r => r.json()))
   const sessions = data?.data?.sessions?.sessions || []
   const stats = data?.data?.stats
 
+  // State to track expanded users - MUST be before any early return
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set())
+
+  if (isLoading) {
+    return <ChatHistoryTabSkeleton />
+  }
+
+  const toggleUser = (userId: string) => {
+    setExpandedUsers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(userId)) {
+        newSet.delete(userId)
+      } else {
+        newSet.add(userId)
+      }
+      return newSet
+    })
+  }
+
+  // Group sessions by user
+  const groupedByUser = sessions.reduce((acc: any, session: any) => {
+    const userId = session.user?.id || session.userId || 'unknown'
+    if (!acc[userId]) {
+      acc[userId] = {
+        user: session.user,
+        sessions: []
+      }
+    }
+    acc[userId].sessions.push(session)
+    return acc
+  }, {})
+
+  // Group sessions by date for each user
+  const groupSessionsByDate = (sessions: any[]) => {
+    return sessions.reduce((acc: any, session: any) => {
+      const date = new Date(session.firstMessageAt).toLocaleDateString()
+      if (!acc[date]) {
+        acc[date] = []
+      }
+      acc[date].push(session)
+      return acc
+    }, {})
+  }
+
   return (
     <div className="space-y-4">
-      {/* Chat Stats */}
-      <DashboardSummary
-        summaries={[
-          {
-            title: 'Total Conversations',
-            value: stats?.totalConversations || 0,
-            description: 'All chat sessions',
-          },
-          {
-            title: 'Total Messages',
-            value: stats?.totalMessages || 0,
-            description: 'Messages exchanged',
-          },
-          {
-            title: 'Unique Users',
-            value: stats?.uniqueUsers || 0,
-            description: 'Distinct users',
-          },
-        ]}
-      />
-
-      {/* Sessions List */}
+      {/* Most Asked Questions Highlights */}
       <Card>
         <CardHeader>
-          <CardTitle>Chat Sessions</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            Most Asked Questions Highlights
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {sessions.map((session: any) => (
-              <div key={session.sessionId} className="p-3 border rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={session.user?.directAvatarUrl} />
-                      <AvatarFallback>{session.user?.name?.[0] || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium">{session.user?.name || session.user?.username}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(session.firstMessageAt).toLocaleString()} - {new Date(session.lastMessageAt).toLocaleString()}
-                      </p>
-                    </div>
+            {sessions.slice(0, 5).map((session: any, index: number) => (
+              <div key={session.sessionId} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">
+                    {session.firstMessage || 'Question not available'}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                    <span>
+                      {session.user?.name || session.user?.username || 'Anonymous'}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {new Date(session.firstMessageAt).toLocaleDateString()}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {session.messageCount} message{session.messageCount !== 1 ? 's' : ''}
+                    </span>
                   </div>
-                  <Badge>{session.messageCount} messages</Badge>
                 </div>
               </div>
             ))}
+            {sessions.length === 0 && (
+              <p className="text-center text-muted-foreground text-sm">No questions yet</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Users List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Chat History by User</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Object.entries(groupedByUser).map(([userId, userData]: [string, any]) => {
+              const userSessions = userData.sessions
+              const totalMessages = userSessions.reduce((sum: number, s: any) => sum + (s.messageCount || 0), 0)
+              const sessionsByDate = groupSessionsByDate(userSessions)
+              const isExpanded = expandedUsers.has(userId)
+
+              return (
+                <Card key={userId} className="border">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => toggleUser(userId)}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Avatar>
+                          <AvatarImage src={userData.user?.directAvatarUrl} />
+                          <AvatarFallback>
+                            {userData.user?.name?.[0] || userData.user?.username?.[0] || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <button
+                            onClick={() => {
+                              if (userId && userId !== 'unknown') {
+                                router.push(`/dashboard/users/${userId}`)
+                              }
+                            }}
+                            className="font-medium hover:text-primary hover:underline transition-colors text-left truncate block"
+                          >
+                            {userData.user?.name || userData.user?.username || 'Unknown User'}
+                          </button>
+                          <p className="text-xs text-muted-foreground">
+                            {userSessions.length} session{userSessions.length > 1 ? 's' : ''} • {totalMessages} message{totalMessages !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  {isExpanded && (
+                    <CardContent className="pt-0">
+                      <div className="space-y-4">
+                        {Object.entries(sessionsByDate).map(([date, dateSessions]: [string, any]) => (
+                          <div key={date} className="pl-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <p className="text-sm font-medium">{date}</p>
+                            </div>
+                            <div className="space-y-2 ml-6">
+                              {dateSessions.map((session: any) => (
+                                <div
+                                  key={session.sessionId}
+                                  className="p-3 border rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors"
+                                >
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+                                    <p className="text-sm font-medium">
+                                      {new Date(session.firstMessageAt).toLocaleTimeString()} - {new Date(session.lastMessageAt).toLocaleTimeString()}
+                                    </p>
+                                    <Badge variant="secondary" className="text-xs w-fit">
+                                      {session.messageCount} messages
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground break-all">
+                                    Session ID: {session.sessionId}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              )
+            })}
             {sessions.length === 0 && (
               <p className="text-center text-muted-foreground">No chat sessions yet</p>
             )}
@@ -977,69 +1563,86 @@ function ChatHistoryTab({ bookId }: { bookId: string }) {
   )
 }
 
-// Content Tab Component
-function ContentTab({ book }: any) {
+// Chat History Tab Skeleton Component
+function ChatHistoryTabSkeleton() {
   return (
     <div className="space-y-4">
+      {/* Most Asked Questions Highlights Skeleton */}
       <Card>
         <CardHeader>
-          <CardTitle>Content Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <span className="text-sm text-muted-foreground">Extraction Status:</span>
-              <Badge className="ml-2" variant={book.extractionStatus === 'completed' ? 'default' : 'secondary'}>
-                {book.extractionStatus || 'Not started'}
-              </Badge>
-            </div>
-            {book.contentPageCount && (
-              <div>
-                <span className="text-sm text-muted-foreground">Page Count:</span>
-                <span className="ml-2 font-medium">{book.contentPageCount}</span>
-              </div>
-            )}
-            {book.contentWordCount && (
-              <div>
-                <span className="text-sm text-muted-foreground">Word Count:</span>
-                <span className="ml-2 font-medium">{book.contentWordCount.toLocaleString()}</span>
-              </div>
-            )}
-            {book.contentExtractedAt && (
-              <div>
-                <span className="text-sm text-muted-foreground">Last Extracted:</span>
-                <span className="ml-2">{new Date(book.contentExtractedAt).toLocaleDateString()}</span>
-              </div>
-            )}
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-5" />
+            <Skeleton className="h-6 w-64" />
           </div>
-
-          {book.contentHash && (
-            <div>
-              <span className="text-sm text-muted-foreground">Content Hash:</span>
-              <code className="ml-2 text-xs bg-muted px-2 py-1 rounded">{book.contentHash}</code>
-            </div>
-          )}
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 border rounded-lg">
+                <Skeleton className="flex-shrink-0 w-6 h-6 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex gap-3">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
+      {/* Users List Skeleton */}
       <Card>
         <CardHeader>
-          <CardTitle>AI Content Status</CardTitle>
+          <Skeleton className="h-6 w-48" />
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="text-sm text-muted-foreground">Summary Status:</span>
-              <Badge className="ml-2" variant={book.aiSummaryStatus === 'completed' ? 'default' : 'secondary'}>
-                {book.aiSummaryStatus || 'Not generated'}
-              </Badge>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Questions Status:</span>
-              <Badge className="ml-2" variant={book.questionsStatus === 'completed' ? 'default' : 'secondary'}>
-                {book.questionsStatus || 'Not generated'}
-              </Badge>
-            </div>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8" />
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                  </div>
+                </CardHeader>
+
+                {/* Expanded content skeleton */}
+                <CardContent className="pt-0">
+                  <div className="space-y-4">
+                    <div className="pl-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                      <div className="space-y-2 ml-6">
+                        <div className="p-3 border rounded-lg bg-muted/50">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+                            <Skeleton className="h-4 w-40" />
+                            <Skeleton className="h-5 w-20" />
+                          </div>
+                          <Skeleton className="h-3 w-48" />
+                        </div>
+                        <div className="p-3 border rounded-lg bg-muted/50">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
+                            <Skeleton className="h-4 w-40" />
+                            <Skeleton className="h-5 w-16" />
+                          </div>
+                          <Skeleton className="h-3 w-48" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>

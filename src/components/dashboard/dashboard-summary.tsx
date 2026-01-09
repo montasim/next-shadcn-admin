@@ -25,8 +25,8 @@ interface DashboardSummaryProps {
  * Automatically adjusts columns for mobile, tablet, and desktop
  */
 function getGridClass(count: number): string {
-  // Mobile-first approach
-  const mobile = 'grid-cols-2' // Always 1 column on mobile for better readability
+  // Mobile-first approach - show 2 columns on mobile for better space utilization
+  const mobile = 'grid-cols-2'
   const sm = 'sm:grid-cols-2' // 2 columns on small screens
 
   // Larger screens based on count
@@ -35,8 +35,7 @@ function getGridClass(count: number): string {
 
   switch (count) {
     case 1:
-      lg = 'lg:grid-cols-1'
-      break
+      return 'grid-cols-1'
     case 2:
       lg = 'lg:grid-cols-2'
       break
@@ -47,8 +46,8 @@ function getGridClass(count: number): string {
       lg = 'lg:grid-cols-4'
       break
     case 5:
-      lg = 'lg:grid-cols-3'
-      xl = 'xl:grid-cols-5'
+      // 5 items: 2 cols mobile -> 3 cols tablet -> 5 cols desktop
+      lg = 'lg:grid-cols-3 xl:grid-cols-5'
       break
     case 6:
       lg = 'lg:grid-cols-3'
@@ -116,7 +115,7 @@ function DashboardSummaryGrid({
     : getGridClass(summaries.length)
 
   return (
-    <div className={cn('grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4', gridClass, className)}>
+    <div className={cn('grid gap-4 mb-4', gridClass, className)}>
       {summaries.map((item, index) => {
         const Icon = item.icon
         return (
