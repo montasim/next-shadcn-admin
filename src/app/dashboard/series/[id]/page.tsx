@@ -1,7 +1,8 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import useSWR, { mutate } from 'swr'
 import { Button } from '@/components/ui/button'
@@ -28,8 +29,9 @@ import { ViewsOverTimeChart } from '@/components/analytics/views-over-time-chart
 export default function AdminSeriesDetailsPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const seriesId = params.id as string
-  const [activeTab, setActiveTab] = useState('overview')
+  const activeTab = searchParams.get('tab') || 'overview'
 
   // Edit drawer state
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false)
@@ -75,7 +77,7 @@ export default function AdminSeriesDetailsPage() {
   const imageUrl = series.image && getProxiedImageUrl(series.image) || series.directImageUrl || series.image || null
 
   return (
-    <div className="bg-background overflow-auto pb-20 md:pb-6">
+    <div className="bg-background h-screen overflow-y-auto no-scrollbar pb-4">
       <div className="container mx-auto py-6 space-y-6">
         {/* Breadcrumb */}
         <NavigationBreadcrumb
@@ -175,11 +177,17 @@ export default function AdminSeriesDetailsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} className="space-y-4">
           <TabsList className="overflow-x-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="books">Books</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <Link href={`/dashboard/series/${seriesId}?tab=overview`}>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+            </Link>
+            <Link href={`/dashboard/series/${seriesId}?tab=books`}>
+              <TabsTrigger value="books">Books</TabsTrigger>
+            </Link>
+            <Link href={`/dashboard/series/${seriesId}?tab=analytics`}>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            </Link>
           </TabsList>
 
           {/* Overview Tab */}

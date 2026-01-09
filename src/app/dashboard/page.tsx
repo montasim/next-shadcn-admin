@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -88,6 +89,8 @@ function calculateLibraryStats(books: Book[]): LibraryStats {
 }
 
 function AdminDashboard() {
+  const searchParams = useSearchParams()
+  const activeTab = searchParams.get('tab') || 'overview'
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -185,13 +188,21 @@ function AdminDashboard() {
           </div>
         </HeaderContainer>
 
-        <Tabs defaultValue="overview" className="space-y-4 overflow-y-auto">
+        <Tabs value={activeTab} className="space-y-4 overflow-y-auto">
           <div className="w-full overflow-x-auto">
             <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="analytics" disabled>Analytics</TabsTrigger>
-              <TabsTrigger value="reports" disabled>Reports</TabsTrigger>
-              <TabsTrigger value="notifications" disabled>Notifications</TabsTrigger>
+              <Link href="/dashboard?tab=overview">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+              </Link>
+              <Link href="/dashboard?tab=analytics">
+                <TabsTrigger value="analytics" disabled>Analytics</TabsTrigger>
+              </Link>
+              <Link href="/dashboard?tab=reports">
+                <TabsTrigger value="reports" disabled>Reports</TabsTrigger>
+              </Link>
+              <Link href="/dashboard?tab=notifications">
+                <TabsTrigger value="notifications" disabled>Notifications</TabsTrigger>
+              </Link>
             </TabsList>
           </div>
           <TabsContent value="overview" className="space-y-4">

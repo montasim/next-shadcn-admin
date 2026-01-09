@@ -7,7 +7,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -50,11 +50,12 @@ interface Loan {
 export default function ProfileLoansPage() {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const activeTab = searchParams.get('tab') || 'active'
   const [loans, setLoans] = useState<Loan[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [returningId, setReturningId] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'active' | 'past'>('active')
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -222,14 +223,18 @@ export default function ProfileLoansPage() {
           />
 
           {/* Tabs for Active and Past Loans */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'active' | 'past')} className="space-y-4">
+          <Tabs value={activeTab} className="space-y-4">
             <TabsList>
-              <TabsTrigger value="active">
-                Active ({activeLoans.length})
-              </TabsTrigger>
-              <TabsTrigger value="past">
-                Past ({pastLoans.length})
-              </TabsTrigger>
+              <Link href="/profile/loans?tab=active">
+                <TabsTrigger value="active">
+                  Active ({activeLoans.length})
+                </TabsTrigger>
+              </Link>
+              <Link href="/profile/loans?tab=past">
+                <TabsTrigger value="past">
+                  Past ({pastLoans.length})
+                </TabsTrigger>
+              </Link>
             </TabsList>
 
             <TabsContent value="active" className="space-y-4">
