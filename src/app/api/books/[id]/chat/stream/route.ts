@@ -142,7 +142,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           pdfDirectUrl: book.directFileUrl || book.fileUrl || '',
           authors: authorNames,
           categories: categoryNames,
-          messages
+          messages,
+          userId: user.id
         });
 
         // Send start event

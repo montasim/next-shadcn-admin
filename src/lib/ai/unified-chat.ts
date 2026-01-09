@@ -1,6 +1,8 @@
 import { generateEmbedding } from './gemini-embeddings'
 import { searchSimilarChunks, hasBookEmbeddings, getBookChunkCount } from '@/lib/lms/repositories/book-embedding.repository'
 import { getBookWithExtractedContent } from '@/lib/lms/repositories/book.repository'
+import { getUserChatSessions, getChatSessionMessages } from '@/lib/lms/repositories/book-chat.repository'
+import { prisma } from '@/lib/prisma'
 import { config } from '@/config'
 
 export interface StreamingChatOptions {
@@ -23,13 +25,14 @@ export interface ChatRequest {
   authors: string[]
   categories: string[]
   messages: ChatMessage[]
+  userId?: string
 }
 
 export interface ChatResponse {
   response: string
   model: string
   provider: 'zhipu' | 'gemini'
-  method: 'embedding' | 'full-content' | 'fallback'
+  method: 'ai-resources' | 'embedding' | 'full-content' | 'fallback'
   usage: {
     promptTokens: number
     completionTokens: number
@@ -268,9 +271,10 @@ async function generateGeminiResponse(messages: ChatMessage[]): Promise<{ conten
 
 /**
  * Main unified chat function with automatic provider fallback
- * 1. Try Zhipu AI first (premium quality, you already have API key)
- * 2. On quota/limit error, fall back to Gemini automatically
- * 3. Use RAG (embeddings) if available, otherwise full content
+ * 1. Try pre-computed AI resources first (fastest)
+ * 2. Then try embeddings search
+ * 3. Fall back to full content if needed
+ * 4. Try Zhipu AI first, then Gemini on quota/limit error
  */
 export async function chatWithUnifiedProvider(request: ChatRequest): Promise<ChatResponse> {
   console.log('[Unified Chat] Starting chat for book:', request.bookId)
@@ -284,74 +288,126 @@ export async function chatWithUnifiedProvider(request: ChatRequest): Promise<Cha
     throw new Error('No user message found in conversation history')
   }
 
-  // Check if embeddings exist for this book
-  const hasEmbeddings = await hasBookEmbeddings(request.bookId)
+  // Extract userId from request if available
+  const userId = request.userId
 
+  // STEP 1: Try to use pre-computed AI resources first (FASTEST)
+  console.log('[Unified Chat] Step 1: Checking pre-computed AI resources...')
+  const preComputedResources = await getPreComputedAIResources(request.bookId, userId)
+
+  // STEP 2: Check if we can answer using pre-computed resources (FAST)
   let bookContent = ''
-  let method: 'embedding' | 'full-content' | 'fallback' = 'fallback'
+  let method: 'ai-resources' | 'embedding' | 'full-content' | 'fallback' = 'ai-resources'
 
-  if (hasEmbeddings) {
-    console.log('[Unified Chat] Embeddings found, using RAG approach')
-    try {
-      // Generate embedding for the user's query
-      const queryEmbedding = await generateEmbedding(lastUserMessage.content)
-      console.log('[Unified Chat] Generated query embedding, dimension:', queryEmbedding.length)
+  // Build enhanced content from pre-computed resources
+  const enhancedContentParts: string[] = []
 
-      // Get total chunk count for this book to calculate optimal limit
-      const totalChunks = await getBookChunkCount(request.bookId)
-      console.log('[Unified Chat] Total chunks available for book:', totalChunks)
+  if (preComputedResources.aiSummary) {
+    enhancedContentParts.push(`**AI Summary:**\n${preComputedResources.aiSummary}`)
+  }
 
-      // Calculate optimal chunk limit based on book size
-      const optimalLimit = calculateOptimalChunkLimit(totalChunks, totalChunks)
+  if (preComputedResources.aiOverview) {
+    enhancedContentParts.push(`**AI Overview:**\n${preComputedResources.aiOverview}`)
+  }
 
-      // Minimum similarity threshold to filter out irrelevant chunks
-      const minSimilarity = 0.25
+  if (preComputedResources.summary) {
+    enhancedContentParts.push(`**Summary:**\n${preComputedResources.summary}`)
+  }
 
-      // Search for similar chunks with adaptive limit and similarity threshold
-      const similarChunks = await searchSimilarChunks(request.bookId, queryEmbedding, optimalLimit, minSimilarity)
-      console.log('[Unified Chat] Found', similarChunks.length, 'relevant chunks (limit:', optimalLimit, ', minSimilarity:', minSimilarity + ')')
-      console.log('[Unified Chat] Similarity scores:', similarChunks.map(c => c.similarity.toFixed(3)).join(', '))
+  if (preComputedResources.keyQuestionsAnswers && preComputedResources.keyQuestionsAnswers.length > 0) {
+    enhancedContentParts.push(`**Key Questions & Answers:**\n${preComputedResources.keyQuestionsAnswers.map((qa, i) =>
+      `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`
+    ).join('\n\n')}`)
+  }
 
-      if (similarChunks.length > 0) {
-        // Check if chunks have actual content
-        const totalContentLength = similarChunks.reduce((sum, c) => sum + (c.chunkText?.length || 0), 0)
-        console.log('[Unified Chat] Total content length across all chunks:', totalContentLength)
+  // Check if user has chat history that might be relevant
+  if (preComputedResources.userChatHistory && preComputedResources.userChatHistory.length > 0) {
+    enhancedContentParts.push(`**Your Previous Chat History:**\n${preComputedResources.userChatHistory.map(m =>
+      `${m.role === 'user' ? 'You' : 'AI'}: ${m.content}`
+    ).join('\n\n')}`)
+  }
 
-        if (totalContentLength === 0) {
-          console.log('[Unified Chat] Chunks are empty, falling back to full content')
+  // If we have substantial pre-computed content, use it directly
+  if (enhancedContentParts.length >= 2 || (enhancedContentParts.length > 0 && preComputedResources.userChatHistory && preComputedResources.userChatHistory.length > 5)) {
+    bookContent = enhancedContentParts.join('\n\n---\n\n')
+    console.log('[Unified Chat] Using pre-computed AI resources (FAST PATH)')
+    console.log('[Unified Chat] Resources used:', {
+      aiSummary: !!preComputedResources.aiSummary,
+      aiOverview: !!preComputedResources.aiOverview,
+      summary: !!preComputedResources.summary,
+      keyQuestions: preComputedResources.keyQuestionsAnswers?.length || 0,
+      chatHistoryMessages: preComputedResources.userChatHistory?.length || 0
+    })
+  } else {
+    // STEP 3: Fall back to embedding search if pre-computed resources are insufficient
+    console.log('[Unified Chat] Step 2: Pre-computed resources insufficient, checking embeddings...')
+
+    // Check if embeddings exist for this book
+    const hasEmbeddings = await hasBookEmbeddings(request.bookId)
+
+    if (hasEmbeddings) {
+      console.log('[Unified Chat] Embeddings found, using RAG approach')
+      try {
+        // Generate embedding for the user's query
+        const queryEmbedding = await generateEmbedding(lastUserMessage.content)
+        console.log('[Unified Chat] Generated query embedding, dimension:', queryEmbedding.length)
+
+        // Get total chunk count for this book to calculate optimal limit
+        const totalChunks = await getBookChunkCount(request.bookId)
+        console.log('[Unified Chat] Total chunks available for book:', totalChunks)
+
+        // Calculate optimal chunk limit based on book size
+        const optimalLimit = calculateOptimalChunkLimit(totalChunks, totalChunks)
+
+        // Minimum similarity threshold to filter out irrelevant chunks
+        const minSimilarity = 0.25
+
+        // Search for similar chunks with adaptive limit and similarity threshold
+        const similarChunks = await searchSimilarChunks(request.bookId, queryEmbedding, optimalLimit, minSimilarity)
+        console.log('[Unified Chat] Found', similarChunks.length, 'relevant chunks (limit:', optimalLimit, ', minSimilarity:', minSimilarity + ')')
+        console.log('[Unified Chat] Similarity scores:', similarChunks.map(c => c.similarity.toFixed(3)).join(', '))
+
+        if (similarChunks.length > 0) {
+          // Check if chunks have actual content
+          const totalContentLength = similarChunks.reduce((sum, c) => sum + (c.chunkText?.length || 0), 0)
+          console.log('[Unified Chat] Total content length across all chunks:', totalContentLength)
+
+          if (totalContentLength === 0) {
+            console.log('[Unified Chat] Chunks are empty, falling back to full content')
+            const bookWithContent = await getBookWithExtractedContent(request.bookId)
+            if (bookWithContent?.extractedContent) {
+              bookContent = bookWithContent.extractedContent.slice(0, 50000)
+              method = 'full-content'
+            }
+          } else {
+            // Format chunks for AI context
+            bookContent = formatChunksForAI(similarChunks)
+            method = 'embedding'
+            console.log('[Unified Chat] Using', similarChunks.length, 'chunks as context (avg similarity:', (similarChunks.reduce((sum, c) => sum + c.similarity, 0) / similarChunks.length).toFixed(3) + ')')
+          }
+        } else {
+          console.log('[Unified Chat] No chunks found, falling back to full content')
           const bookWithContent = await getBookWithExtractedContent(request.bookId)
           if (bookWithContent?.extractedContent) {
             bookContent = bookWithContent.extractedContent.slice(0, 50000)
             method = 'full-content'
           }
-        } else {
-          // Format chunks for AI context
-          bookContent = formatChunksForAI(similarChunks)
-          method = 'embedding'
-          console.log('[Unified Chat] Using', similarChunks.length, 'chunks as context (avg similarity:', (similarChunks.reduce((sum, c) => sum + c.similarity, 0) / similarChunks.length).toFixed(3) + ')')
         }
-      } else {
-        console.log('[Unified Chat] No chunks found, falling back to full content')
+      } catch (error) {
+        console.error('[Unified Chat] Embedding search failed:', error)
         const bookWithContent = await getBookWithExtractedContent(request.bookId)
         if (bookWithContent?.extractedContent) {
           bookContent = bookWithContent.extractedContent.slice(0, 50000)
           method = 'full-content'
         }
       }
-    } catch (error) {
-      console.error('[Unified Chat] Embedding search failed:', error)
+    } else {
+      console.log('[Unified Chat] No embeddings found, using full content')
       const bookWithContent = await getBookWithExtractedContent(request.bookId)
       if (bookWithContent?.extractedContent) {
         bookContent = bookWithContent.extractedContent.slice(0, 50000)
         method = 'full-content'
       }
-    }
-  } else {
-    console.log('[Unified Chat] No embeddings found, using full content')
-    const bookWithContent = await getBookWithExtractedContent(request.bookId)
-    if (bookWithContent?.extractedContent) {
-      bookContent = bookWithContent.extractedContent.slice(0, 50000)
-      method = 'full-content'
     }
   }
 
@@ -406,12 +462,11 @@ ${bookContent}` : '**BOOK CONTENT:** [No content available]'}
   console.log('[Unified Chat] Trying Zhipu AI first (provider: zhipu, model:', config.zhipuAiModel + ')')
 
   try {
-    const { content: responseContent, usage } = await generateZhipuResponse(apiMessages)
-
+    const { content, usage } = await generateZhipuResponse(apiMessages)
     console.log('[Unified Chat] Zhipu AI response successful')
 
     return {
-      response: responseContent,
+      response: content,
       model: config.zhipuAiModel,
       provider: 'zhipu',
       method,
@@ -423,12 +478,11 @@ ${bookContent}` : '**BOOK CONTENT:** [No content available]'}
       console.log('[Unified Chat] Zhipu AI quota/limit exceeded, falling back to Gemini')
 
       try {
-        const { content: responseContent, usage } = await generateGeminiResponse(apiMessages)
-
+        const { content, usage } = await generateGeminiResponse(apiMessages)
         console.log('[Unified Chat] Gemini fallback successful')
 
         return {
-          response: responseContent,
+          response: content,
           model: config.geminiChatModel,
           provider: 'gemini',
           method,
@@ -747,6 +801,82 @@ ${bookContent}` : '**BOOK CONTENT:** [No content available]'}
 }
 
 /**
+ * Gather pre-computed AI resources for a book (faster than embedding search)
+ */
+async function getPreComputedAIResources(bookId: string, userId?: string): Promise<{
+  aiSummary?: string
+  aiOverview?: string
+  summary?: string
+  keyQuestionsAnswers?: Array<{ question: string; answer: string }>
+  userChatHistory?: Array<{ role: string; content: string }>
+}> {
+  const resources: any = {}
+
+  try {
+    // Get book with AI-generated fields
+    const book = await prisma.book.findUnique({
+      where: { id: bookId },
+      select: {
+        aiSummary: true,
+        aiOverview: true,
+        summary: true,
+      }
+    })
+
+    if (book?.aiSummary) resources.aiSummary = book.aiSummary
+    if (book?.aiOverview) resources.aiOverview = book.aiOverview
+    if (book?.summary) resources.summary = book.summary
+
+    // Get key questions and answers
+    const questions = await prisma.bookQuestion.findMany({
+      where: { bookId },
+      orderBy: { order: 'asc' },
+      take: 20,
+      select: {
+        question: true,
+        answer: true,
+      }
+    })
+
+    if (questions.length > 0) {
+      resources.keyQuestionsAnswers = questions.map(q => ({
+        question: q.question,
+        answer: q.answer
+      }))
+    }
+
+    // Get user's chat history for this book (most recent session)
+    if (userId) {
+      try {
+        const sessions = await getUserChatSessions(bookId, userId)
+        if (sessions.length > 0) {
+          const recentSessionId = sessions[0].sessionId
+          const messages = await getChatSessionMessages(bookId, recentSessionId)
+          resources.userChatHistory = messages.map(m => ({
+            role: m.role,
+            content: m.content
+          }))
+        }
+      } catch (error) {
+        console.debug('[Chat] Failed to fetch user chat history:', error)
+      }
+    }
+
+    console.log('[Unified Chat] Pre-computed resources:', {
+      hasAiSummary: !!resources.aiSummary,
+      hasAiOverview: !!resources.aiOverview,
+      hasSummary: !!resources.summary,
+      keyQuestionsCount: resources.keyQuestionsAnswers?.length || 0,
+      userChatHistoryMessages: resources.userChatHistory?.length || 0
+    })
+  } catch (error) {
+    console.error('[Unified Chat] Error fetching pre-computed resources:', error)
+  }
+
+  return resources
+}
+
+/**
  * Main streaming chat function with automatic provider fallback
  * Returns an async generator that yields chunks of the response
  */
@@ -755,7 +885,7 @@ export async function* chatWithUnifiedProviderStream(
   options: StreamingChatOptions = {}
 ): AsyncGenerator<
   { chunk: string; provider: 'zhipu' | 'gemini' },
-  { response: string; model: string; provider: 'zhipu' | 'gemini'; method: 'embedding' | 'full-content' | 'fallback'; usage: any },
+  { response: string; model: string; provider: 'zhipu' | 'gemini'; method: 'ai-resources' | 'embedding' | 'full-content' | 'fallback'; usage: any },
   unknown
 > {
   console.log('[Unified Chat Stream] Starting chat for book:', request.bookId)
@@ -769,73 +899,124 @@ export async function* chatWithUnifiedProviderStream(
     throw new Error('No user message found in conversation history')
   }
 
-  // Check if embeddings exist for this book
-  const hasEmbeddings = await hasBookEmbeddings(request.bookId)
+  // Extract userId from request if available
+  const userId = (request as any).userId
 
+  // STEP 1: Try to use pre-computed AI resources first (FASTEST)
+  console.log('[Unified Chat Stream] Step 1: Checking pre-computed AI resources...')
+  const preComputedResources = await getPreComputedAIResources(request.bookId, userId)
+
+  // STEP 2: Check if we can answer using pre-computed resources (FAST)
   let bookContent = ''
-  let method: 'embedding' | 'full-content' | 'fallback' = 'fallback'
+  let method: 'ai-resources' | 'embedding' | 'full-content' | 'fallback' = 'ai-resources'
 
-  if (hasEmbeddings) {
-    console.log('[Unified Chat Stream] Embeddings found, using RAG approach')
-    try {
-      // Generate embedding for the user's query
-      const queryEmbedding = await generateEmbedding(lastUserMessage.content)
-      console.log('[Unified Chat Stream] Generated query embedding, dimension:', queryEmbedding.length)
+  // Build enhanced content from pre-computed resources
+  const enhancedContentParts: string[] = []
 
-      // Get total chunk count for this book to calculate optimal limit
-      const totalChunks = await getBookChunkCount(request.bookId)
-      console.log('[Unified Chat Stream] Total chunks available for book:', totalChunks)
+  if (preComputedResources.aiSummary) {
+    enhancedContentParts.push(`**AI Summary:**\n${preComputedResources.aiSummary}`)
+  }
 
-      // Calculate optimal chunk limit based on book size
-      const optimalLimit = calculateOptimalChunkLimit(totalChunks, totalChunks)
+  if (preComputedResources.aiOverview) {
+    enhancedContentParts.push(`**AI Overview:**\n${preComputedResources.aiOverview}`)
+  }
 
-      // Minimum similarity threshold to filter out irrelevant chunks
-      const minSimilarity = 0.25
+  if (preComputedResources.summary) {
+    enhancedContentParts.push(`**Summary:**\n${preComputedResources.summary}`)
+  }
 
-      // Search for similar chunks with adaptive limit and similarity threshold
-      const similarChunks = await searchSimilarChunks(request.bookId, queryEmbedding, optimalLimit, minSimilarity)
-      console.log('[Unified Chat Stream] Found', similarChunks.length, 'relevant chunks')
-      console.log('[Unified Chat Stream] Similarity scores:', similarChunks.map(c => c.similarity.toFixed(3)).join(', '))
+  if (preComputedResources.keyQuestionsAnswers && preComputedResources.keyQuestionsAnswers.length > 0) {
+    enhancedContentParts.push(`**Key Questions & Answers:**\n${preComputedResources.keyQuestionsAnswers.map((qa, i) =>
+      `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`
+    ).join('\n\n')}`)
+  }
 
-      if (similarChunks.length > 0) {
-        const totalContentLength = similarChunks.reduce((sum, c) => sum + (c.chunkText?.length || 0), 0)
-        console.log('[Unified Chat Stream] Total content length across all chunks:', totalContentLength)
+  // Check if user has chat history that might be relevant
+  if (preComputedResources.userChatHistory && preComputedResources.userChatHistory.length > 0) {
+    enhancedContentParts.push(`**Your Previous Chat History:**\n${preComputedResources.userChatHistory.map(m =>
+      `${m.role === 'user' ? 'You' : 'AI'}: ${m.content}`
+    ).join('\n\n')}`)
+  }
 
-        if (totalContentLength === 0) {
-          console.log('[Unified Chat Stream] Chunks are empty, falling back to full content')
+  // If we have substantial pre-computed content, use it directly
+  if (enhancedContentParts.length >= 2 || (enhancedContentParts.length > 0 && preComputedResources.userChatHistory && preComputedResources.userChatHistory.length > 5)) {
+    bookContent = enhancedContentParts.join('\n\n---\n\n')
+    console.log('[Unified Chat Stream] Using pre-computed AI resources (FAST PATH)')
+    console.log('[Unified Chat Stream] Resources used:', {
+      aiSummary: !!preComputedResources.aiSummary,
+      aiOverview: !!preComputedResources.aiOverview,
+      summary: !!preComputedResources.summary,
+      keyQuestions: preComputedResources.keyQuestionsAnswers?.length || 0,
+      chatHistoryMessages: preComputedResources.userChatHistory?.length || 0
+    })
+  } else {
+    // STEP 3: Fall back to embedding search if pre-computed resources are insufficient
+    console.log('[Unified Chat Stream] Step 2: Pre-computed resources insufficient, checking embeddings...')
+
+    const hasEmbeddings = await hasBookEmbeddings(request.bookId)
+
+    if (hasEmbeddings) {
+      console.log('[Unified Chat Stream] Embeddings found, using RAG approach')
+      try {
+        // Generate embedding for the user's query
+        const queryEmbedding = await generateEmbedding(lastUserMessage.content)
+        console.log('[Unified Chat Stream] Generated query embedding, dimension:', queryEmbedding.length)
+
+        // Get total chunk count for this book to calculate optimal limit
+        const totalChunks = await getBookChunkCount(request.bookId)
+        console.log('[Unified Chat Stream] Total chunks available for book:', totalChunks)
+
+        // Calculate optimal chunk limit based on book size
+        const optimalLimit = calculateOptimalChunkLimit(totalChunks, totalChunks)
+
+        // Minimum similarity threshold to filter out irrelevant chunks
+        const minSimilarity = 0.25
+
+        // Search for similar chunks with adaptive limit and similarity threshold
+        const similarChunks = await searchSimilarChunks(request.bookId, queryEmbedding, optimalLimit, minSimilarity)
+        console.log('[Unified Chat Stream] Found', similarChunks.length, 'relevant chunks')
+        console.log('[Unified Chat Stream] Similarity scores:', similarChunks.map(c => c.similarity.toFixed(3)).join(', '))
+
+        if (similarChunks.length > 0) {
+          const totalContentLength = similarChunks.reduce((sum, c) => sum + (c.chunkText?.length || 0), 0)
+          console.log('[Unified Chat Stream] Total content length across all chunks:', totalContentLength)
+
+          if (totalContentLength === 0) {
+            console.log('[Unified Chat Stream] Chunks are empty, falling back to full content')
+            const bookWithContent = await getBookWithExtractedContent(request.bookId)
+            if (bookWithContent?.extractedContent) {
+              bookContent = bookWithContent.extractedContent.slice(0, 50000)
+              method = 'full-content'
+            }
+          } else {
+            // Format chunks for AI context
+            bookContent = formatChunksForAI(similarChunks)
+            method = 'embedding'
+            console.log('[Unified Chat Stream] Using', similarChunks.length, 'chunks as context (avg similarity:', (similarChunks.reduce((sum, c) => sum + c.similarity, 0) / similarChunks.length).toFixed(3) + ')')
+          }
+        } else {
+          console.log('[Unified Chat Stream] No chunks found, falling back to full content')
           const bookWithContent = await getBookWithExtractedContent(request.bookId)
           if (bookWithContent?.extractedContent) {
             bookContent = bookWithContent.extractedContent.slice(0, 50000)
             method = 'full-content'
           }
-        } else {
-          // Format chunks for AI context
-          bookContent = formatChunksForAI(similarChunks)
-          method = 'embedding'
-          console.log('[Unified Chat Stream] Using', similarChunks.length, 'chunks as context (avg similarity:', (similarChunks.reduce((sum, c) => sum + c.similarity, 0) / similarChunks.length).toFixed(3) + ')')
         }
-      } else {
-        console.log('[Unified Chat Stream] No chunks found, falling back to full content')
+      } catch (error) {
+        console.error('[Unified Chat Stream] Embedding search failed:', error)
         const bookWithContent = await getBookWithExtractedContent(request.bookId)
         if (bookWithContent?.extractedContent) {
           bookContent = bookWithContent.extractedContent.slice(0, 50000)
           method = 'full-content'
         }
       }
-    } catch (error) {
-      console.error('[Unified Chat Stream] Embedding search failed:', error)
+    } else {
+      console.log('[Unified Chat Stream] No embeddings found, using full content')
       const bookWithContent = await getBookWithExtractedContent(request.bookId)
       if (bookWithContent?.extractedContent) {
         bookContent = bookWithContent.extractedContent.slice(0, 50000)
         method = 'full-content'
       }
-    }
-  } else {
-    console.log('[Unified Chat Stream] No embeddings found, using full content')
-    const bookWithContent = await getBookWithExtractedContent(request.bookId)
-    if (bookWithContent?.extractedContent) {
-      bookContent = bookWithContent.extractedContent.slice(0, 50000)
-      method = 'full-content'
     }
   }
 
