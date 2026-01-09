@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { parseVoiceBookRequest } from '@/lib/ai/zhipu-chat'
+import { parseVoiceBookRequest } from '@/lib/ai/voice-parser'
 import { getSession } from '@/lib/auth/session'
 
 export async function POST(request: NextRequest) {

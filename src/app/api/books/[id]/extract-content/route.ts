@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getBookWithExtractedContent,
-  updateBookExtractedContent,
+  clearBookExtractedContent,
 } from '@/lib/lms/repositories/book.repository';
-import { extractBookContent } from '@/lib/ai/book-content-extractor';
-import { queueBookExtraction } from '@/lib/queue/job-handler';
+import { notifyPdfProcessor } from '@/lib/pdf-processor/notifier';
+import { getBookById } from '@/lib/lms/repositories/book.repository';
 
 interface RouteContext {
   params: Promise<{
@@ -15,16 +15,16 @@ interface RouteContext {
 /**
  * POST /api/books/[id]/extract-content
  * Trigger content extraction for a book
- * Uses job queue if available, otherwise processes synchronously
+ * Notifies the external PDF processor service to handle the extraction
  */
 export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
     const { id } = await params;
 
-    console.log('[Content Extraction API] Starting extraction for book:', id);
+    console.log('[Content Extraction API] Triggering PDF processing for book:', id);
 
-    // Get book
-    const book = await getBookWithExtractedContent(id);
+    // Get full book details
+    const book = await getBookById(id);
 
     if (!book) {
       return NextResponse.json({ error: 'Book not found' }, { status: 404 });
@@ -50,56 +50,29 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       });
     }
 
-    // Try to queue the job first (better for scalability)
-    const queueResult = await queueBookExtraction(id, book.fileUrl, book.directFileUrl);
+    // Clear any existing content to force re-processing
+    await clearBookExtractedContent(id);
 
-    if (queueResult.queued) {
-      console.log('[Content Extraction API] Job queued successfully:', queueResult.jobId);
+    // Get author names for the processor
+    const authorNames = book.authors?.map(a => a.author?.name).filter(Boolean) || [];
 
-      return NextResponse.json({
-        message: 'Content extraction queued',
-        jobId: queueResult.jobId,
-        queued: true
-      });
-    }
+    // Notify the external PDF processor service
+    console.log('[Content Extraction API] Notifying external PDF processor service...');
 
-    // Fallback to synchronous processing if queue is not available
-    console.log('[Content Extraction API] Processing extraction synchronously...');
-
-    // Check if fileUrl exists
-    if (!book.fileUrl) {
-      return NextResponse.json(
-        { error: 'Book has no file URL to extract content from' },
-        { status: 400 }
-      )
-    }
-
-    // Extract content
-    const content = await extractBookContent({
-      fileUrl: book.fileUrl,
-      directFileUrl: book.directFileUrl,
+    await notifyPdfProcessor({
+      bookId: id,
+      pdfUrl: book.fileUrl,
+      directPdfUrl: book.directFileUrl,
+      bookName: book.name,
+      authorNames,
     });
 
-    // Save to database
-    await updateBookExtractedContent(id, {
-      extractedContent: content.text,
-      contentHash: content.hash,
-      contentPageCount: content.numPages,
-      contentWordCount: content.wordCount,
-      contentSize: content.size,
-      extractionStatus: 'completed'
-    });
-
-    console.log('[Content Extraction API] Extraction completed successfully');
-    console.log('[Content Extraction API] AI summary/questions generation handled by PDF processor service');
+    console.log('[Content Extraction API] PDF processor notification sent successfully');
 
     return NextResponse.json({
-      message: 'Content extracted successfully',
-      wordCount: content.wordCount,
-      pageCount: content.numPages,
-      size: content.size,
-      version: (book.contentVersion || 0) + 1,
-      queued: false
+      message: 'PDF processing triggered',
+      note: 'The PDF is being processed by the external service. This may take 30-60 seconds.',
+      triggered: true
     });
 
   } catch (error: any) {
@@ -108,7 +81,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     return NextResponse.json(
       {
-        error: error.message || 'Content extraction failed',
+        error: error.message || 'Failed to trigger PDF processing',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       },
       { status: 500 }
