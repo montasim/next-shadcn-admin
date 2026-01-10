@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -34,7 +34,7 @@ interface QuizData {
   }>
 }
 
-export default function QuizPage() {
+function QuizPageContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   const [quizState, setQuizState] = useState<QuizState>('setup')
@@ -158,5 +158,14 @@ export default function QuizPage() {
         </Tabs>
       </main>
     </div>
+  )
+}
+
+// Wrapper with Suspense boundary for useSearchParams
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <QuizPageContent />
+    </Suspense>
   )
 }
