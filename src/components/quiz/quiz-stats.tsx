@@ -11,7 +11,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-export function QuizStats() {
+interface QuizStatsProps {
+  showUserProfile?: boolean
+}
+
+export function QuizStats({ showUserProfile = true }: QuizStatsProps) {
   const { user } = useAuth()
   const { data, isLoading, error } = useSWR('/api/user/quiz/stats', fetcher, {
     revalidateOnFocus: false,
@@ -111,28 +115,30 @@ export function QuizStats() {
   return (
     <div className="space-y-6">
       {/* User Profile Card */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback className="text-xl">
-                {(user?.name || user?.email || 'U')?.[0]?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h3 className="text-xl font-bold">
-                {getUserDisplayName({
-                  name: user?.name,
-                  email: user?.email || '',
-                })}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {stats.totalQuizzes} quiz{stats.totalQuizzes !== 1 ? 'zes' : ''} played
-              </p>
+      {showUserProfile && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="text-xl">
+                  {(user?.name || user?.email || 'U')?.[0]?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold">
+                  {getUserDisplayName({
+                    name: user?.name,
+                    email: user?.email || '',
+                  })}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {stats.totalQuizzes} quiz{stats.totalQuizzes !== 1 ? 'zes' : ''} played
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Streak Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -182,7 +188,7 @@ export function QuizStats() {
           <CardTitle>Overall Statistics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             <div className="text-center">
               <div className="text-xl font-bold">{stats.totalQuizzes}</div>
               <p className="text-sm text-muted-foreground mt-1">Total Quizzes</p>
@@ -194,6 +200,10 @@ export function QuizStats() {
             <div className="text-center">
               <div className="text-xl font-bold">{Math.round(stats.avgAccuracy)}%</div>
               <p className="text-sm text-muted-foreground mt-1">Avg Accuracy</p>
+            </div>
+            <div className="text-center">
+              <div className="text-xl font-bold">{winRate}%</div>
+              <p className="text-sm text-muted-foreground mt-1">Win Rate</p>
             </div>
             <div className="text-center">
               <div className="text-xl font-bold">{stats.bestScore}</div>

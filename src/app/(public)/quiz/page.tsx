@@ -1,14 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Brain } from 'lucide-react'
+import { Brain, Trophy, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { QuizSetup } from '@/components/quiz/quiz-setup'
 import { QuizGame } from '@/components/quiz/quiz-game'
 import { QuizResults } from '@/components/quiz/quiz-results'
 import { QuizLeaderboard } from '@/components/quiz/quiz-leaderboard'
 import { QuizStats } from '@/components/quiz/quiz-stats'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type QuizState = 'setup' | 'playing' | 'results'
 
@@ -32,10 +35,14 @@ interface QuizData {
 }
 
 export default function QuizPage() {
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const [quizState, setQuizState] = useState<QuizState>('setup')
   const [quizConfig, setQuizConfig] = useState<QuizConfig | null>(null)
   const [quizData, setQuizData] = useState<QuizData | null>(null)
+
+  // Get active tab from URL query param
+  const activeTab = searchParams.get('tab') || 'play'
 
   const handleStartQuiz = (config: QuizConfig, data: QuizData) => {
     setQuizConfig(config)
@@ -57,55 +64,88 @@ export default function QuizPage() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto p-4 pb-24 lg:pb-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Brain className="h-8 w-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">Quiz Game</h1>
-              <p className="text-muted-foreground">
-                Test your knowledge and climb the leaderboard!
-              </p>
-            </div>
+        <div className="mb-6">
+          <div>
+            <h1 className="text-xl font-bold">Quiz Game</h1>
+            <p className="text-muted-foreground">
+              Test your knowledge and climb the leaderboard!
+            </p>
           </div>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Play Quiz Card */}
-          <Card>
-            <CardContent className="p-6">
-              {quizState === 'setup' && (
-                <QuizSetup onStartQuiz={handleStartQuiz} />
-              )}
+        {/* Tabs */}
+        <Tabs value={activeTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+            <Link href="/quiz?tab=play">
+              <TabsTrigger value="play" className="gap-2">
+                <Brain className="h-4 w-4" />
+                <span className="hidden sm:inline">Play</span>
+              </TabsTrigger>
+            </Link>
+            <Link href="/quiz?tab=leaderboard">
+              <TabsTrigger value="leaderboard" className="gap-2">
+                <Trophy className="h-4 w-4" />
+                <span className="hidden sm:inline">Leaderboard</span>
+              </TabsTrigger>
+            </Link>
+            <Link href="/quiz?tab=stats">
+              <TabsTrigger value="stats" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Stats</span>
+              </TabsTrigger>
+            </Link>
+          </TabsList>
 
-              {quizState === 'playing' && quizData && quizConfig && (
-                <QuizGame
-                  questions={quizData.questions}
-                  config={quizConfig}
-                  onComplete={handleQuizComplete}
-                />
-              )}
+          {/* Play Tab */}
+          <TabsContent value="play">
+            <Card>
+              <CardContent className="p-6">
+                {quizState === 'setup' && (
+                  <QuizSetup onStartQuiz={handleStartQuiz} />
+                )}
 
-              {quizState === 'results' && quizConfig && (
-                <QuizResults
-                  config={quizConfig}
-                  onPlayAgain={handlePlayAgain}
-                />
-              )}
-            </CardContent>
-          </Card>
+                {quizState === 'playing' && quizData && quizConfig && (
+                  <QuizGame
+                    questions={quizData.questions}
+                    config={quizConfig}
+                    onComplete={handleQuizComplete}
+                  />
+                )}
 
-          {/* Leaderboard & Stats Column */}
-          <div className="space-y-6">
-            {/* Leaderboard */}
+                {quizState === 'results' && quizConfig && (
+                  <QuizResults
+                    config={quizConfig}
+                    onPlayAgain={handlePlayAgain}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Leaderboard Tab */}
+          <TabsContent value="leaderboard">
             <QuizLeaderboard />
+          </TabsContent>
 
-            {/* My Stats */}
-            {user && <QuizStats />}
-          </div>
-        </div>
+          {/* Stats Tab */}
+          <TabsContent value="stats">
+            {user ? (
+              <QuizStats showUserProfile={false} />
+            ) : (
+              <Card>
+                <CardContent className="pt-12 pb-12">
+                  <div className="text-center">
+                    <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Sign in required</h3>
+                    <p className="text-muted-foreground">
+                      Please sign in to view your quiz statistics.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   )
