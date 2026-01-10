@@ -251,8 +251,10 @@ export async function getAuthorBooks(authorId: string) {
 
 /**
  * Get author with complete details for admin dashboard
+ * Optimized to only fetch necessary data for initial page load
  */
 export async function getAuthorWithCompleteDetails(id: string) {
+  // Only fetch author with minimal book data needed for stats calculation
   const author = await prisma.author.findUnique({
     where: { id },
     include: {
@@ -266,19 +268,13 @@ export async function getAuthorWithCompleteDetails(id: string) {
         },
       },
       books: {
-        include: {
+        select: {
           book: {
-            include: {
-              publications: {
-                include: {
-                  publication: true,
-                },
-              },
-              categories: {
-                include: {
-                  category: true,
-                },
-              },
+            select: {
+              id: true,
+              type: true,
+              pageNumber: true,
+              buyingPrice: true,
             },
           },
         },
@@ -323,7 +319,7 @@ export async function getAuthorWithCompleteDetails(id: string) {
     }),
   ])
 
-  // Calculate book stats
+  // Calculate book stats from minimal data
   const booksByType = {
     HARD_COPY: author.books.filter(ab => ab.book.type === 'HARD_COPY').length,
     EBOOK: author.books.filter(ab => ab.book.type === 'EBOOK').length,

@@ -199,10 +199,15 @@ export default function AdminAuthorDetailsPage() {
     return json
   }
 
-  // Fetch author details
+  // Fetch author details with optimized caching
   const { data: authorData, isLoading, error } = useSWR(
     `/api/admin/authors/${authorId}/details`,
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60000, // Dedupe requests within 60 seconds
+    }
   )
 
   const author = authorData?.data
@@ -376,17 +381,17 @@ export default function AdminAuthorDetailsPage() {
 
           {/* Books Tab */}
           <TabsContent value="books">
-            <BooksByAuthorTab authorId={authorId} />
+            <BooksByAuthorTab authorId={authorId} activeTab={activeTab} />
           </TabsContent>
 
           {/* Analytics Tab */}
           <TabsContent value="analytics">
-            <AnalyticsTab authorId={authorId} />
+            <AnalyticsTab authorId={authorId} activeTab={activeTab} />
           </TabsContent>
 
           {/* Readers Tab */}
           <TabsContent value="readers">
-            <ReadersTab authorId={authorId} />
+            <ReadersTab authorId={authorId} activeTab={activeTab} />
           </TabsContent>
         </Tabs>
       </div>
@@ -409,10 +414,27 @@ export default function AdminAuthorDetailsPage() {
 }
 
 // Books Tab Component
-function BooksByAuthorTab({ authorId }: { authorId: string }) {
-  const { data, isLoading } = useSWR(`/api/admin/authors/${authorId}/books`, (url) => fetch(url).then(r => r.json()))
-  const booksData = data?.data
+function BooksByAuthorTab({ authorId, activeTab }: { authorId: string; activeTab: string }) {
+  // Only fetch when this tab is active
+  const shouldFetch = activeTab === 'books'
+
+  // Initialize pagination state
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+
+  // Build SWR key with pagination parameters
+  const swrKey = shouldFetch
+    ? `/api/admin/authors/${authorId}/books?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}`
+    : null
+
+  const { data, isLoading } = useSWR(
+    swrKey,
+    (url) => fetch(url).then(r => r.json()),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  )
+  const booksData = data?.data
 
   // Skeleton loading state
   if (isLoading) {
@@ -626,9 +648,26 @@ function BooksByAuthorTab({ authorId }: { authorId: string }) {
 }
 
 // Analytics Tab Component
-function AnalyticsTab({ authorId }: { authorId: string }) {
-  const { data, isLoading: isLoadingChart } = useSWR(`/api/admin/authors/${authorId}/visits?chart=true`, (url) => fetch(url).then(r => r.json()))
-  const { data: visitsData, isLoading: isLoadingVisits } = useSWR(`/api/admin/authors/${authorId}/visits?limit=10`, (url) => fetch(url).then(r => r.json()))
+function AnalyticsTab({ authorId, activeTab }: { authorId: string; activeTab: string }) {
+  // Only fetch when this tab is active
+  const shouldFetch = activeTab === 'analytics'
+
+  const { data, isLoading: isLoadingChart } = useSWR(
+    shouldFetch ? `/api/admin/authors/${authorId}/visits?chart=true` : null,
+    (url) => fetch(url).then(r => r.json()),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  )
+  const { data: visitsData, isLoading: isLoadingVisits } = useSWR(
+    shouldFetch ? `/api/admin/authors/${authorId}/visits?limit=10` : null,
+    (url) => fetch(url).then(r => r.json()),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  )
 
   const chartData = data?.data?.chart
   const recentVisits = visitsData?.data?.visits?.visits || []
@@ -731,8 +770,18 @@ function AnalyticsTab({ authorId }: { authorId: string }) {
 }
 
 // Readers Tab Component
-function ReadersTab({ authorId }: { authorId: string }) {
-  const { data, isLoading } = useSWR(`/api/admin/authors/${authorId}/readers`, (url) => fetch(url).then(r => r.json()))
+function ReadersTab({ authorId, activeTab }: { authorId: string; activeTab: string }) {
+  // Only fetch when this tab is active
+  const shouldFetch = activeTab === 'readers'
+
+  const { data, isLoading } = useSWR(
+    shouldFetch ? `/api/admin/authors/${authorId}/readers` : null,
+    (url) => fetch(url).then(r => r.json()),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 30000,
+    }
+  )
   const readers = data?.data?.readers?.readers || []
 
   // Skeleton loading state
@@ -772,15 +821,15 @@ function ReadersTab({ authorId }: { authorId: string }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {readers.map((reader: any) => (
-            <div key={reader.user.id} className="flex items-center justify-between p-3 border rounded-lg">
+          {readers.map((reader: any, index: number) => (
+            <div key={reader.user?.id || reader.id || `reader-${index}`} className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">
                 <Avatar>
-                  <AvatarImage src={reader.user.directAvatarUrl} />
-                  <AvatarFallback>{reader.user.name?.[0] || 'U'}</AvatarFallback>
+                  <AvatarImage src={reader.user?.directAvatarUrl} />
+                  <AvatarFallback>{reader.user?.name?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">{reader.user.name || reader.user.username}</p>
+                  <p className="font-medium">{reader.user?.name || reader.user?.username || 'Unknown'}</p>
                   <p className="text-sm text-muted-foreground">
                     {reader.booksRead} book{reader.booksRead > 1 ? 's' : ''} • {reader.completedBooks} completed
                   </p>
