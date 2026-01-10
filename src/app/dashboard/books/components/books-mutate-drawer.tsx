@@ -205,7 +205,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
         buyingPrice: currentRow.buyingPrice?.toString() || '',
         sellingPrice: currentRow.sellingPrice?.toString() || '',
         numberOfCopies: currentRow.numberOfCopies?.toString() || '',
-        purchaseDate: currentRow.purchaseDate || '',
+        purchaseDate: currentRow.purchaseDate ? (typeof currentRow.purchaseDate === 'string' ? currentRow.purchaseDate : currentRow.purchaseDate.toISOString().split('T')[0]) : '',
         authorIds: currentRow.authors.map((author: any) => author.id || author.author?.id) || [],
         publicationIds: currentRow.publications.map((pub: any) => pub.id || pub.publication?.id) || [],
         categoryIds: currentRow.categories.map((cat: any) => cat.id || cat.category?.id) || [],

@@ -6,7 +6,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -47,7 +47,7 @@ interface Loan {
   book: Book
 }
 
-export default function ProfileLoansPage() {
+function ProfileLoansContent() {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -409,5 +409,30 @@ export default function ProfileLoansPage() {
         </>
       )}
     </div>
+  )
+}
+
+// Loading fallback for Suspense
+function ProfileLoansLoading() {
+  return (
+    <div className="space-y-6">
+      <LoansPageHeaderSkeleton />
+      <DashboardSummarySkeleton />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <LoansTabsHeaderSkeleton />
+        </div>
+        <LoanListSkeleton />
+      </div>
+    </div>
+  )
+}
+
+// Main page component with Suspense boundary
+export default function ProfileLoansPage() {
+  return (
+    <Suspense fallback={<ProfileLoansLoading />}>
+      <ProfileLoansContent />
+    </Suspense>
   )
 }

@@ -7,8 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SubscriptionPlan } from '@prisma/client'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
-export default function PricingPage() {
+function PricingContent() {
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('billing') || 'month'
 
@@ -80,5 +81,33 @@ export default function PricingPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen">
+        <main className="container mx-auto p-4 py-8 md:py-12">
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                <Crown className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                  Simple, Transparent Pricing
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Choose the perfect plan for your reading journey
+                </p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    }>
+      <PricingContent />
+    </Suspense>
   )
 }

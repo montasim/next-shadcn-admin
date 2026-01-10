@@ -797,11 +797,11 @@ export default function AdminBookDetailsPage() {
                 label="Last Updated:"
                 value={book.updatedAt ? new Date(book.updatedAt).toLocaleString() : 'N/A'}
               />
-              {book.entryBy && (
+              {book.entryBy && typeof book.entryBy === 'object' && (
                 <AdminMetadataItem label="Entered By:" value={
                   <div className="flex items-center gap-2 -mt-1">
                     <Avatar className="h-4 w-4">
-                      <AvatarImage src={book.entryBy.directAvatarUrl} />
+                      <AvatarImage src={book.entryBy.directAvatarUrl || undefined} />
                       <AvatarFallback className="text-[10px]">
                         {book.entryBy.name?.[0] || book.entryBy.username?.[0] || 'U'}
                       </AvatarFallback>
@@ -810,7 +810,9 @@ export default function AdminBookDetailsPage() {
                   </div>
                 } />
               )}
-              {book.series && <AdminMetadataItem label="Series:" value={book.series.name} />}
+              {book.series && book.series.length > 0 && (
+                <AdminMetadataItem label="Series:" value={book.series.length === 1 ? book.series[0].seriesName : `${book.series.length} series`} />
+              )}
             </div>
 
               {/* Quick Stats */}

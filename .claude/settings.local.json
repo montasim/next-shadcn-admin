@@ -10,7 +10,10 @@
       "Bash(npm run lint:*)",
       "Bash(pnpm lint:*)",
       "Bash(cat:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm run build:*)",
+      "Bash(tee:*)",
+      "Bash(tail:*)"
     ]
   }
 }

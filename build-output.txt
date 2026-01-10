@@ -1,0 +1,925 @@
+
+> nextjs@0.1.0 build
+> infisical run --env=prod -- next build
+
+A new release of infisical is available: 0.43.40 -> 0.43.46
+
+To update, run: scoop update infisical
+
+[90m2026-01-10T20:57:48+06:00[0m [32mINF[0m Injecting 29 Infisical secrets into your application process
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 29.1s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/156) ...
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+  Generating static pages using 15 workers (39/156) 
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Site Settings Cache] Cache miss or expired, fetching from database
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: Error: read ECONNRESET
+    at ignore-listed frames {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+  Generating static pages using 15 workers (78/156) 
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Failed to set cache: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cached in Redis
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: Error: read ECONNRESET
+    at ignore-listed frames {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+  Generating static pages using 15 workers (117/156) 
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connected successfully
+[Redis Cache] Connected successfully
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connected successfully
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: Error: read ECONNRESET
+    at ignore-listed frames {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: Error: read ECONNRESET
+    at ignore-listed frames {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: Error: read ECONNRESET
+    at ignore-listed frames {
+  errno: -4077,
+  code: 'ECONNRESET',
+  syscall: 'read'
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Site Settings Cache] Cache hit, returning cached settings
+[Redis Cache] Connected successfully
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+[Redis Cache] Connected successfully
+Failed to fetch featured books: TypeError: fetch failed
+    at async s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\src_3bff9863._.js:1:2696)
+    at async t (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\src_3bff9863._.js:1:3197) {
+  [cause]: AggregateError: 
+      at ignore-listed frames {
+    code: 'ECONNREFUSED'
+  }
+}
+[Redis Cache] Connection error: ReplyError: ERR max number of clients reached
+    at s (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:61444)
+    at b.exports.execute (E:\PERSONAL\next-shadcn-admin\.next\server\chunks\ssr\_150de34c._.js:139:64216) {
+  command: [Object]
+}
+✓ Generating static pages using 15 workers (156/156) in 7.1s
+[Redis Cache] Connected successfully
+  Finalizing page optimization ...
+
+Route (app)                                           Revalidate  Expire
+┌ ○ /                                                         5m      1y
+├ ○ /_not-found
+├ ○ /about
+├ ○ /achievements
+├ ƒ /api/admin/achievements/seed
+├ ƒ /api/admin/activities
+├ ƒ /api/admin/activities/stats
+├ ƒ /api/admin/authors/[id]/books
+├ ƒ /api/admin/authors/[id]/details
+├ ƒ /api/admin/authors/[id]/readers
+├ ƒ /api/admin/authors/[id]/visits
+├ ƒ /api/admin/book-requests
+├ ƒ /api/admin/book-requests/[id]
+├ ƒ /api/admin/books/[id]/audiobook
+├ ƒ /api/admin/books/[id]/chats
+├ ƒ /api/admin/books/[id]/content
+├ ƒ /api/admin/books/[id]/details
+├ ƒ /api/admin/books/[id]/metadata
+├ ƒ /api/admin/books/[id]/overview
+├ ƒ /api/admin/books/[id]/processing-complete
+├ ƒ /api/admin/books/[id]/processing-error
+├ ƒ /api/admin/books/[id]/questions
+├ ƒ /api/admin/books/[id]/readers
+├ ƒ /api/admin/books/[id]/summary
+├ ƒ /api/admin/books/[id]/visits
+├ ƒ /api/admin/books/cost-analytics
+├ ƒ /api/admin/books/extract-all
+├ ƒ /api/admin/categories/[id]/books
+├ ƒ /api/admin/categories/[id]/details
+├ ƒ /api/admin/categories/[id]/readers
+├ ƒ /api/admin/categories/[id]/visits
+├ ƒ /api/admin/contact-submissions
+├ ƒ /api/admin/faq
+├ ƒ /api/admin/faq/seed
+├ ƒ /api/admin/legal
+├ ƒ /api/admin/legal/seed
+├ ƒ /api/admin/marketplace/analytics
+├ ƒ /api/admin/marketplace/conversations
+├ ƒ /api/admin/marketplace/messages
+├ ƒ /api/admin/marketplace/posts
+├ ƒ /api/admin/marketplace/posts/[id]
+├ ƒ /api/admin/marketplace/reviews
+├ ƒ /api/admin/moods/seed
+├ ƒ /api/admin/pdf-processing
+├ ƒ /api/admin/pdf-processing/retry
+├ ƒ /api/admin/pricing
+├ ƒ /api/admin/pricing/seed
+├ ƒ /api/admin/publications/[id]/books
+├ ƒ /api/admin/publications/[id]/details
+├ ƒ /api/admin/publications/[id]/readers
+├ ƒ /api/admin/publications/[id]/visits
+├ ƒ /api/admin/seed-moods
+├ ƒ /api/admin/series
+├ ƒ /api/admin/series/[id]
+├ ƒ /api/admin/series/[id]/books
+├ ƒ /api/admin/series/[id]/details
+├ ƒ /api/admin/series/[id]/readers
+├ ƒ /api/admin/series/[id]/visits
+├ ƒ /api/admin/site/settings
+├ ƒ /api/admin/support-tickets
+├ ƒ /api/admin/support-tickets/[id]
+├ ƒ /api/admin/support-tickets/[id]/respond
+├ ƒ /api/auth/admin/invite
+├ ƒ /api/auth/check-email
+├ ƒ /api/auth/cleanup
+├ ƒ /api/auth/invite/resend
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/me
+├ ƒ /api/auth/password-reset/confirm
+├ ƒ /api/auth/password-reset/send-otp
+├ ƒ /api/auth/password-reset/verify-otp
+├ ƒ /api/auth/refresh
+├ ƒ /api/auth/register/create
+├ ƒ /api/auth/register/send-otp
+├ ƒ /api/auth/register/verify-otp
+├ ƒ /api/authors/[id]/view
+├ ƒ /api/books/[id]
+├ ƒ /api/books/[id]/chat
+├ ƒ /api/books/[id]/chat/stream
+├ ƒ /api/books/[id]/extract-content
+├ ƒ /api/books/[id]/lend
+├ ƒ /api/books/[id]/loans
+├ ƒ /api/books/[id]/qr-code
+├ ƒ /api/books/[id]/regenerate-audiobook
+├ ƒ /api/books/[id]/regenerate-embeddings
+├ ƒ /api/books/[id]/regenerate-overview
+├ ƒ /api/books/[id]/regenerate-questions
+├ ƒ /api/books/[id]/regenerate-summary
+├ ƒ /api/books/[id]/reviews
+├ ƒ /api/books/[id]/suggested-questions
+├ ƒ /api/books/[id]/suggested-questions/[questionId]
+├ ƒ /api/books/[id]/view
+├ ƒ /api/books/cost-analytics
+├ ƒ /api/categories
+├ ƒ /api/categories/[id]/view
+├ ƒ /api/cron/loans/remind
+├ ƒ /api/faq
+├ ƒ /api/legal
+├ ƒ /api/legal/[type]
+├ ƒ /api/loans
+├ ƒ /api/loans/[id]
+├ ƒ /api/loans/[id]/return
+├ ƒ /api/loans/email/borrowed
+├ ƒ /api/loans/email/returned
+├ ƒ /api/marketplace/posts
+├ ƒ /api/marketplace/posts/[id]
+├ ƒ /api/pricing
+├ ƒ /api/proxy/image
+├ ƒ /api/proxy/pdf
+├ ƒ /api/public/authors
+├ ƒ /api/public/authors/[id]
+├ ƒ /api/public/books
+├ ƒ /api/public/books/[id]
+├ ƒ /api/public/books/by-mood
+├ ƒ /api/public/books/featured
+├ ƒ /api/public/categories
+├ ƒ /api/public/categories/[id]
+├ ƒ /api/public/contact
+├ ƒ /api/public/faqs
+├ ƒ /api/public/faqs/[id]/feedback
+├ ƒ /api/public/moods
+├ ƒ /api/public/notices
+├ ƒ /api/public/publications
+├ ƒ /api/public/publications/[id]
+├ ƒ /api/public/search
+├ ƒ /api/public/series
+├ ƒ /api/public/series/[id]
+├ ƒ /api/public/site/settings
+├ ƒ /api/public/users/[id]
+├ ƒ /api/public/users/[id]/bookshelves
+├ ƒ /api/public/users/[id]/reading-activity
+├ ƒ /api/publications/[id]/view
+├ ƒ /api/reading-progress
+├ ƒ /api/stripe/billing
+├ ƒ /api/stripe/create-checkout-session
+├ ƒ /api/stripe/subscription
+├ ƒ /api/stripe/subscription/cancel
+├ ƒ /api/stripe/webhook
+├ ƒ /api/user/[userId]/achievements
+├ ƒ /api/user/achievements
+├ ƒ /api/user/activities
+├ ƒ /api/user/book-requests
+├ ƒ /api/user/book-requests/[id]
+├ ƒ /api/user/continue-reading
+├ ƒ /api/user/conversations
+├ ƒ /api/user/conversations/[id]
+├ ƒ /api/user/conversations/[id]/messages
+├ ƒ /api/user/conversations/[id]/read
+├ ƒ /api/user/conversations/[id]/review
+├ ƒ /api/user/notifications
+├ ƒ /api/user/notifications/[id]
+├ ƒ /api/user/offers
+├ ƒ /api/user/offers/[id]
+├ ƒ /api/user/offers/[id]/respond
+├ ƒ /api/user/parse-voice-book-request
+├ ƒ /api/user/progress
+├ ƒ /api/user/progress-history/[bookId]
+├ ƒ /api/user/quiz/attempt
+├ ƒ /api/user/quiz/categories
+├ ƒ /api/user/quiz/leaderboard
+├ ƒ /api/user/quiz/questions
+├ ƒ /api/user/quiz/stats
+├ ƒ /api/user/recent-visits
+├ ƒ /api/user/sell-posts
+├ ƒ /api/user/sell-posts/[id]
+├ ƒ /api/user/sell-posts/[id]/offers
+├ ƒ /api/user/support-tickets
+├ ƒ /api/users/search
+├ ○ /auth/sign-in
+├ ○ /auth/sign-in-2
+├ ○ /authors
+├ ƒ /authors/[id]
+├ ○ /books
+├ ƒ /books/[id]
+├ ○ /categories
+├ ƒ /categories/[id]
+├ ○ /contact
+├ ○ /dashboard
+├ ○ /dashboard/activities
+├ ○ /dashboard/activity
+├ ○ /dashboard/admin/contact-submissions
+├ ○ /dashboard/admin/content
+├ ○ /dashboard/admin/legal/about
+├ ○ /dashboard/admin/legal/privacy
+├ ○ /dashboard/admin/legal/terms
+├ ○ /dashboard/authors
+├ ƒ /dashboard/authors/[id]
+├ ○ /dashboard/book-requests
+├ ○ /dashboard/books
+├ ƒ /dashboard/books/[id]
+├ ○ /dashboard/books/cost-analytics
+├ ○ /dashboard/campaigns
+├ ○ /dashboard/categories
+├ ƒ /dashboard/categories/[id]
+├ ○ /dashboard/help-center/faqs
+├ ○ /dashboard/legal
+├ ○ /dashboard/loans
+├ ○ /dashboard/marketplace
+├ ○ /dashboard/marketplace/analytics
+├ ○ /dashboard/marketplace/conversations
+├ ○ /dashboard/marketplace/messages
+├ ○ /dashboard/marketplace/posts
+├ ○ /dashboard/marketplace/reviews
+├ ○ /dashboard/moods
+├ ○ /dashboard/notices
+├ ○ /dashboard/pdf-processing
+├ ○ /dashboard/publications
+├ ƒ /dashboard/publications/[id]
+├ ○ /dashboard/seed-moods
+├ ○ /dashboard/series
+├ ƒ /dashboard/series/[id]
+├ ƒ /dashboard/settings
+├ ƒ /dashboard/settings/account
+├ ƒ /dashboard/settings/appearance
+├ ○ /dashboard/settings/billing
+├ ƒ /dashboard/settings/display
+├ ƒ /dashboard/settings/notifications
+├ ○ /dashboard/settings/subscription
+├ ○ /dashboard/site-settings
+├ ○ /dashboard/support-tickets
+├ ○ /dashboard/users
+├ ○ /forgot-password
+├ ○ /help-center
+├ ○ /library
+├ ○ /library/bookshelves
+├ ○ /library/my-uploads
+├ ○ /marketplace
+├ ƒ /marketplace/[id]
+├ ○ /marketplace/my-posts
+├ ○ /messages
+├ ƒ /messages/[id]
+├ ○ /notices
+├ ○ /offers/received
+├ ○ /offers/sent
+├ ○ /otp
+├ ○ /physical-library
+├ ƒ /physical-library/[id]
+├ ○ /pricing
+├ ○ /privacy
+├ ○ /profile/loans
+├ ○ /publications
+├ ƒ /publications/[id]
+├ ƒ /qr/[id]
+├ ○ /quiz
+├ ○ /quiz/leaderboard
+├ ○ /series
+├ ƒ /series/[id]
+├ ○ /sign-up
+├ ○ /terms
+├ ƒ /user-reader/[id]
+└ ƒ /users/[id]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
