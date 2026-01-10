@@ -690,131 +690,72 @@ function AnalyticsTab({ publicationId }: { publicationId: string }) {
 function ReadersTab({ publicationId }: { publicationId: string }) {
   const { data, isLoading } = useSWR(`/api/admin/publications/${publicationId}/readers`, (url) => fetch(url).then(r => r.json()))
   const readers = data?.data?.readers?.readers || []
-  const stats = data?.data?.stats
 
   // Skeleton loading state
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {/* Stats Skeleton */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-5 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Readers List Skeleton */}
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-24" />
-            <Skeleton className="h-4 w-40" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-48" />
-                      <Skeleton className="h-3 w-36" />
-                    </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-4 w-40" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                    <Skeleton className="h-3 w-36" />
                   </div>
-                  <Skeleton className="h-4 w-12" />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <Skeleton className="h-4 w-12" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {/* Reader Stats */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total Readers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalReaders}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.completedReaders}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Active</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeReaders}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Avg Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(stats.avgProgress)}%</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Readers List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Readers</CardTitle>
-          <CardDescription>{readers.length} readers across all books</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {readers.map((reader: any) => (
-              <div key={reader.user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src={reader.user.directAvatarUrl} />
-                    <AvatarFallback>{reader.user.name?.[0] || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{reader.user.name || reader.user.username}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {reader.booksRead} book{reader.booksRead > 1 ? 's' : ''} • {reader.completedBooks} completed
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Last read: {new Date(reader.lastReadAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">{reader.avgProgress}%</p>
-                  <p className="text-xs text-muted-foreground">avg progress</p>
+    <Card>
+      <CardHeader>
+        <CardTitle>All Readers</CardTitle>
+        <CardDescription>{readers.length} readers across all books</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {readers.map((reader: any) => (
+            <div key={reader.user.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={reader.user.directAvatarUrl} />
+                  <AvatarFallback>{reader.user.name?.[0] || 'U'}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{reader.user.name || reader.user.username}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {reader.booksRead} book{reader.booksRead > 1 ? 's' : ''} • {reader.completedBooks} completed
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Last read: {new Date(reader.lastReadAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
-            ))}
-            {readers.length === 0 && (
-              <p className="text-center text-muted-foreground">No readers yet</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              <div className="text-right">
+                <p className="font-medium">{reader.avgProgress}%</p>
+                <p className="text-xs text-muted-foreground">avg progress</p>
+              </div>
+            </div>
+          ))}
+          {readers.length === 0 && (
+            <p className="text-center text-muted-foreground">No readers yet</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
