@@ -484,8 +484,8 @@ function BooksByAuthorTab({ authorId }: { authorId: string }) {
       accessorKey: 'pageNumber',
       header: 'Pages',
       cell: ({ row }) => {
-        const pages = row.getValue('pageNumber')
-        return <span className="text-sm">{pages || 'N/A'}</span>
+        const pages = row.original.pageNumber
+        return <span className="text-sm">{pages ? pages.toString() : 'N/A'}</span>
       },
     },
     {
@@ -588,8 +588,8 @@ function BooksByAuthorTab({ authorId }: { authorId: string }) {
       accessorKey: 'avgProgress',
       header: 'Avg Progress',
       cell: ({ row }) => {
-        const progress = row.getValue('avgProgress')
-        return <span className="text-sm font-medium">{progress ? Math.round(progress) + '%' : 'N/A'}</span>
+        const progress = row.original.avgProgress
+        return <span className="text-sm font-medium">{progress && typeof progress === 'number' ? Math.round(progress) + '%' : 'N/A'}</span>
       },
     },
     {
