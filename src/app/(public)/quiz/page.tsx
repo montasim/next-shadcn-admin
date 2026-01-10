@@ -62,7 +62,7 @@ export default function QuizPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto p-4 pb-24 lg:pb-8">
+      <main className="container mx-auto p-4 pb-6">
         {/* Header */}
         <div className="mb-6">
           <div>
@@ -75,51 +75,61 @@ export default function QuizPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto">
+          <TabsList className='w-ful md:w-auto'>
             <Link href="/quiz?tab=play">
               <TabsTrigger value="play" className="gap-2">
-                <Brain className="h-4 w-4" />
-                <span className="hidden sm:inline">Play</span>
+                  <Brain className="h-4 w-4" />
+                  <span>Play</span>
               </TabsTrigger>
             </Link>
             <Link href="/quiz?tab=leaderboard">
               <TabsTrigger value="leaderboard" className="gap-2">
                 <Trophy className="h-4 w-4" />
-                <span className="hidden sm:inline">Leaderboard</span>
+                <span>Leaderboard</span>
               </TabsTrigger>
             </Link>
             <Link href="/quiz?tab=stats">
               <TabsTrigger value="stats" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Stats</span>
+                <span>Stats</span>
               </TabsTrigger>
             </Link>
           </TabsList>
 
           {/* Play Tab */}
           <TabsContent value="play">
-            <Card>
-              <CardContent className="p-6">
-                {quizState === 'setup' && (
-                  <QuizSetup onStartQuiz={handleStartQuiz} />
-                )}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Quiz Card */}
+              <Card className="lg:col-span-2">
+                <CardContent className="p-6">
+                  {quizState === 'setup' && (
+                    <QuizSetup onStartQuiz={handleStartQuiz} />
+                  )}
 
-                {quizState === 'playing' && quizData && quizConfig && (
-                  <QuizGame
-                    questions={quizData.questions}
-                    config={quizConfig}
-                    onComplete={handleQuizComplete}
-                  />
-                )}
+                  {quizState === 'playing' && quizData && quizConfig && (
+                    <QuizGame
+                      questions={quizData.questions}
+                      config={quizConfig}
+                      onComplete={handleQuizComplete}
+                    />
+                  )}
 
-                {quizState === 'results' && quizConfig && (
-                  <QuizResults
-                    config={quizConfig}
-                    onPlayAgain={handlePlayAgain}
-                  />
-                )}
-              </CardContent>
-            </Card>
+                  {quizState === 'results' && quizConfig && (
+                    <QuizResults
+                      config={quizConfig}
+                      onPlayAgain={handlePlayAgain}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Overall Statistics Side Panel */}
+              {user && (
+                <div className="lg:col-span-1">
+                  <QuizStats showUserProfile={false} />
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* Leaderboard Tab */}
