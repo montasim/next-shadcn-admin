@@ -1,7 +1,7 @@
 /**
- * Admin Series Books API Route
+ * Admin Series Readers API Route
  *
- * Get books in a series with stats
+ * Get readers for all books in a series
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -14,9 +14,9 @@ interface RouteContext {
 }
 
 /**
- * GET /api/admin/series/[id]/books
+ * GET /api/admin/series/[id]/readers
  *
- * Get all books in a series with stats
+ * Get all readers across all books in a series
  */
 export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
@@ -45,16 +45,18 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
 
-    const booksData = await seriesRepository.getSeriesBooksWithStats(id, { page, limit })
+    const readersData = await seriesRepository.getSeriesReaders(id, { page, limit })
 
     return NextResponse.json({
       success: true,
-      data: booksData,
+      data: {
+        readers: readersData,
+      },
     })
   } catch (error) {
-    console.error('Get series books error:', error)
+    console.error('Get series readers error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch series books' },
+      { error: 'Failed to fetch series readers' },
       { status: 500 }
     )
   }

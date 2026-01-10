@@ -5,8 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getSeriesById, getSeriesBooks } from '@/lib/lms/repositories/series.repository'
-import { getSeriesAnalytics } from '@/lib/lms/repositories/series-view.repository'
+import { getSeriesWithCompleteDetails } from '@/lib/lms/repositories/series.repository'
 import { getSession } from '@/lib/auth/session'
 import { findUserById } from '@/lib/user/repositories/user.repository'
 
@@ -42,8 +41,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Get series with complete details
-    const series = await getSeriesById(seriesId)
+    // Get series with complete details including analytics
+    const series = await getSeriesWithCompleteDetails(seriesId)
 
     if (!series) {
       return NextResponse.json(
@@ -52,18 +51,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       )
     }
 
-    // Get books in series
-    const books = await getSeriesBooks(seriesId)
-
-    // Get series analytics
-    const analytics = await getSeriesAnalytics(seriesId)
-
     return NextResponse.json({
-      data: {
-        ...series,
-        books,
-        analytics,
-      },
+      data: series,
     })
   } catch (error) {
     console.error('Error fetching admin series details:', error)
