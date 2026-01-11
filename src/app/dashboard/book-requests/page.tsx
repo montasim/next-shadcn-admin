@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { DashboardSummarySkeleton, FilterSectionSkeleton, BookRequestListSkeleton } from '@/components/data-table/table-skeleton'
+import { EmptyStateCard } from '@/components/ui/empty-state-card'
 
 interface BookRequest {
   id: string
@@ -250,17 +251,15 @@ function BookRequestsPageContent() {
       {loading ? (
         <BookRequestListSkeleton />
       ) : filteredRequests.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No requests found</h3>
-            <p className="text-muted-foreground">
-              {statusFilter === 'all'
-                ? 'No book requests have been submitted yet.'
-                : `No ${statusFilter.toLowerCase()} requests found.`}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyStateCard
+          icon={FileText}
+          title="No requests found"
+          description={
+            statusFilter === 'all'
+              ? 'No book requests have been submitted yet.'
+              : `No ${statusFilter.toLowerCase()} requests found.`
+          }
+        />
       ) : (
         <div className="border rounded-lg divide-y">
           {filteredRequests.map((request) => {

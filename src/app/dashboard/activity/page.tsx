@@ -9,6 +9,7 @@ import { ActivityAction, ActivityResourceType } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
 import { Calendar, Filter, Clock, CheckCircle, XCircle, BookOpen, MessageSquare, ShoppingCart, User, Settings, TrendingUp, Activity } from 'lucide-react'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
+import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { cn } from '@/lib/utils'
 import { DashboardSummary, DashboardSummaryGrid } from '@/components/dashboard/dashboard-summary'
 import { DashboardSummarySkeleton } from '@/components/dashboard/dashboard-summary-skeleton'
@@ -255,19 +256,11 @@ export default function UserActivityPage() {
             <ActivityTimelineGroupSkeleton count={2} />
           </>
         ) : activities.length === 0 ? (
-          <Card className='p-12 text-center'>
-            <div className='flex flex-col items-center gap-4'>
-              <div className='p-4 rounded-full bg-muted'>
-                <Calendar className='h-8 w-8 text-muted-foreground' />
-              </div>
-              <div>
-                <h3 className='text-lg font-semibold'>No activities found</h3>
-                <p className='text-sm text-muted-foreground'>
-                  Your activity timeline will show here once you start using the platform.
-                </p>
-              </div>
-            </div>
-          </Card>
+          <EmptyStateCard
+            icon={Calendar}
+            title='No activities found'
+            description='Your activity timeline will show here once you start using the platform.'
+          />
         ) : (
           <div className='space-y-6'>
             {Object.entries(groupedActivities).map(([dateLabel, dayActivities]) => (
