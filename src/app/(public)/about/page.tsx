@@ -45,7 +45,7 @@ export default async function AboutPage() {
                 <Info className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
                   About Us
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -79,7 +79,7 @@ export default async function AboutPage() {
           <Card>
             <CardContent className="pt-6">
               {legalContent?.content ? (
-                <div className="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-base prose-p:leading-relaxed prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:text-primary/80 prose-strong:text-foreground prose-code:text-sm prose-code:rounded prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-background prose-li:marker:text-muted-foreground">
+                <div className="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-p:text-base prose-p:leading-relaxed prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:text-primary/80 prose-strong:text-foreground prose-code:text-sm prose-code:rounded prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-background prose-li:marker:text-muted-foreground">
                   <MDXViewer content={legalContent.content} />
                 </div>
               ) : (

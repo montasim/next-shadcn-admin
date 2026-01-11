@@ -213,7 +213,7 @@ export default function AdminMarketplaceConversationsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Conversations</h1>
+                    <h1 className="text-xl font-bold">Conversations</h1>
                     <p className="text-muted-foreground">
                         Monitor all buyer-seller conversations
                     </p>

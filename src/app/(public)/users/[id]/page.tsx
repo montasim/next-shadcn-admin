@@ -140,7 +140,7 @@ export default function UserProfilePage() {
                   src={user.avatar ? getProxiedImageUrl(user.avatar) || user.avatar : undefined}
                   alt={displayName}
                 />
-                <AvatarFallback className="text-xl sm:text-2xl bg-primary/10">
+                <AvatarFallback className="text-xl bg-primary/10">
                   {user.username
                     ? user.username[0].toUpperCase()
                     : user.firstName?.[0]?.toUpperCase() || 'U'}
@@ -149,7 +149,7 @@ export default function UserProfilePage() {
 
               {/* User Info + Stats - Side by side */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold mb-1">{displayName}</h1>
+                <h1 className="text-xl font-bold mb-1">{displayName}</h1>
                 {user.bio && (
                   <p className="text-sm sm:text-base text-muted-foreground mb-2 line-clamp-2">{user.bio}</p>
                 )}

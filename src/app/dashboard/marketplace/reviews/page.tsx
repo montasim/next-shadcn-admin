@@ -165,7 +165,7 @@ export default function AdminMarketplaceReviewsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Seller Reviews</h1>
+                    <h1 className="text-xl font-bold">Seller Reviews</h1>
                     <p className="text-muted-foreground">
                         Moderate all seller reviews
                     </p>

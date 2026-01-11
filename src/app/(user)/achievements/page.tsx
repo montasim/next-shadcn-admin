@@ -225,7 +225,7 @@ export default function AchievementsPage() {
       ) : (
         <div className='flex-none mb-2 flex flex-col md:flex-row md:justify-between gap-4'>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+            <h1 className="text-xl font-bold flex items-center gap-2">
               <Trophy className="h-6 w-6" />
               Achievements
             </h1>

@@ -36,7 +36,7 @@ export default function QuizLeaderboardPage() {
         {/* CTA */}
         <div className="mt-8 text-center">
           <div className="bg-muted/50 rounded-lg p-8 border-2">
-            <h2 className="text-2xl font-bold mb-3">Think You Can Do Better?</h2>
+            <h2 className="text-xl font-bold mb-3">Think You Can Do Better?</h2>
             <p className="text-muted-foreground mb-6">
               Join the competition and see your name on the leaderboard!
             </p>

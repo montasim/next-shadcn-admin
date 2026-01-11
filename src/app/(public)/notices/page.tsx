@@ -120,7 +120,7 @@ function NoticesPageContent() {
         <div className="mb-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold flex items-center gap-2">
+              <h1 className="text-xl font-bold flex items-center gap-2">
                 <Megaphone className="h-6 w-6 text-primary" />
                 Notices & Announcements
               </h1>

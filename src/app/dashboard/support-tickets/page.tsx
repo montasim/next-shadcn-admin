@@ -239,7 +239,7 @@ export default function AdminSupportTicketsPage() {
     <>
       <HeaderContainer>
         <div>
-          <h1 className='text-2xl font-bold flex items-center gap-2'>
+          <h1 className='text-xl font-bold flex items-center gap-2'>
             <LifeBuoy className='h-6 w-6' />
             Support Tickets
           </h1>

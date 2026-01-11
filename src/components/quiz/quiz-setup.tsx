@@ -96,7 +96,7 @@ export function QuizSetup({ onStartQuiz }: QuizSetupProps) {
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Ready to Play?</h2>
+        <h2 className="text-xl font-bold mb-2">Ready to Play?</h2>
         <p className="text-muted-foreground">
           Choose your preferences and start the quiz!
         </p>

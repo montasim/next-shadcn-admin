@@ -655,7 +655,7 @@ function SellPostDetailContent() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-2xl font-bold">{formatPrice(post.price)}</div>
+                                        <div className="text-xl font-bold">{formatPrice(post.price)}</div>
                                         {isSold && (
                                             <div className="text-sm text-muted-foreground">
                                                 Sold {post.soldAt ? formatDistanceToNow(new Date(post.soldAt)) : 'recently'}

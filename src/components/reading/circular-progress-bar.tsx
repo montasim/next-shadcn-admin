@@ -81,7 +81,7 @@ export function CircularProgressBar({
               </svg>
               {/* Center text */}
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold">{displayProgress}%</span>
+                <span className="text-xl font-bold">{displayProgress}%</span>
                 <span className="text-xs text-muted-foreground">
                   {isCompleted ? 'Completed' : 'In Progress'}
                 </span>

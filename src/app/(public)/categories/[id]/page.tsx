@@ -252,7 +252,7 @@ export default function CategoryDetailsPage() {
             {/* Books in Category */}
             {category.books && category.books.length > 0 && (
               <div>
-                <h2 className="text-2xl font-bold mb-6">Books in {category.name}</h2>
+                <h2 className="text-xl font-bold mb-6">Books in {category.name}</h2>
                 <BookGrid
                   books={category.books}
                   viewMode="grid"

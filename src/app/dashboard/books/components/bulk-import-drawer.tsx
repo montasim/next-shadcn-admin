@@ -287,27 +287,27 @@ export function BulkImportDrawer({ open, onOpenChange, onSuccess }: BulkImportDr
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="border rounded-lg p-4">
-                      <div className="text-2xl font-bold">{result.imported}</div>
+                      <div className="text-xl font-bold">{result.imported}</div>
                       <div className="text-sm text-muted-foreground">Books Imported</div>
                     </div>
                     <div className="border rounded-lg p-4">
-                      <div className="text-2xl font-bold">{result.failed}</div>
+                      <div className="text-xl font-bold">{result.failed}</div>
                       <div className="text-sm text-muted-foreground">Books Failed</div>
                     </div>
                     <div className="border rounded-lg p-4">
-                      <div className="text-2xl font-bold">{result.created.authors}</div>
+                      <div className="text-xl font-bold">{result.created.authors}</div>
                       <div className="text-sm text-muted-foreground">New Authors</div>
                     </div>
                     <div className="border rounded-lg p-4">
-                      <div className="text-2xl font-bold">{result.created.publications}</div>
+                      <div className="text-xl font-bold">{result.created.publications}</div>
                       <div className="text-sm text-muted-foreground">New Publications</div>
                     </div>
                     <div className="border rounded-lg p-4">
-                      <div className="text-2xl font-bold">{result.created.categories}</div>
+                      <div className="text-xl font-bold">{result.created.categories}</div>
                       <div className="text-sm text-muted-foreground">New Categories</div>
                     </div>
                     <div className="border rounded-lg p-4">
-                      <div className="text-2xl font-bold">{result.created.series}</div>
+                      <div className="text-xl font-bold">{result.created.series}</div>
                       <div className="text-sm text-muted-foreground">New Series</div>
                     </div>
                   </div>

@@ -18,7 +18,7 @@ export function MoodsHeader({ onSeedMoods }: MoodsHeaderProps) {
   return (
     <>
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Mood List</h2>
+        <h2 className="text-xl font-bold tracking-tight">Mood List</h2>
         <p className="text-muted-foreground">
           Manage moods and their category mappings for book recommendations
         </p>

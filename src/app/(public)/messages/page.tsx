@@ -113,7 +113,7 @@ function MessagesInboxPageContent() {
                         <MessageSquare className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1">
-                        <h1 className="text-2xl font-bold">Messages</h1>
+                        <h1 className="text-xl font-bold">Messages</h1>
                         <p className="text-muted-foreground text-sm">
                             Communicate with buyers and sellers
                         </p>

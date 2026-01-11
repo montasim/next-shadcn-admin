@@ -23,7 +23,7 @@ function PricingContent() {
               <Crown className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
                 Simple, Transparent Pricing
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -95,7 +95,7 @@ export default function PricingPage() {
                 <Crown className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
                   Simple, Transparent Pricing
                 </h1>
                 <p className="text-sm text-muted-foreground">

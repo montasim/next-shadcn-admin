@@ -487,7 +487,7 @@ export default function PhysicalLibraryBookPage() {
           <div className="lg:col-span-2">
             <div className="mb-8">
               {/* Title */}
-              <h1 className="text-xl lg:text-2xl font-bold mb-4">{book.name}</h1>
+              <h1 className="text-xl font-bold mb-4">{book.name}</h1>
 
               {/* Authors */}
               {book.authors && book.authors.length > 0 && (

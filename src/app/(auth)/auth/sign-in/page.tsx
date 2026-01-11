@@ -17,7 +17,7 @@ export default function SignIn() {
     return (
         <Card className='m-4 p-4'>
             <div className='flex flex-col space-y-2 text-left mb-4'>
-                <h1 className='text-2xl font-semibold tracking-tight'>
+                <h1 className='text-xl font-semibold tracking-tight'>
                     {authStep === 'email' ? 'Login' : 'Welcome back'}
                 </h1>
                 <p className='text-sm text-muted-foreground'>

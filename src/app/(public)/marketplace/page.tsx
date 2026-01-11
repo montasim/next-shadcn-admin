@@ -198,7 +198,7 @@ function MarketplacePageContent({
                             <ShoppingBag className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">Book Marketplace</h1>
+                            <h1 className="text-xl font-bold">Book Marketplace</h1>
                             <p className="text-muted-foreground text-sm">
                                 {pagination?.totalItems || 0} listings available
                             </p>

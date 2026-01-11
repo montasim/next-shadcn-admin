@@ -106,7 +106,7 @@ export default function AdminMarketplacePage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">Marketplace Overview</h1>
+                    <h1 className="text-xl font-bold">Marketplace Overview</h1>
                     <p className="text-muted-foreground">
                         Monitor and manage the peer-to-peer book marketplace
                     </p>
@@ -188,7 +188,7 @@ export default function AdminMarketplacePage() {
                                 <ShoppingBag className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{analytics.overview.activePosts}</div>
+                                <div className="text-xl font-bold">{analytics.overview.activePosts}</div>
                                 <p className="text-xs text-muted-foreground">
                                     {analytics.overview.totalPosts} total listings
                                 </p>
@@ -203,7 +203,7 @@ export default function AdminMarketplacePage() {
                                 <Package className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{analytics.overview.soldPosts}</div>
+                                <div className="text-xl font-bold">{analytics.overview.soldPosts}</div>
                                 <p className="text-xs text-muted-foreground">
                                     {analytics.activitySummary.sales.thisWeek > 0 && (
                                         <span className="text-green-600">
@@ -222,7 +222,7 @@ export default function AdminMarketplacePage() {
                                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">
+                                <div className="text-xl font-bold">
                                     ${analytics.overview.totalValue.toLocaleString()}
                                 </div>
                                 <p className="text-xs text-muted-foreground">
@@ -239,7 +239,7 @@ export default function AdminMarketplacePage() {
                                 <Star className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">
+                                <div className="text-xl font-bold">
                                     {analytics.overview.averageRating.toFixed(1)}
                                     <span className="text-sm text-muted-foreground">/5</span>
                                 </div>
@@ -303,7 +303,7 @@ export default function AdminMarketplacePage() {
                                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{analytics.overview.totalOffers}</div>
+                                <div className="text-xl font-bold">{analytics.overview.totalOffers}</div>
                                 <p className="text-xs text-muted-foreground">
                                     {analytics.overview.acceptedOffers} accepted (
                                     {analytics.overview.totalOffers > 0
@@ -322,7 +322,7 @@ export default function AdminMarketplacePage() {
                                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{analytics.overview.totalConversations}</div>
+                                <div className="text-xl font-bold">{analytics.overview.totalConversations}</div>
                                 <p className="text-xs text-muted-foreground">
                                     Between buyers and sellers
                                 </p>
@@ -337,7 +337,7 @@ export default function AdminMarketplacePage() {
                                 <Users className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">
+                                <div className="text-xl font-bold">
                                     {(analytics.activitySummary as any).users?.activeThisWeek ?? '-'}
                                 </div>
                                 <p className="text-xs text-muted-foreground">

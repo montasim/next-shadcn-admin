@@ -327,7 +327,7 @@ export default async function HomePage() {
                       <div className="inline-flex items-center justify-center p-3 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white mb-4">
                         <Zap className="h-8 w-8" />
                       </div>
-                      <h3 className="text-2xl font-bold">Join For Free Today</h3>
+                      <h3 className="text-xl font-bold">Join For Free Today</h3>
                       <p className="text-muted-foreground">
                         Get instant access to thousands of books and start your reading adventure
                       </p>

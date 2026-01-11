@@ -44,7 +44,7 @@ export const columns: ColumnDef<Mood>[] = [
     accessorKey: 'emoji',
     header: '',
     cell: ({ row }) => (
-      <div className="text-2xl">{row.getValue('emoji')}</div>
+      <div className="text-xl">{row.getValue('emoji')}</div>
     ),
     meta: {
       className: cn(

@@ -50,7 +50,7 @@ export function FAQSection() {
   if (loading) {
     return (
       <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
+        <h2 className="text-xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
         <div className="text-center text-muted-foreground">Loading...</div>
       </div>
     )
@@ -62,7 +62,7 @@ export function FAQSection() {
 
   return (
     <div className="mt-16">
-      <h2 className="text-2xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
+      <h2 className="text-xl font-bold mb-8 text-center">Frequently Asked Questions</h2>
       <div className="grid gap-6 md:grid-cols-2">
         {faqs.map((faq, index) => (
           <Collapsible

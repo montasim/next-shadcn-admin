@@ -16,7 +16,7 @@ export default async function BillingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Billing</h1>
+        <h1 className="text-xl font-bold tracking-tight">Billing</h1>
         <p className="text-muted-foreground">
           View your billing information and invoice history
         </p>

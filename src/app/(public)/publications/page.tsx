@@ -88,7 +88,7 @@ export default function PublicationsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Failed to load publications</h2>
+          <h2 className="text-xl font-bold mb-4">Failed to load publications</h2>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>

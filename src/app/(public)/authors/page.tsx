@@ -89,7 +89,7 @@ export default function AuthorsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Failed to load authors</h2>
+          <h2 className="text-xl font-bold mb-4">Failed to load authors</h2>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>

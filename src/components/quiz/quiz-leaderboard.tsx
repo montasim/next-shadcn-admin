@@ -20,11 +20,11 @@ export function QuizLeaderboard() {
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <div className="text-2xl">🥇</div>
+        return <div className="text-xl">🥇</div>
       case 2:
-        return <div className="text-2xl">🥈</div>
+        return <div className="text-xl">🥈</div>
       case 3:
-        return <div className="text-2xl">🥉</div>
+        return <div className="text-xl">🥉</div>
       default:
         return <div className="w-8 h-8 flex items-center justify-center text-sm font-bold text-muted-foreground">
           #{rank}

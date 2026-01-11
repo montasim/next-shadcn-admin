@@ -577,7 +577,7 @@ function BooksPageContent({
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="text-2xl">{selectedMood.emoji}</span>
+                                <span className="text-xl">{selectedMood.emoji}</span>
                                 <div>
                                   <h3 className="font-semibold">{selectedMood.name} Mood</h3>
                                   <p className="text-sm text-muted-foreground">

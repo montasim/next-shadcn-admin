@@ -225,7 +225,7 @@ export default function PdfProcessingPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold">PDF Processing Jobs</h1>
+                    <h1 className="text-xl font-bold">PDF Processing Jobs</h1>
                     <p className="text-muted-foreground">
                         Monitor and retry PDF processing jobs
                     </p>

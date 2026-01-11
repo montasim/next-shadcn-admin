@@ -252,7 +252,7 @@ export default function AuthorDetailsPage() {
             {/* Books by Author */}
             {author.books && author.books.length > 0 && (
               <div>
-                <h2 className="text-2xl font-bold mb-6">Books by {author.name}</h2>
+                <h2 className="text-xl font-bold mb-6">Books by {author.name}</h2>
                 <BookGrid
                   books={author.books}
                   viewMode="grid"

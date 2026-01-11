@@ -268,7 +268,7 @@ function HelpCenterPageContent() {
                 <LifeBuoy className='h-6 w-6 text-primary' />
               </div>
               <div>
-                <h1 className='text-2xl font-bold tracking-tight sm:text-3xl'>Help Center</h1>
+                <h1 className='text-xl font-bold tracking-tight sm:text-3xl'>Help Center</h1>
                 <p className='text-sm text-muted-foreground mt-1'>
                   {user ? 'Find answers or get support from our team' : 'Browse our FAQs or sign in to get personalized support'}
                 </p>

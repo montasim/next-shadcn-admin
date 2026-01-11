@@ -360,7 +360,7 @@ export function CampaignsMutateDrawer({
 
               <div className="rounded-lg border p-4 bg-muted/50">
                 <p className="text-sm font-medium">Estimated Recipients</p>
-                <p className="text-2xl font-bold">{recipientCount}</p>
+                <p className="text-xl font-bold">{recipientCount}</p>
                 <p className="text-xs text-muted-foreground">
                   Users with marketing emails enabled
                 </p>

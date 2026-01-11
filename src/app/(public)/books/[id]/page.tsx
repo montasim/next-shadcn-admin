@@ -584,7 +584,7 @@ export default function BookDetailsPage() {
             <div className="mb-8">
               {/* Title and Chat Button Row */}
               <div className='flex items-center justify-between mb-3'>
-                <h1 className="text-xl lg:text-2xl font-bold">{book.name}</h1>
+                <h1 className="text-xl font-bold">{book.name}</h1>
 
                 {/* Chat with AI Button - Desktop */}
                 {book.canAccess && (

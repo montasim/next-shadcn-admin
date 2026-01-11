@@ -21,7 +21,7 @@ export function CostSummaryCards({ summary, activity }: CostSummaryCardsProps) {
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl font-bold">
             ${summary.totalSpent.toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -39,7 +39,7 @@ export function CostSummaryCards({ summary, activity }: CostSummaryCardsProps) {
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl font-bold">
             ${summary.averageHardCopyCost.toFixed(2)}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -57,7 +57,7 @@ export function CostSummaryCards({ summary, activity }: CostSummaryCardsProps) {
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
+          <div className="text-xl font-bold">
             ${activity.spentThisMonth.toLocaleString()}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -75,7 +75,7 @@ export function CostSummaryCards({ summary, activity }: CostSummaryCardsProps) {
           <BookOpen className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{summary.hardCopyCount}</div>
+          <div className="text-xl font-bold">{summary.hardCopyCount}</div>
           <p className="text-xs text-muted-foreground">
             Collection value: ${summary.hardCopySpent.toLocaleString()}
           </p>

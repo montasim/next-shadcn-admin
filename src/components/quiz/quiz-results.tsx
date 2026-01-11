@@ -102,7 +102,7 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{accuracy}%</div>
+            <div className="text-xl font-bold">{accuracy}%</div>
             <Progress value={accuracy} className="mt-2 h-2" />
           </CardContent>
         </Card>
@@ -115,7 +115,7 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold">
               {lastAttempt.score}/{lastAttempt.totalQuestions}
             </div>
             <p className="text-xs text-muted-foreground mt-2">
@@ -133,7 +133,7 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lastAttempt.quizStreak}</div>
+            <div className="text-xl font-bold">{lastAttempt.quizStreak}</div>
             <p className="text-xs text-muted-foreground mt-2">
               Best: {stats?.bestQuizStreak || 0}
             </p>
@@ -148,7 +148,7 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lastAttempt.combinedScore}</div>
+            <div className="text-xl font-bold">{lastAttempt.combinedScore}</div>
             <p className="text-xs text-muted-foreground mt-2">
               Best: {stats?.bestScore || 0}
             </p>
@@ -189,19 +189,19 @@ export function QuizResults({ config, onPlayAgain }: QuizResultsProps) {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">{stats.totalQuizzes}</p>
+                <p className="text-xl font-bold">{stats.totalQuizzes}</p>
                 <p className="text-xs text-muted-foreground">Total Quizzes</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.totalWins}</p>
+                <p className="text-xl font-bold">{stats.totalWins}</p>
                 <p className="text-xs text-muted-foreground">Total Wins</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">{Math.round(stats.avgAccuracy)}%</p>
+                <p className="text-xl font-bold">{Math.round(stats.avgAccuracy)}%</p>
                 <p className="text-xs text-muted-foreground">Avg Accuracy</p>
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.bestDailyStreak}</p>
+                <p className="text-xl font-bold">{stats.bestDailyStreak}</p>
                 <p className="text-xs text-muted-foreground">Best Daily Streak</p>
               </div>
             </div>

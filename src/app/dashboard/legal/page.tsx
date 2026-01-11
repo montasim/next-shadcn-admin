@@ -143,9 +143,9 @@ function LegalContentPageWrapper() {
 
   const formatMarkdown = (text: string) => {
     return text
-      .replace(/^### (.*$)/gim, '<h3 class="text-xl font-semibold mt-6 mb-3">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-bold mt-6 mb-4">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-6 mb-4">$1</h1>')
+      .replace(/^### (.*$)/gim, '<h3 class="text-md font-semibold mt-6 mb-3">$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold mt-6 mb-4">$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold mt-6 mb-4">$1</h1>')
       .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
       .replace(/\*(.*)\*/gim, '<em>$1</em>')
       .replace(/\n\n/gim, '</p><p class="mt-4">')
@@ -223,7 +223,7 @@ function LegalContentPageWrapper() {
                       {Icon && <Icon className="h-5 w-5 text-primary" />}
                     </div>
                     <div>
-                      <h1 className="text-2xl font-bold tracking-tight">{currentType?.label}</h1>
+                      <h1 className="text-xl font-bold tracking-tight">{currentType?.label}</h1>
                       {content ? (
                         <p className="text-sm text-muted-foreground mt-1">
                           Last updated: {new Date(content.updatedAt).toLocaleDateString()}
@@ -326,7 +326,7 @@ function LegalContentPageWrapper() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <div className="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-base prose-p:leading-relaxed prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:text-primary/80 prose-strong:text-foreground prose-code:text-sm prose-code:rounded prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-background max-h-[600px] overflow-y-auto">
+                          <div className="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-20 prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-p:text-base prose-p:leading-relaxed prose-a:text-primary prose-a:underline-offset-4 hover:prose-a:text-primary/80 prose-strong:text-foreground prose-code:text-sm prose-code:rounded prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-pre:bg-background max-h-[600px] overflow-y-auto">
                             <div dangerouslySetInnerHTML={{ __html: formatMarkdown(content.content) }} />
                           </div>
                         </CardContent>

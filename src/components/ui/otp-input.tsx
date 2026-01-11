@@ -296,7 +296,7 @@ export function OtpForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+        <h2 className="text-xl font-bold tracking-tight">{title}</h2>
         <p className="text-sm text-muted-foreground">
           {description}
           {email && (

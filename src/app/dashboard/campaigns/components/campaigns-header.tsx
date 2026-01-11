@@ -10,7 +10,7 @@ export function CampaignsHeader({ campaignCount }: { campaignCount: number }) {
   return (
     <div className="flex items-center justify-between w-full">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Campaigns</h1>
+        <h1 className="text-xl font-bold tracking-tight">Campaigns</h1>
         <p className="text-muted-foreground">
           {campaignCount} {campaignCount === 1 ? 'campaign' : 'campaigns'}
         </p>

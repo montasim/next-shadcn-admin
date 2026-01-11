@@ -182,7 +182,7 @@ function SiteSettingsPageWrapper() {
               {currentTab && <currentTab.icon className="h-5 w-5 text-primary" />}
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">{currentTab?.label}</h1>
+              <h1 className="text-xl font-bold tracking-tight">{currentTab?.label}</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Manage your site {currentTab?.label.toLowerCase()} settings
               </p>

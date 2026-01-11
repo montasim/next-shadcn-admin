@@ -159,7 +159,7 @@ export default function AdminActivitiesPage() {
     <>
       <HeaderContainer>
         <div>
-          <h1 className='text-2xl font-bold'>Activity Logs</h1>
+          <h1 className='text-xl font-bold'>Activity Logs</h1>
           <p className='text-sm text-muted-foreground'>
             Track all user and system activities across the platform
           </p>
@@ -187,17 +187,17 @@ export default function AdminActivitiesPage() {
           <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
             <div className='rounded-lg border bg-card p-4'>
               <div className='text-sm text-muted-foreground'>Total Activities</div>
-              <div className='text-2xl font-bold'>{pagination.total.toLocaleString()}</div>
+              <div className='text-xl font-bold'>{pagination.total.toLocaleString()}</div>
             </div>
             <div className='rounded-lg border bg-card p-4'>
               <div className='text-sm text-muted-foreground'>Current Page</div>
-              <div className='text-2xl font-bold'>
+              <div className='text-xl font-bold'>
                 {pagination.currentPage} / {pagination.totalPages}
               </div>
             </div>
             <div className='rounded-lg border bg-card p-4'>
               <div className='text-sm text-muted-foreground'>Success Rate</div>
-              <div className='text-2xl font-bold'>
+              <div className='text-xl font-bold'>
                 {activities.length > 0
                   ? Math.round((activities.filter(a => a.success).length / activities.length) * 100)
                   : 0}%
@@ -205,7 +205,7 @@ export default function AdminActivitiesPage() {
             </div>
             <div className='rounded-lg border bg-card p-4'>
               <div className='text-sm text-muted-foreground'>Filtered Results</div>
-              <div className='text-2xl font-bold'>{activities.length}</div>
+              <div className='text-xl font-bold'>{activities.length}</div>
             </div>
           </div>
         )}

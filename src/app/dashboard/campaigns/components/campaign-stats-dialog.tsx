@@ -87,7 +87,7 @@ export function CampaignStatsDialog() {
                   <CardTitle className="text-sm font-medium text-muted-foreground">Recipients</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.recipientCount}</div>
+                  <div className="text-xl font-bold">{stats.recipientCount}</div>
                 </CardContent>
               </Card>
 
@@ -99,7 +99,7 @@ export function CampaignStatsDialog() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.sentCount}</div>
+                  <div className="text-xl font-bold">{stats.sentCount}</div>
                 </CardContent>
               </Card>
 
@@ -111,7 +111,7 @@ export function CampaignStatsDialog() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.deliveredCount}</div>
+                  <div className="text-xl font-bold">{stats.deliveredCount}</div>
                 </CardContent>
               </Card>
 
@@ -120,7 +120,7 @@ export function CampaignStatsDialog() {
                   <CardTitle className="text-sm font-medium text-red-600">Failed</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.failedCount}</div>
+                  <div className="text-xl font-bold">{stats.failedCount}</div>
                 </CardContent>
               </Card>
             </div>

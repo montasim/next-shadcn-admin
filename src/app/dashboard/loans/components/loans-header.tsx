@@ -14,7 +14,7 @@ export function LoansHeader({ onLendBook }: LoansHeaderProps) {
   return (
     <>
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Loans Management</h2>
+        <h2 className="text-xl font-bold tracking-tight">Loans Management</h2>
         <p className="text-muted-foreground">
           Manage book loans and track borrowed books
         </p>

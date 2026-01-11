@@ -14,7 +14,7 @@ export function NoticesHeader() {
   return (
     <>
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Notices</h2>
+        <h2 className="text-xl font-bold tracking-tight">Notices</h2>
         <p className="text-muted-foreground">
           Manage announcements and notices displayed to users
         </p>

@@ -122,7 +122,7 @@ export function BookshelfContent({ bookshelfId, onAddBooks }: BookshelfContentPr
       {/* Bookshelf Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">{bookshelf.name}</h2>
+          <h2 className="text-xl font-bold">{bookshelf.name}</h2>
           {bookshelf.description && (
             <p className="text-muted-foreground mt-1">{bookshelf.description}</p>
           )}

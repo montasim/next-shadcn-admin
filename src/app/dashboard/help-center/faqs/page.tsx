@@ -198,7 +198,7 @@ function HelpCenterFAQsPageWrapper() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Help Center FAQs</h1>
+          <h1 className="text-xl font-bold tracking-tight">Help Center FAQs</h1>
           <p className="text-muted-foreground mt-1">
             Manage frequently asked questions for the help center
           </p>
@@ -227,7 +227,7 @@ function HelpCenterFAQsPageWrapper() {
             <GripVertical className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{faqs.length}</div>
+            <div className="text-xl font-bold">{faqs.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -236,7 +236,7 @@ function HelpCenterFAQsPageWrapper() {
             <Badge variant="default" className="h-4 w-4 rounded-full p-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{activeCount}</div>
+            <div className="text-xl font-bold text-green-600">{activeCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -245,7 +245,7 @@ function HelpCenterFAQsPageWrapper() {
             <Badge variant="secondary" className="h-4 w-4 rounded-full p-0" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-muted-foreground">{inactiveCount}</div>
+            <div className="text-xl font-bold text-muted-foreground">{inactiveCount}</div>
           </CardContent>
         </Card>
       </div>

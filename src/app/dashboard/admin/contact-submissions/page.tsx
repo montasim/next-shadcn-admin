@@ -169,7 +169,7 @@ export default function ContactSubmissionsPage() {
               <Mail className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Contact Submissions</h1>
+              <h1 className="text-xl font-bold tracking-tight">Contact Submissions</h1>
               <p className="text-muted-foreground">
                 Manage messages from the contact form
               </p>
@@ -242,7 +242,7 @@ export default function ContactSubmissionsPage() {
             <Mail className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Contact Submissions</h1>
+            <h1 className="text-xl font-bold tracking-tight">Contact Submissions</h1>
             <p className="text-muted-foreground">
               Manage messages from the contact form
             </p>
@@ -258,7 +258,7 @@ export default function ContactSubmissionsPage() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.NEW}</div>
+            <div className="text-xl font-bold">{stats.NEW}</div>
             <p className="text-xs text-muted-foreground">Unread messages</p>
           </CardContent>
         </Card>
@@ -269,7 +269,7 @@ export default function ContactSubmissionsPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.READ}</div>
+            <div className="text-xl font-bold">{stats.READ}</div>
             <p className="text-xs text-muted-foreground">Viewed messages</p>
           </CardContent>
         </Card>
@@ -280,7 +280,7 @@ export default function ContactSubmissionsPage() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.RESPONDED}</div>
+            <div className="text-xl font-bold">{stats.RESPONDED}</div>
             <p className="text-xs text-muted-foreground">Completed replies</p>
           </CardContent>
         </Card>
@@ -291,7 +291,7 @@ export default function ContactSubmissionsPage() {
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pagination.total}</div>
+            <div className="text-xl font-bold">{pagination.total}</div>
             <p className="text-xs text-muted-foreground">All submissions</p>
           </CardContent>
         </Card>

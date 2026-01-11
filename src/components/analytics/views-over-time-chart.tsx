@@ -132,19 +132,19 @@ export function ViewsOverTimeChart({
         {/* Stats summary */}
         <div className="grid grid-cols-4 gap-4">
           <div className="text-center">
-            <p className="text-2xl font-bold">{totalViews.toLocaleString()}</p>
+            <p className="text-xl font-bold">{totalViews.toLocaleString()}</p>
             <p className="text-xs text-muted-foreground">Total Views</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold">{averageViewsPerDay}</p>
+            <p className="text-xl font-bold">{averageViewsPerDay}</p>
             <p className="text-xs text-muted-foreground">Avg/Day</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold">{maxViews}</p>
+            <p className="text-xl font-bold">{maxViews}</p>
             <p className="text-xs text-muted-foreground">Peak</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold">{filteredData.length}</p>
+            <p className="text-xl font-bold">{filteredData.length}</p>
             <p className="text-xs text-muted-foreground">Days</p>
           </div>
         </div>

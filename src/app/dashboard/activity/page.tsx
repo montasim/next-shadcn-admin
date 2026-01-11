@@ -155,7 +155,7 @@ export default function UserActivityPage() {
               <ActivityPageHeaderSkeleton />
             ) : (
               <div>
-                  <h1 className='text-2xl font-bold'>Your Activity Timeline</h1>
+                  <h1 className='text-xl font-bold'>Your Activity Timeline</h1>
                   <p className='text-sm text-muted-foreground'>
                       Track your recent activities on the platform
                   </p>
