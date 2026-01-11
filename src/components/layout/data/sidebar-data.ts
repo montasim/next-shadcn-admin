@@ -1,50 +1,40 @@
 import {
-  IconBook,
-  IconBrowserCheck,
-  IconFileText,
-  IconHelp,
-  IconMessages,
-  IconNotification,
-  IconPalette,
-  IconTool,
-  IconUserCog,
-  IconTag,
   IconBuildingStore,
-  IconUser,
-  IconBooks,
-  IconBookmark,
-  IconBuildingFactory,
-  IconMoodSmile,
-  IconStar,
-  IconHistory,
-  IconTrophy,
-  IconHandStop,
-  IconLibrary,
-  IconReceipt,
-  IconCrown,
-  IconLayoutDashboard,
-  IconSettings,
-  IconShield,
-  IconUsers,
-  IconMail,
-  IconDeviceDesktop,
+  IconTag,
 } from '@tabler/icons-react'
 import {
   AudioWaveform,
-  BookOpen as BookOpenIcon,
+  BookOpen,
   Brain,
   GalleryVerticalEnd,
-  HandCoins,
+  LayoutDashboard,
+  Activity,
   Layers,
-  Megaphone,
   PenTool,
+  ShoppingBag,
+  HandCoins,
   TrendingUp,
+  Construction,
+  FileText,
+  Megaphone,
   Bell,
   BarChart3,
   MessageSquare,
-  ShoppingBag,
-  Inbox,
-  Activity,
+  Star,
+  FileQuestion,
+  Smile,
+  Users,
+  Trophy,
+  Library,
+  ShieldBan,
+  HelpCircle,
+  Mail,
+  Clock,
+  Settings,
+  Wrench,
+  Receipt,
+  Palette,
+  Monitor,
 } from 'lucide-react'
 import { type SidebarData } from '../types'
 import { ROUTES } from '@/lib/routes/client-routes'
@@ -58,7 +48,7 @@ export const sidebarData: SidebarData = {
   teams: [
     {
       name: 'My Library',
-      logo: BookOpenIcon,
+      logo: BookOpen,
       plan: 'Digital Library',
     },
     {
@@ -82,13 +72,13 @@ export const sidebarData: SidebarData = {
         {
           title: 'Dashboard',
           url: ROUTES.dashboard.href,
-          icon: IconLayoutDashboard,
+          icon: LayoutDashboard,
         },
-          {
-              title: 'Activities',
-              url: ROUTES.dashboardActivities.href,
-              icon: IconHistory,
-          },
+        {
+          title: 'Activities',
+          url: ROUTES.dashboardActivities.href,
+          icon: Activity,
+        },
       ],
     },
 
@@ -101,7 +91,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Books',
           url: ROUTES.dashboardBooks.href,
-          icon: IconBook,
+          icon: BookOpen,
         },
         {
           title: 'Series',
@@ -131,7 +121,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Book Requests',
           url: ROUTES.dashboardBookRequests.href,
-          icon: IconBooks,
+          icon: FileQuestion,
         },
         {
           title: 'Loans',
@@ -155,17 +145,17 @@ export const sidebarData: SidebarData = {
         {
           title: 'Site Settings',
           url: ROUTES.siteSettings.href,
-          icon: IconBuildingFactory,
+          icon: Construction,
         },
         {
           title: 'Pricing Content',
           url: ROUTES.dashboardAdminContent.href,
-          icon: IconCrown,
+          icon: FileText,
         },
         {
           title: 'Legal Content',
           url: ROUTES.dashboardLegal.href,
-          icon: IconFileText,
+          icon: FileText,
         },
         {
           title: 'Notices',
@@ -175,7 +165,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Help Center FAQs',
           url: ROUTES.dashboardHelpCenterFaqs.href,
-          icon: IconHelp,
+          icon: HelpCircle,
         },
       ],
     },
@@ -189,22 +179,22 @@ export const sidebarData: SidebarData = {
         {
           title: 'Users',
           url: ROUTES.dashboardUsers.href,
-          icon: IconUsers,
+          icon: Users,
         },
         {
           title: 'Campaigns',
           url: ROUTES.dashboardCampaigns.href,
-          icon: IconMail,
+          icon: Megaphone,
         },
         {
           title: 'Support Tickets',
           url: ROUTES.dashboardSupportTickets.href,
-          icon: IconMessages,
+          icon: MessageSquare,
         },
         {
           title: 'Contact Submissions',
           url: ROUTES.dashboardAdminContactSubmissions.href,
-          icon: MessageSquare,
+          icon: Mail,
         },
       ],
     },
@@ -218,7 +208,7 @@ export const sidebarData: SidebarData = {
         {
           title: 'Overview',
           url: ROUTES.dashboardMarketplace.href,
-          icon: IconLayoutDashboard,
+          icon: LayoutDashboard,
         },
         {
           title: 'My Posts',
@@ -233,12 +223,12 @@ export const sidebarData: SidebarData = {
         {
           title: 'Reviews',
           url: ROUTES.dashboardMarketplaceReviews.href,
-          icon: IconStar,
+          icon: Star,
         },
         {
           title: 'Analytics',
           url: ROUTES.marketplaceAnalytics.href,
-          icon: IconBrowserCheck,
+          icon: BarChart3,
         },
       ],
     },
@@ -252,22 +242,36 @@ export const sidebarData: SidebarData = {
         {
           title: 'My Library',
           url: ROUTES.libraryMyUploads.href,
-          icon: IconLibrary,
+          icon: Library,
         },
         {
           title: 'My Borrowed Books',
           url: ROUTES.profileLoans.href,
-          icon: IconHandStop,
+          icon: ShieldBan,
         },
         {
           title: 'Achievements',
           url: ROUTES.achievements.href,
-          icon: IconTrophy,
+          icon: Trophy,
         },
         {
           title: 'Moods',
           url: ROUTES.moods.href,
-          icon: IconMoodSmile,
+          icon: Smile,
+        },
+      ],
+    },
+
+    // ============================================================================
+    // GAMES
+    // ============================================================================
+    {
+      title: 'Games',
+      items: [
+        {
+          title: 'Quiz',
+          url: ROUTES.quiz.href,
+          icon: Brain,
         },
       ],
     },
@@ -280,50 +284,50 @@ export const sidebarData: SidebarData = {
       items: [
         {
           title: 'Settings',
-          icon: IconSettings,
+          icon: Settings,
           items: [
             {
               title: 'General',
               url: ROUTES.settings.href,
-              icon: IconUserCog,
+              icon: Settings,
             },
             {
               title: 'Account',
               url: ROUTES.settingsAccount.href,
-              icon: IconTool,
+              icon: Wrench,
             },
             {
               title: 'Subscription',
               url: ROUTES.settingsSubscription.href,
-              icon: IconCrown,
+              icon: Trophy,
             },
             {
               title: 'Billing',
               url: ROUTES.settingsBilling.href,
-              icon: IconReceipt,
+              icon: Receipt,
             },
             {
               title: 'Appearance',
               url: ROUTES.settingsAppearance.href,
-              icon: IconPalette,
+              icon: Palette,
             },
             {
               title: 'Notifications',
               url: ROUTES.settingsNotifications.href,
-              icon: IconNotification,
+              icon: Bell,
             },
             {
               title: 'Display',
               url: ROUTES.settingsDisplay.href,
-              icon: IconDeviceDesktop,
+              icon: Monitor,
             },
           ],
         },
-          {
-              title: 'My Activity',
-              url: ROUTES.dashboardActivity.href,
-              icon: Activity,
-          },
+        {
+          title: 'My Activity',
+          url: ROUTES.dashboardActivity.href,
+          icon: Clock,
+        },
       ],
     },
   ],
