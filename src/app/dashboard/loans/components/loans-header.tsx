@@ -1,8 +1,8 @@
 'use client'
 
 import { Plus, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useLoansContext } from '../context/loans-context'
+import { DashboardPageHeaderActions, ActionConfig } from '@/components/dashboard/dashboard-page-header-actions'
 
 interface LoansHeaderActionsProps {
   onLendBook?: () => void
@@ -11,18 +11,19 @@ interface LoansHeaderActionsProps {
 export function LoansHeaderActions({ onLendBook }: LoansHeaderActionsProps) {
   const { refreshLoans } = useLoansContext()
 
-  return (
-    <>
-      {onLendBook && (
-        <Button onClick={onLendBook} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          <span className='hidden sm:inline'>Lend Book</span>
-        </Button>
-      )}
-      <Button onClick={refreshLoans} variant="outline" size="sm">
-        <RefreshCw className="h-4 w-4 mr-2" />
-        <span className='hidden sm:inline'>Refresh</span>
-      </Button>
-    </>
-  )
+  const actions: ActionConfig[] = [
+    ...(onLendBook ? [{
+      label: 'Lend Book',
+      icon: Plus,
+      onClick: onLendBook,
+    }] : []),
+    {
+      label: 'Refresh',
+      icon: RefreshCw,
+      onClick: refreshLoans,
+      variant: 'outline' as const,
+    },
+  ]
+
+  return <DashboardPageHeaderActions actions={actions} />
 }

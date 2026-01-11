@@ -1,8 +1,8 @@
 'use client'
 
 import { Plus, RefreshCw, Sprout } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useMoodsContext } from '../context/moods-context'
+import { DashboardPageHeaderActions, ActionConfig } from '@/components/dashboard/dashboard-page-header-actions'
 
 interface MoodsHeaderActionsProps {
   onSeedMoods?: () => void
@@ -11,26 +11,25 @@ interface MoodsHeaderActionsProps {
 export function MoodsHeaderActions({ onSeedMoods }: MoodsHeaderActionsProps) {
   const { setOpen, refreshMoods } = useMoodsContext()
 
-  const handleAddMood = () => {
-    setOpen('create')
-  }
+  const actions: ActionConfig[] = [
+    {
+      label: 'Add Mood',
+      icon: Plus,
+      onClick: () => setOpen('create'),
+    },
+    {
+      label: 'Refresh',
+      icon: RefreshCw,
+      onClick: refreshMoods,
+      variant: 'outline' as const,
+    },
+    ...(onSeedMoods ? [{
+      label: 'Seed Moods',
+      icon: Sprout,
+      onClick: onSeedMoods,
+      variant: 'outline' as const,
+    }] : []),
+  ]
 
-  return (
-    <>
-      <Button onClick={handleAddMood} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        <span className='hidden sm:inline'>Add Mood</span>
-      </Button>
-      <Button onClick={refreshMoods} variant="outline" size="sm">
-        <RefreshCw className="h-4 w-4 mr-2" />
-        <span className='hidden sm:inline'>Refresh</span>
-      </Button>
-      {onSeedMoods && (
-        <Button onClick={onSeedMoods} variant="outline" size="sm">
-          <Sprout className="h-4 w-4 mr-2" />
-          <span className='hidden sm:inline'>Seed Moods</span>
-        </Button>
-      )}
-    </>
-  )
+  return <DashboardPageHeaderActions actions={actions} />
 }

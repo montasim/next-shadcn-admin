@@ -1,26 +1,25 @@
 'use client'
 
 import { Plus, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useNoticesContext } from '../context/notices-context'
+import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 
 export function NoticesHeaderActions() {
   const { setOpen, refreshNotices } = useNoticesContext()
 
-  const handleAddNotice = () => {
-    setOpen('create')
-  }
+  const actions = [
+    {
+      label: 'Add Notice',
+      icon: Plus,
+      onClick: () => setOpen('create'),
+    },
+    {
+      label: 'Refresh',
+      icon: RefreshCw,
+      onClick: refreshNotices,
+      variant: 'outline' as const,
+    },
+  ]
 
-  return (
-    <>
-      <Button onClick={handleAddNotice} size="sm">
-        <Plus className="h-4 w-4 mr-2" />
-        <span className='hidden sm:inline'>Add Notice</span>
-      </Button>
-      <Button onClick={refreshNotices} variant="outline" size="sm">
-        <RefreshCw className="h-4 w-4 mr-2" />
-        <span className='hidden sm:inline'>Refresh</span>
-      </Button>
-    </>
-  )
+  return <DashboardPageHeaderActions actions={actions} />
 }

@@ -26,6 +26,7 @@ export function PageHeader({ icon: Icon, title, description, actions, className 
           )}
         </div>
       </div>
+
       {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
     </div>
   )

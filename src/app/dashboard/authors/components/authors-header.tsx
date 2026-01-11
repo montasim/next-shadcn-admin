@@ -1,9 +1,9 @@
 'use client'
 
 import { RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { IconUserPlus } from "@tabler/icons-react";
 import { useAuthorsContext } from '../context/authors-context'
+import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 
 export function AuthorsHeaderActions() {
   const { setOpen, refreshAuthors } = useAuthorsContext()
@@ -12,16 +12,19 @@ export function AuthorsHeaderActions() {
     setOpen('create')
   }
 
-  return (
-    <div className='space-x-4'>
-      <Button onClick={handleAddAuthor} size="sm">
-        <IconUserPlus className="h-4 w-4" />
-        <span className='hidden sm:inline'>Add Author</span>
-      </Button>
-      <Button onClick={refreshAuthors} variant='outline' size="sm">
-        <RefreshCw className="h-4 w-4" />
-        <span className='hidden sm:inline'>Refresh</span>
-      </Button>
-    </div>
-  )
+  const actions = [
+    {
+      label: 'Add Author',
+      icon: IconUserPlus,
+      onClick: handleAddAuthor,
+    },
+    {
+      label: 'Refresh',
+      icon: RefreshCw,
+      onClick: refreshAuthors,
+      variant: 'outline' as const,
+    },
+  ]
+
+  return <DashboardPageHeaderActions actions={actions} />
 }
