@@ -874,9 +874,11 @@ export default function BookDetailsPage() {
                             // Toggle the section
                             newSections['translators-section'] = shouldExpand
                             // Toggle all individual translator descriptions
-                            book.translators?.forEach((translator) => {
-                              newSections[`translator-${translator.id}`] = shouldExpand
-                            })
+                            if (book.translators) {
+                              book.translators.forEach((translator) => {
+                                newSections[`translator-${translator.id}`] = shouldExpand
+                              })
+                            }
                             return newSections
                           })
                         }}
@@ -939,9 +941,11 @@ export default function BookDetailsPage() {
                             // Toggle the section
                             newSections['publications-section'] = shouldExpand
                             // Toggle all individual publication descriptions
-                            book.publications?.forEach((publication) => {
-                              newSections[`publication-${publication.id}`] = shouldExpand
-                            })
+                            if (book.publications) {
+                              book.publications.forEach((publication) => {
+                                newSections[`publication-${publication.id}`] = shouldExpand
+                              })
+                            }
                             return newSections
                           })
                         }}

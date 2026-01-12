@@ -40,6 +40,15 @@ export async function getBooks(options: {
         }
       },
       {
+        translators: {
+          some: {
+            translator: {
+              name: { contains: search, mode: 'insensitive' as const }
+            }
+          }
+        }
+      },
+      {
         publications: {
           some: {
             publication: {
@@ -71,6 +80,11 @@ export async function getBooks(options: {
         authors: {
           include: {
             author: true,
+          },
+        },
+        translators: {
+          include: {
+            translator: true,
           },
         },
         publications: {
@@ -127,6 +141,11 @@ export async function getBookById(id: string) {
       authors: {
         include: {
           author: true,
+        },
+      },
+      translators: {
+        include: {
+          translator: true,
         },
       },
       publications: {
@@ -194,6 +213,7 @@ export async function createBook(data: {
   featured?: boolean
   entryById: string
   authorIds: string[]
+  translatorIds?: string[]
   publicationIds: string[]
   categoryIds: string[]
   series?: Array<{ seriesId: string; order: number }>
@@ -278,6 +298,16 @@ export async function createBook(data: {
       })),
     })
 
+    // Create translator relationships (only if translators are provided)
+    if (data.translatorIds && data.translatorIds.length > 0) {
+      await tx.bookTranslator.createMany({
+        data: data.translatorIds.map(translatorId => ({
+          bookId: book.id,
+          translatorId,
+        })),
+      })
+    }
+
     // Create publication relationships
     await tx.bookPublication.createMany({
       data: data.publicationIds.map(publicationId => ({
@@ -321,6 +351,17 @@ export async function createBook(data: {
         authors: {
           include: {
             author: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+        translators: {
+          include: {
+            translator: {
               select: {
                 id: true,
                 name: true,
@@ -398,6 +439,7 @@ export async function updateBook(
     requiresPremium?: boolean | null
     featured?: boolean | null
     authorIds?: string[]
+    translatorIds?: string[]
     publicationIds?: string[]
     categoryIds?: string[]
     series?: Array<{ seriesId: string; order: number }>
@@ -510,6 +552,24 @@ export async function updateBook(
         })
       }
 
+      // Update translator relationships if provided
+      if (data.translatorIds) {
+        // Delete existing relationships
+        await tx.bookTranslator.deleteMany({
+          where: { bookId: id },
+        })
+
+        // Create new relationships (only if translators are provided)
+        if (data.translatorIds.length > 0) {
+          await tx.bookTranslator.createMany({
+            data: data.translatorIds.map(translatorId => ({
+              bookId: id,
+              translatorId,
+            })),
+          })
+        }
+      }
+
       // Update publication relationships if provided
       if (data.publicationIds) {
         if (!data.publicationIds || data.publicationIds.length === 0) {
@@ -616,6 +676,11 @@ export async function deleteBook(id: string) {
       where: { bookId: id },
     })
 
+    // Delete translator relationships
+    await tx.bookTranslator.deleteMany({
+      where: { bookId: id },
+    })
+
     // Delete publication relationships
     await tx.bookPublication.deleteMany({
       where: { bookId: id },
@@ -657,6 +722,19 @@ export async function deleteBook(id: string) {
  */
 export async function getAllAuthors() {
   return prisma.author.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: { name: 'asc' },
+  })
+}
+
+/**
+ * Get all translators for selection
+ */
+export async function getAllTranslators() {
+  return prisma.translator.findMany({
     select: {
       id: true,
       name: true,
@@ -989,6 +1067,11 @@ export async function getBookWithCompleteDetails(id: string) {
       authors: {
         include: {
           author: true,
+        },
+      },
+      translators: {
+        include: {
+          translator: true,
         },
       },
       publications: {

@@ -748,7 +748,7 @@ export default function PhysicalLibraryBookPage() {
                             // Toggle the section
                             newSections['publication-section'] = shouldExpand
                             // Toggle the publication description
-                            if (book.publication) {
+                            if (book.publication?.id) {
                               newSections[`publication-${book.publication.id}`] = shouldExpand
                             }
                             return newSections
