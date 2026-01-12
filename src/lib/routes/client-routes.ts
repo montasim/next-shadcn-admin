@@ -207,6 +207,13 @@ export const ROUTES = {
     icon: Users,
   },
 
+  // Translators
+  translators: {
+    label: 'Translators',
+    href: '/translators',
+    icon: Users,
+  },
+
   // Series
   series: {
     label: 'Series',
@@ -402,6 +409,11 @@ export const ROUTES = {
   dashboardAuthors: {
     label: 'Authors',
     href: '/dashboard/authors',
+    icon: User,
+  },
+  dashboardTranslators: {
+    label: 'Translators',
+    href: '/dashboard/translators',
     icon: User,
   },
   dashboardPublications: {

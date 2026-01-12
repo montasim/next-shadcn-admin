@@ -107,7 +107,7 @@ export default function LandingPage() {
         <div className="container mx-auto max-w-4xl">
           <Card className="border-2 bg-gradient-to-r from-primary/10 to-primary/5">
             <CardContent className="p-12">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="flex-shrink-0">
                   <div className="p-6 bg-primary rounded-2xl">
                     <Brain className="h-16 w-16 text-primary-foreground" />
@@ -154,7 +154,7 @@ export default function LandingPage() {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-xl font-bold mb-4">Ready to Get Started?</h2>
-          <p className="text-muted-foreground text-lg mb-8">
+          <p className="text-muted-foreground text-lg mb-6">
             Join our community of readers and quiz enthusiasts today.
           </p>
           <div className="flex items-center justify-center gap-4">

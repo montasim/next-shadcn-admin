@@ -20,7 +20,7 @@ export function UserProfileSkeleton() {
         </div>
 
         {/* Profile Header Card Skeleton */}
-        <Card className="mb-8">
+        <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-row gap-4 items-center sm:gap-6">
               {/* Avatar Skeleton */}
@@ -66,7 +66,7 @@ export function UserProfileSkeleton() {
           <Skeleton className="h-7 w-48 mb-4" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Daily Reading Chart Skeleton */}
           <Card>
             <CardContent className="p-6">

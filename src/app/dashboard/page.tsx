@@ -404,7 +404,7 @@ function UserDashboard() {
         </div>
 
         {/* Continue Reading Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Continue Reading</h2>
@@ -503,7 +503,7 @@ function UserDashboard() {
       </div>
 
       {/* Two-Column Layout */}
-      <div className="space-y-6 md:space-y-0 md:grid md:grid-cols-2 md:gap-8">
+      <div className="space-y-6 md:space-y-0 md:grid md:grid-cols-2 md:gap-6">
         {/* Continue Reading - Full width on mobile */}
         <div className="md:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between mb-4">

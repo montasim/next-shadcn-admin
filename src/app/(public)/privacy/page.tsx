@@ -39,7 +39,7 @@ export default async function PrivacyPage() {
     <div className="min-h-screen">
       <main className="container mx-auto p-4 py-8 md:py-12">
         {/* Header */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
               <Shield className="h-6 w-6 text-primary" />

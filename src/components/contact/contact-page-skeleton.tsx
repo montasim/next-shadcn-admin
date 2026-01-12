@@ -8,7 +8,7 @@ export function ContactPageSkeleton() {
     <div className="min-h-screen">
       <main className="container mx-auto p-4 py-8 md:py-12">
         {/* Header Skeleton */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-6 space-y-4">
           <div className="flex items-center gap-3">
             <Skeleton className="h-12 w-12 rounded-lg" />
             <div className="space-y-2">

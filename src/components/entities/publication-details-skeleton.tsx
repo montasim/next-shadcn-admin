@@ -17,7 +17,7 @@ export function PublicationDetailsSkeleton() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6">
           {/* Left Column - Image and Stats */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
@@ -59,7 +59,7 @@ export function PublicationDetailsSkeleton() {
 
           {/* Right Column - Information and Books */}
           <div className="lg:col-span-2">
-            <div className="mb-8">
+            <div className="mb-6">
                {/*Name and Visitor Count Row Skeleton */}
               <div className="flex items-center justify-between mb-4">
                 <Skeleton className="h-5 w-1/2" />

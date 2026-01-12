@@ -133,7 +133,7 @@ export default function PublicationDetailsPage() {
           ]}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-6">
           {/* Publisher Image and Stats - Left Column */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
@@ -190,7 +190,7 @@ export default function PublicationDetailsPage() {
 
           {/* Publisher Information and Books - Right Column */}
           <div className="lg:col-span-2">
-            <div className="mb-8">
+            <div className="mb-6">
               {/* Name and Visitor Count Row */}
               <div className="flex items-center justify-between mb-4">
                 <h1 className="text-xl font-bold">{publication.name}</h1>

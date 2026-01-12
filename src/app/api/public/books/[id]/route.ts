@@ -36,6 +36,10 @@ interface BookWithRelations extends Book {
         authorId: string
         author: Pick<Author, 'id' | 'name' | 'description' | 'image'>
     }>
+    translators: Array<{
+        translatorId: string
+        translator: Pick<Author, 'id' | 'name' | 'description' | 'image'>
+    }>
     categories: Array<{
         categoryId: string
         category: Pick<Category, 'id' | 'name' | 'description' | 'image'>
@@ -192,6 +196,19 @@ export async function GET(
                     select: {
                         authorId: true,
                         author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                description: true,
+                                image: true,
+                            }
+                        }
+                    }
+                },
+                translators: {
+                    select: {
+                        translatorId: true,
+                        translator: {
                             select: {
                                 id: true,
                                 name: true,
@@ -658,6 +675,12 @@ export async function GET(
                 description: ba.author.description,
                 image: ba.author.image,
             })),
+            translators: book.translators ? book.translators.map(bt => ({
+                id: bt.translator.id,
+                name: bt.translator.name,
+                description: bt.translator.description,
+                image: bt.translator.image,
+            })) : [],
             categories: book.categories.map(bc => ({
                 id: bc.category.id,
                 name: bc.category.name,

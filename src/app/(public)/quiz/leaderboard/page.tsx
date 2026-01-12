@@ -9,7 +9,7 @@ export default function QuizLeaderboardPage() {
     <div className="min-h-screen py-12 px-4">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <Button variant="ghost" asChild className="mb-4">
             <Link href={ROUTES.quiz.href}>
               <ArrowLeft className="h-4 w-4 mr-2" />

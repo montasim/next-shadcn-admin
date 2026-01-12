@@ -131,7 +131,7 @@ export default function UserProfilePage() {
         />
 
         {/* Profile Header */}
-        <Card className="mb-8">
+        <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-row gap-4 items-center sm:gap-6">
               {/* Avatar */}
@@ -178,7 +178,7 @@ export default function UserProfilePage() {
         </Card>
 
         {/* Achievements Section */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <Trophy className="h-5 w-5" />
             Achievements

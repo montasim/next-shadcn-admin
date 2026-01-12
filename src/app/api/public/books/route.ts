@@ -109,6 +109,15 @@ function buildFilterConditions(
                         }
                     }
                 }
+            },
+            {
+                translators: {
+                    some: {
+                        translator: {
+                            name: { contains: search, mode: 'insensitive' }
+                        }
+                    }
+                }
             }
         ]
     }
@@ -257,6 +266,11 @@ function transformBookData(book: any, userHasPremium: boolean, userId?: string) 
             name: ba.author.name,
             image: ba.author.image,
         })),
+        translators: book.translators ? book.translators.map((bt: any) => ({
+            id: bt.translator.id,
+            name: bt.translator.name,
+            image: bt.translator.image,
+        })) : [],
         categories: book.categories.map((bc: any) => ({
             id: bc.category.id,
             name: bc.category.name,
@@ -360,6 +374,17 @@ export async function GET(request: NextRequest) {
             authors: {
                 include: {
                     author: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                        }
+                    }
+                }
+            },
+            translators: {
+                include: {
+                    translator: {
                         select: {
                             id: true,
                             name: true,

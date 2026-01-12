@@ -42,7 +42,7 @@ export function PublicFooter() {
   return (
     <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-8 md:py-12 pb-32 md:pb-12 [padding-bottom:calc(6rem+env(safe-area-inset-bottom))] md:[padding-bottom:3rem]">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">

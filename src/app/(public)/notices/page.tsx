@@ -117,7 +117,7 @@ function NoticesPageContent() {
         </HeaderContainer>
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <h1 className="text-xl font-bold flex items-center gap-2">
