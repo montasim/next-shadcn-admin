@@ -667,7 +667,7 @@ function AdminDashboard() {
                   <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-semibold mb-2">No notifications</h3>
                   <p className="text-sm text-muted-foreground">
-                    You're all caught up!
+                    You&apos;re all caught up!
                   </p>
                 </CardContent>
               </Card>
