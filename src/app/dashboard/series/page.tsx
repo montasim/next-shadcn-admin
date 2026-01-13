@@ -193,6 +193,7 @@ export default function SeriesPage() {
           <TableSkeleton rowCount={pagination.pageSize} />
         ) : series.length === 0 ? (
           <EmptyStateCard
+            icon={Layers}
             title='No series found'
             description='There are no series in the system yet. Create your first series to get started.'
           />

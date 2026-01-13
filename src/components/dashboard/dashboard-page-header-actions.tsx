@@ -1,10 +1,10 @@
 'use client'
 
-import { type ReactNode } from 'react'
+import React from "react"
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { type LucideIcon } from 'lucide-react'
-import Link from 'next/link'
 
 export interface ActionConfig {
   /** Button label (hidden on mobile by default) */
@@ -71,9 +71,9 @@ export function DashboardPageHeaderActions({
         // If href is provided, render as Link
         if (href) {
           return (
-            <>
+            <React.Fragment key={`${label}-${index}`}>
               {/* Icon-only version for mobile */}
-              <Link key={`${index}-mobile`} href={href} className={cn('sm:hidden', actionClassName)}>
+              <Link href={href} className={cn('sm:hidden', actionClassName)}>
                 <Button
                   variant={variant}
                   disabled={disabled || loading}
@@ -85,7 +85,7 @@ export function DashboardPageHeaderActions({
               </Link>
 
               {/* Full button with label for desktop */}
-              <Link key={`${index}-desktop`} href={href} className={cn('hidden sm:inline-flex', actionClassName)}>
+              <Link href={href} className={cn('hidden sm:inline-flex', actionClassName)}>
                 <Button
                   variant={variant}
                   disabled={disabled || loading}
@@ -94,7 +94,7 @@ export function DashboardPageHeaderActions({
                   {buttonContent}
                 </Button>
               </Link>
-            </>
+            </React.Fragment>
           )
         }
 
@@ -102,7 +102,7 @@ export function DashboardPageHeaderActions({
         if (iconOnly) {
           return (
             <Button
-              key={index}
+              key={`${label}-${index}`}
               onClick={onClick}
               variant={variant}
               disabled={disabled || loading}
@@ -115,10 +115,9 @@ export function DashboardPageHeaderActions({
         }
 
         return (
-          <>
+          <React.Fragment key={`${label}-${index}`}>
             {/* Icon-only version for mobile */}
             <Button
-              key={`${index}-mobile`}
               onClick={onClick}
               variant={variant}
               disabled={disabled || loading}
@@ -130,7 +129,6 @@ export function DashboardPageHeaderActions({
 
             {/* Full button with label for desktop */}
             <Button
-              key={`${index}-desktop`}
               onClick={onClick}
               variant={variant}
               disabled={disabled || loading}
@@ -139,7 +137,7 @@ export function DashboardPageHeaderActions({
             >
               {buttonContent}
             </Button>
-          </>
+          </React.Fragment>
         )
       })}
     </div>

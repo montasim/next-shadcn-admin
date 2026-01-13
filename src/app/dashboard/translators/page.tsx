@@ -222,6 +222,7 @@ export default function TranslatorsPage() {
           <TableSkeleton rowCount={pagination.pageSize} />
         ) : translators.length === 0 ? (
           <EmptyStateCard
+            icon={Languages}
             title='No translators found'
             description='There are no translators in the system yet. Create your first translator to get started.'
           />

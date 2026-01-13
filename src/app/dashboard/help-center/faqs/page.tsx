@@ -305,6 +305,7 @@ function HelpCenterFAQsPageWrapper() {
         </>
       ) : filteredFaqs.length === 0 ? (
         <EmptyStateCard
+          icon={HelpCircle}
           title="No FAQs found"
           description={searchQuery || filteredCategory !== 'all'
             ? 'Try adjusting your search or filter to find what you\'re looking for.'

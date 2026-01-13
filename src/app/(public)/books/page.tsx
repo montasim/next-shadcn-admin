@@ -609,6 +609,7 @@ function BooksPageContent({
                               />
                             ) : (
                               <EmptyStateCard
+                                icon={BookOpen}
                                 title='No books found for this mood'
                                 description='Try selecting another mood to see different book recommendations.'
                               />

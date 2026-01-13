@@ -436,6 +436,7 @@ function AdminContentPageWrapper() {
             </>
           ) : editedTiers.length === 0 ? (
             <EmptyStateCard
+              icon={FileText}
               title="No pricing tiers found"
               description="There are no pricing tiers in the system yet. Click 'Seed Pricing' to add initial data."
             />
@@ -683,6 +684,7 @@ function AdminContentPageWrapper() {
             </>
           ) : faqs.length === 0 ? (
             <EmptyStateCard
+              icon={FileText}
               title="No FAQs found"
               description="There are no FAQs in the system yet. Click 'Seed FAQ' to add initial data or 'Add FAQ' to create one manually."
             />

@@ -106,6 +106,7 @@ export default function NoticesPage() {
           <TableSkeleton />
         ) : notices.length === 0 ? (
           <EmptyStateCard
+            icon={Bell}
             title="No notices yet"
             description="Get started by creating your first notice to communicate important updates to your users."
           />

@@ -221,6 +221,7 @@ export default function PublicationsPage() {
           <TableSkeleton rowCount={pagination.pageSize} />
         ) : publications.length === 0 ? (
           <EmptyStateCard
+            icon={IconBuildingStore}
             title='No publications found'
             description='There are no publications in the system yet. Create your first publication to get started.'
           />

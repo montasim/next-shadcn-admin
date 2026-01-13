@@ -257,7 +257,7 @@ export default function UserActivityPage() {
           </>
         ) : activities.length === 0 ? (
           <EmptyStateCard
-            icon={Calendar}
+            icon={Clock}
             title='No activities found'
             description='Your activity timeline will show here once you start using the platform.'
           />

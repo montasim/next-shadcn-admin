@@ -222,6 +222,7 @@ export default function AuthorsPage() {
           <TableSkeleton rowCount={pagination.pageSize} />
         ) : authors.length === 0 ? (
           <EmptyStateCard
+            icon={PenTool}
             title='No authors found'
             description='There are no authors in the system yet. Create your first author to get started.'
           />

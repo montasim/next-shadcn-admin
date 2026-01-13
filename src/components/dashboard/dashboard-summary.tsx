@@ -1,10 +1,10 @@
 'use client'
 
 import { StatCard } from '@/components/analytics/stat-card'
-import { LucideIcon, ChevronDown, ChevronUp } from 'lucide-react'
+import { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ReactNode, useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { ReactNode } from 'react'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 
 export interface SummaryItem {
   title: string
@@ -137,61 +137,29 @@ export function DashboardSummary({
   summaries,
   className
 }: DashboardSummaryProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768) // 768px is md breakpoint
-    }
-
-    // Initial check
-    checkMobile()
-
-    // Add event listener for resize
-    window.addEventListener('resize', checkMobile)
-
-    // Cleanup
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // On mobile, default to collapsed; on desktop, always show expanded
-  const showContent = !isMobile || isExpanded
-
+  // Use CollapsibleSection for mobile-responsive behavior
+  // On desktop (md+), show directly without border/card styling
   return (
-    <div className={cn('space-y-2', className)}>
-      {/* Header - always visible */}
-      <div className="flex items-center justify-between md:hidden">
-        <h2 className="text-lg font-semibold">Summary</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="h-8 w-8 p-0"
-        >
-          {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </Button>
+    <>
+      {/* Mobile: Use CollapsibleSection */}
+      <div className="md:hidden">
+        <CollapsibleSection title="Summary">
+          <DashboardSummaryGrid
+            summaries={summaries}
+            compactMobile={false}
+            className={className}
+          />
+        </CollapsibleSection>
       </div>
 
-      {/* Content - show based on state */}
-      <div
-        className={cn(
-          'transition-all duration-300 ease-in-out overflow-hidden',
-          !showContent && 'hidden'
-        )}
-      >
+      {/* Desktop: Show directly */}
+      <div className={cn('hidden md:block', className)}>
         <DashboardSummaryGrid
           summaries={summaries}
           compactMobile={false}
-          className={className}
         />
       </div>
-    </div>
+    </>
   )
 }
 

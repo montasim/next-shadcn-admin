@@ -134,6 +134,7 @@ function CampaignsPageContent() {
             <TableSkeleton />
           ) : campaigns.length === 0 ? (
             <EmptyStateCard
+              icon={Megaphone}
               title="No campaigns yet"
               description="Get started by creating your first email campaign to engage with your audience."
             />

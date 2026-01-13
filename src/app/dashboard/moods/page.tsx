@@ -222,6 +222,7 @@ export default function MoodsPage() {
           <TableSkeleton />
         ) : moods.length === 0 ? (
           <EmptyStateCard
+            icon={Smile}
             title='No moods found'
             description='There are no moods in the system yet. Create your first mood to get started.'
           />

@@ -221,6 +221,7 @@ export default function CategoriesPage() {
           <TableSkeleton rowCount={pagination.pageSize} />
         ) : categories.length === 0 ? (
           <EmptyStateCard
+            icon={IconTag}
             title='No categories found'
             description='There are no categories in the system yet. Create your first category to get started.'
           />

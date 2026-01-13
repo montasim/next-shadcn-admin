@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +17,12 @@ import type { NavGroup as NavGroupType } from './types'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Fix hydration mismatch by only rendering after client mount
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Determine if user has admin privileges
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
@@ -23,7 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Filter navigation groups based on user role
   let filteredNavGroups: NavGroupType[] = []
 
-  if (user) {
+  if (isMounted && user) {
     if (isAdmin) {
       // Admin: show all groups, but remove redundant Dashboard from "Other" group
       filteredNavGroups = sidebarData.navGroups.map(group => {
@@ -47,12 +54,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher teams={sidebarData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        {filteredNavGroups.map((props) => (
+        {isMounted && filteredNavGroups.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>
       <SidebarFooter>
-        {user && <NavUser user={user} />}
+        {isMounted && user && <NavUser user={user} />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

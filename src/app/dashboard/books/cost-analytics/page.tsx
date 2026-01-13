@@ -5,10 +5,11 @@ import { useAuth } from '@/context/auth-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DollarSign, Loader2, TrendingUp } from 'lucide-react'
+import { DollarSign, TrendingUp } from 'lucide-react'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
 import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
-import { CostSummaryCards } from './components/cost-summary-cards'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
 import { CostOverTimeChart } from './components/cost-over-time-chart'
 import { CostByDimensionChart } from './components/cost-by-dimension-chart'
 import { CostDetailsTable } from './components/cost-details-table'
@@ -66,24 +67,11 @@ export default function BookCostAnalyticsPage() {
       <DashboardPage
         icon={TrendingUp}
         title={isAdmin ? 'Book Cost Analytics' : 'My Book Costs'}
-        description={isAdmin ? 'Track and analyze book acquisition costs across the library' : 'Track your book spending and collection value'}
+        description={isAdmin ? 'Track and analyze book acquisition costs' : 'Track your book spending and collection value'}
       >
         <div className="space-y-6">
           {/* Summary Cards Skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-4 rounded-full" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-7 w-16 mb-2" />
-                  <Skeleton className="h-3 w-32" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DashboardSummarySkeleton count={4} />
 
           {/* Charts Skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -129,7 +117,7 @@ export default function BookCostAnalyticsPage() {
       <DashboardPage
         icon={TrendingUp}
         title={isAdmin ? 'Book Cost Analytics' : 'My Book Costs'}
-        description={isAdmin ? 'Track and analyze book acquisition costs across the library' : 'Track your book spending and collection value'}
+        description={isAdmin ? 'Track and analyze book acquisition costs' : 'Track your book spending and collection value'}
       >
         <div className="flex flex-col items-center justify-center py-12">
           <div className="text-center space-y-4">
@@ -186,7 +174,30 @@ export default function BookCostAnalyticsPage() {
     >
 
       {/* Summary Cards */}
-      <CostSummaryCards summary={analytics.summary} activity={analytics.activitySummary} />
+      <DashboardSummary
+        summaries={[
+          {
+            title: 'Total Spent',
+            value: `৳${analytics.summary.totalSpent.toLocaleString()}`,
+            description: `${analytics.summary.hardCopyCount} hard copy books`,
+          },
+          {
+            title: 'Avg Cost per Book',
+            value: `৳${analytics.summary.averageHardCopyCost.toFixed(2)}`,
+            description: `Across ${analytics.summary.totalBooks} books`,
+          },
+          {
+            title: 'This Month',
+            value: `৳${analytics.activitySummary.spentThisMonth.toLocaleString()}`,
+            description: `${analytics.activitySummary.booksAddedThisMonth} book${analytics.activitySummary.booksAddedThisMonth !== 1 ? 's' : ''} added`,
+          },
+          {
+            title: 'Hard Copies',
+            value: analytics.summary.hardCopyCount.toString(),
+            description: `Collection value: ৳${analytics.summary.hardCopySpent.toLocaleString()}`,
+          },
+        ]}
+      />
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

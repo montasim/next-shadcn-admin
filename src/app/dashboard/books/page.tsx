@@ -333,6 +333,7 @@ export default function BooksPage() {
           <TableSkeleton rowCount={pagination.pageSize} />
         ) : books.length === 0 ? (
           <EmptyStateCard
+            icon={BookOpen}
             title='No books found'
             description='There are no books in the system yet. Create your first book to get started.'
           />

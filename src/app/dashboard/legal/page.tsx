@@ -204,6 +204,7 @@ function LegalContentPageWrapper() {
         </div>
       ) : Object.keys(contents).length === 0 ? (
         <EmptyStateCard
+          icon={FileText}
           title="No legal content found"
           description="Get started by seeding initial legal content for Privacy Policy, Terms of Service, and other pages."
         />
