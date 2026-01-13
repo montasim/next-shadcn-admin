@@ -11,7 +11,8 @@ import { Calendar, Filter, Clock, CheckCircle, XCircle, BookOpen, MessageSquare,
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
 import { cn } from '@/lib/utils'
-import { DashboardSummary, DashboardSummaryGrid } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { DashboardSummarySkeleton } from '@/components/dashboard/dashboard-summary-skeleton'
 import {
   ActivityPageSkeleton,
@@ -162,42 +163,13 @@ export default function UserActivityPage() {
             {loading ? (
               <DashboardSummarySkeleton count={4} />
             ) : (
-              <DashboardSummaryGrid
+              <DashboardSummary
                 summaries={[
-                  {
-                    title: 'Total Activities',
-                    value: stats.total.toString(),
-                    description: 'All your activities',
-                    icon: ({ className }: { className?: string }) => (
-                      <Activity className={className} />
-                    ),
-                  },
-                  {
-                    title: 'Successful',
-                    value: stats.success.toString(),
-                    description: `${successRate}% success rate`,
-                    icon: ({ className }: { className?: string }) => (
-                      <CheckCircle className={className} />
-                    ),
-                  },
-                  {
-                    title: 'Failed',
-                    value: stats.failed.toString(),
-                    description: 'Activities that failed',
-                    icon: ({ className }: { className?: string }) => (
-                      <XCircle className={className} />
-                    ),
-                  },
-                  {
-                    title: 'This Week',
-                    value: stats.thisWeek.toString(),
-                    description: 'Activities in last 7 days',
-                    icon: ({ className }: { className?: string }) => (
-                      <TrendingUp className={className} />
-                    ),
-                  },
+                  { title: 'Total Activities', value: stats.total, description: 'All your activities' },
+                  { title: 'Successful', value: stats.success, description: `${successRate}% success rate` },
+                  { title: 'Failed', value: stats.failed, description: 'Activities that failed' },
+                  { title: 'This Week', value: stats.thisWeek, description: 'Activities in last 7 days' },
                 ]}
-                compactMobile={true}
               />
             )}
 
@@ -205,12 +177,11 @@ export default function UserActivityPage() {
         {loading ? (
           <ActivityFilterCardSkeleton />
         ) : (
-          <Card className='p-4'>
-            <div className='flex items-center gap-2 mb-4'>
-              <Filter className='h-4 w-4 text-muted-foreground' />
-              <h3 className='font-semibold'>Filter Activities</h3>
-            </div>
-
+          <CollapsibleSection
+            title="Filter Activities"
+            icon={Filter}
+            loadingSkeleton={<ActivityFilterCardSkeleton />}
+          >
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div className='space-y-2'>
                 <label className='text-sm font-medium'>Action Type</label>
@@ -246,7 +217,7 @@ export default function UserActivityPage() {
                 </Select>
               </div>
             </div>
-          </Card>
+          </CollapsibleSection>
         )}
 
         {/* Timeline */}

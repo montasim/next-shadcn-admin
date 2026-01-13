@@ -16,6 +16,7 @@ import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
 import { MDXViewer } from '@/components/ui/mdx-viewer'
 import { LendBookDrawer } from '@/components/books/lend-book-drawer'
+import { BorrowBookDialog } from '@/components/books/borrow-book-dialog'
 import { PhysicalLibraryBookSkeleton } from '@/components/books/physical-library-book-skeleton'
 import {
   BookOpen,
@@ -114,6 +115,7 @@ export default function PhysicalLibraryBookPage() {
 
   // Dialog states
   const [isLendDialogOpen, setIsLendDialogOpen] = useState(false)
+  const [isBorrowDialogOpen, setIsBorrowDialogOpen] = useState(false)
 
   // QR Code state
   const [qrCodeData, setQrCodeData] = useState<string | null>(null)
@@ -438,7 +440,7 @@ export default function PhysicalLibraryBookPage() {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                {canManageLoans && (
+                {canManageLoans ? (
                   <Button
                     onClick={() => setIsLendDialogOpen(true)}
                     className="w-full"
@@ -448,7 +450,17 @@ export default function PhysicalLibraryBookPage() {
                     <BookOpen className="h-4 w-4 mr-2" />
                     {isAvailable ? 'Lend Book' : 'No Copies Available'}
                   </Button>
-                )}
+                ) : user ? (
+                  <Button
+                    onClick={() => setIsBorrowDialogOpen(true)}
+                    className="w-full"
+                    size="lg"
+                    disabled={!isAvailable}
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    {isAvailable ? 'Borrow Book' : 'No Copies Available'}
+                  </Button>
+                ) : null}
 
                 {/* QR Code */}
                 {qrCodeLoading && (
@@ -819,6 +831,20 @@ export default function PhysicalLibraryBookPage() {
         <LendBookDrawer
           open={isLendDialogOpen}
           onOpenChange={setIsLendDialogOpen}
+          bookId={bookId}
+          bookName={book.name}
+          onSuccess={() => {
+            // Refresh the page data
+            window.location.reload()
+          }}
+        />
+      )}
+
+      {/* Borrow Book Dialog */}
+      {user && !canManageLoans && (
+        <BorrowBookDialog
+          open={isBorrowDialogOpen}
+          onOpenChange={setIsBorrowDialogOpen}
           bookId={bookId}
           bookName={book.name}
           onSuccess={() => {
