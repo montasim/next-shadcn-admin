@@ -12,8 +12,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { RequestStatus, BookType } from '@prisma/client'
-import { FileText, RefreshCw, MessageCircle, Filter, FileQuestion } from 'lucide-react'
+import { FileText, RefreshCw, MessageCircle, Filter, FileQuestion, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 import { useBookRequestsContext } from './context/book-requests-context'
 import { BookRequestsProvider } from './context/book-requests-context'
 import { BookRequestApproveDrawer } from './components/book-requests-approve-drawer'
@@ -21,6 +22,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
+import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { DashboardSummarySkeleton, FilterSectionSkeleton, BookRequestListSkeleton } from '@/components/data-table/table-skeleton'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
@@ -81,6 +83,10 @@ function BookRequestsPageContent() {
   const [requestToReject, setRequestToReject] = useState<BookRequest | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [reasonError, setReasonError] = useState('')
+
+  // Collapse state for mobile
+  const [filtersExpanded, setFiltersExpanded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const { currentRow, setCurrentRow } = useBookRequestsContext()
 
@@ -194,16 +200,38 @@ function BookRequestsPageContent() {
     fetchRequests()
   }, [])
 
+  // Detect mobile device for responsive collapse behavior
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768) // 768px is md breakpoint
+    }
+
+    // Initial check
+    checkMobile()
+
+    // Add event listener for resize
+    window.addEventListener('resize', checkMobile)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   return (
     <DashboardPage
       icon={FileQuestion}
       title="Book Requests"
-      description="Manage and process book requests from users"
+      description="Manage and process book requests"
       actions={
-        <Button onClick={fetchRequests} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          <span className='hidden sm:inline'>Refresh</span>
-        </Button>
+        <DashboardPageHeaderActions
+          actions={[
+            {
+              label: 'Refresh',
+              icon: RefreshCw,
+              onClick: fetchRequests,
+              variant: 'outline',
+            },
+          ]}
+        />
       }
     >
       <div className="space-y-4">
@@ -223,26 +251,50 @@ function BookRequestsPageContent() {
 
         {/* Filters */}
         {loading ? <FilterSectionSkeleton /> : (
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-4">
+        <Card className="border">
+          {/* Header - always visible */}
+          <div className='flex items-center justify-between p-4'>
             <h3 className="font-semibold flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Filters
             </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFiltersExpanded(!filtersExpanded)}
+              className="h-8 w-8 p-0 md:hidden"
+            >
+              {filtersExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-          <div className="flex items-center gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Requests</SelectItem>
-                <SelectItem value={RequestStatus.PENDING}>Pending</SelectItem>
-                <SelectItem value={RequestStatus.IN_PROGRESS}>In Progress</SelectItem>
-                <SelectItem value={RequestStatus.APPROVED}>Approved</SelectItem>
-                <SelectItem value={RequestStatus.REJECTED}>Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+
+          {/* Content - collapsible on mobile */}
+          <div
+            className={cn(
+              'transition-all duration-300 ease-in-out overflow-hidden',
+              !isMobile || filtersExpanded ? 'block' : 'hidden'
+            )}
+          >
+            <div className='px-4 pb-4'>
+              <div className="flex items-center gap-4">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Requests</SelectItem>
+                    <SelectItem value={RequestStatus.PENDING}>Pending</SelectItem>
+                    <SelectItem value={RequestStatus.IN_PROGRESS}>In Progress</SelectItem>
+                    <SelectItem value={RequestStatus.APPROVED}>Approved</SelectItem>
+                    <SelectItem value={RequestStatus.REJECTED}>Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </Card>
       )}
@@ -252,7 +304,7 @@ function BookRequestsPageContent() {
         <BookRequestListSkeleton />
       ) : filteredRequests.length === 0 ? (
         <EmptyStateCard
-          icon={FileText}
+          icon={FileQuestion}
           title="No requests found"
           description={
             statusFilter === 'all'

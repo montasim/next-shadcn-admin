@@ -150,6 +150,7 @@ export default function LoansPage() {
           <TableSkeleton />
         ) : loans.length === 0 ? (
           <EmptyStateCard
+            icon={HandCoins}
             title="No loans found"
             description="There are no book loans in the system yet."
           />
