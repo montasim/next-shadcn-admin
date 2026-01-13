@@ -38,7 +38,7 @@ import { CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Book } from '../data/schema'
-import { createBook, updateBook, getAuthorsForSelect, getTranslatorsForSelect, getPublicationsForSelect, getCategoriesForSelect, getBookTypesForSelect, getSeriesForSelect } from '../actions'
+import { createBook, updateBook, getAuthorsForSelect, getTranslatorsForSelect, getPublicationsForSelect, getCategoriesForSelect, getSeriesForSelect } from '../actions'
 import { BookType } from '@prisma/client'
 import { MDXEditor } from '@/components/ui/mdx-editor'
 import { ImageUpload } from '@/components/ui/image-upload'
@@ -159,6 +159,13 @@ interface BookTypeOption {
   label: string
 }
 
+// Static book types - no need to fetch from server
+const BOOK_TYPES: BookTypeOption[] = [
+  { value: 'HARD_COPY', label: 'Hard Copy' },
+  { value: 'EBOOK', label: 'E-Book' },
+  { value: 'AUDIO', label: 'Audio Book' },
+]
+
 export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }: Props) {
   const isUpdate = !!currentRow
 
@@ -167,7 +174,6 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
   const [publications, setPublications] = useState<Publication[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [series, setSeries] = useState<Series[]>([])
-  const [bookTypes, setBookTypes] = useState<BookTypeOption[]>([])
   const [loading, setLoading] = useState(false)
 
   const [purchaseDate, setPurchaseDate] = useState<Date | undefined>(
@@ -214,11 +220,11 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
         sellingPrice: currentRow.sellingPrice?.toString() || '',
         numberOfCopies: currentRow.numberOfCopies?.toString() || '',
         purchaseDate: currentRow.purchaseDate ? (typeof currentRow.purchaseDate === 'string' ? currentRow.purchaseDate : currentRow.purchaseDate.toISOString().split('T')[0]) : '',
-        authorIds: currentRow.authors.map((author: any) => author.id || author.author?.id) || [],
-        translatorIds: currentRow.translators?.map((translator: any) => translator.id || translator.translator?.id) || [],
-        publicationIds: currentRow.publications.map((pub: any) => pub.id || pub.publication?.id) || [],
-        categoryIds: currentRow.categories.map((cat: any) => cat.id || cat.category?.id) || [],
-        series: currentRow.series?.map((s: any) => ({
+        authorIds: (currentRow.authors || []).map((a: any) => a?.author?.id || a?.id).filter(Boolean) || [],
+        translatorIds: (currentRow.translators || []).map((t: any) => t?.translator?.id || t?.id).filter(Boolean) || [],
+        publicationIds: (currentRow.publications || []).map((p: any) => p?.publication?.id || p?.id).filter(Boolean) || [],
+        categoryIds: (currentRow.categories || []).map((c: any) => c?.category?.id || c?.id).filter(Boolean) || [],
+        series: (currentRow.series || []).map((s: any) => ({
           seriesId: s.seriesId,
           order: s.order,
         })) || [],
@@ -263,13 +269,12 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [authorsData, translatorsData, publicationsData, categoriesData, seriesData, bookTypesData] = await Promise.all([
+        const [authorsData, translatorsData, publicationsData, categoriesData, seriesData] = await Promise.all([
           getAuthorsForSelect(),
           getTranslatorsForSelect(),
           getPublicationsForSelect(),
           getCategoriesForSelect(),
           getSeriesForSelect(),
-          getBookTypesForSelect(),
         ])
 
         setAuthors(authorsData)
@@ -277,7 +282,6 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
         setPublications(publicationsData)
         setCategories(categoriesData)
         setSeries(seriesData)
-        setBookTypes(bookTypesData)
       } catch (error) {
         console.error('Error fetching form data:', error)
         toast({
@@ -389,7 +393,7 @@ export function BooksMutateDrawer({ open, onOpenChange, currentRow, onSuccess }:
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {bookTypes.map((type) => (
+                      {BOOK_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>

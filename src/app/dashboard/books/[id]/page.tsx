@@ -132,10 +132,10 @@ function ExpandableCardHeader({
   )
 }
 
-// Book Details Skeleton Component
-function BookDetailsSkeleton() {
+// Common Header Skeleton Component
+function BookDetailsHeaderSkeleton() {
   return (
-    <div className="bg-background h-screen overflow-y-auto no-scrollbar pb-4">
+    <>
       {/* Action Buttons Skeleton */}
       <div className="flex lg:justify-end justify-between gap-2 mb-4 px-4">
         <Skeleton className="h-9 w-32" />
@@ -200,95 +200,167 @@ function BookDetailsSkeleton() {
             </div>
           </div>
         </div>
+      </div>
+    </>
+  )
+}
 
-        {/* Tabs Skeleton */}
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex gap-2">
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-20" />
-              <Skeleton className="h-10 w-28" />
-            </div>
-            <Skeleton className="h-9 w-28" />
+// Digital Book Details Skeleton Component
+function DigitalBookDetailsSkeleton() {
+  return (
+    <div className="bg-background h-screen overflow-y-auto no-scrollbar pb-4">
+      <BookDetailsHeaderSkeleton />
+
+      {/* Tabs Skeleton */}
+      <div className="space-y-4 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-28" />
           </div>
-
-          {/* Tab Content Skeleton */}
-          <div className="space-y-4">
-            {/* AI Summary Card Skeleton */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8" />
-                    <div>
-                      <Skeleton className="h-6 w-32 mb-2" />
-                      <Skeleton className="h-4 w-48" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-9 w-32" />
-                </div>
-                <Skeleton className="h-4 w-64 mt-2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* AI Overview Card Skeleton */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8" />
-                    <div>
-                      <Skeleton className="h-6 w-32 mb-2" />
-                      <Skeleton className="h-4 w-48" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-9 w-32" />
-                </div>
-                <Skeleton className="h-4 w-64 mt-2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Key Questions Card Skeleton */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Skeleton className="h-8 w-8" />
-                    <div>
-                      <Skeleton className="h-6 w-32 mb-2" />
-                      <Skeleton className="h-4 w-48" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-9 w-32" />
-                </div>
-                <Skeleton className="h-4 w-64 mt-2" />
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <QuestionCardSkeleton />
-                  <QuestionCardSkeleton />
-                  <QuestionCardSkeleton />
-                  <QuestionCardSkeleton />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Skeleton className="h-9 w-28" />
         </div>
+
+        {/* Tab Content Skeleton */}
+        <div className="space-y-4">
+          {/* AI Summary Card Skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8" />
+                  <div>
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+                <Skeleton className="h-9 w-32" />
+              </div>
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Overview Card Skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8" />
+                  <div>
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+                <Skeleton className="h-9 w-32" />
+              </div>
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Key Questions Card Skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8" />
+                  <div>
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </div>
+                <Skeleton className="h-9 w-32" />
+              </div>
+              <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <QuestionCardSkeleton />
+                <QuestionCardSkeleton />
+                <QuestionCardSkeleton />
+                <QuestionCardSkeleton />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Hard Copy Book Details Skeleton Component
+function HardCopyBookDetailsSkeleton() {
+  return (
+    <div className="bg-background h-screen overflow-y-auto no-scrollbar pb-4">
+      <BookDetailsHeaderSkeleton />
+
+      {/* Lending Data Section Skeleton */}
+      <div className="space-y-4 px-4">
+        {/* Summary Card Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-5" />
+              <Skeleton className="h-6 w-32" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Loans List Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32 mb-2" />
+            <Skeleton className="h-4 w-48" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-48" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-24" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
@@ -687,7 +759,12 @@ export default function AdminBookDetailsPage() {
   }, [book, isRegeneratingQuestions])
 
   if (isLoading) {
-    return <BookDetailsSkeleton />
+    // Show appropriate skeleton based on book type
+    const bookType = bookData?.data?.type
+    if (bookType === 'HARD_COPY') {
+      return <HardCopyBookDetailsSkeleton />
+    }
+    return <DigitalBookDetailsSkeleton />
   }
 
   if (error || !book) {
