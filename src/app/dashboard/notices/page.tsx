@@ -83,7 +83,7 @@ export default function NoticesPage() {
       <DashboardPage
         icon={Bell}
         title="Notices"
-        description="Manage notices and announcements for your users"
+        description="Manage notices and announcements"
         actions={
           <DashboardPageHeaderActions
             actions={[

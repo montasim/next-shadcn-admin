@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Plus, Trash2, Save, GripVertical, Search, Filter, ArrowUpDown, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react'
+import { Plus, Trash2, Save, GripVertical, Search, Filter, ArrowUpDown, ChevronDown, ChevronRight, HelpCircle, Sprout } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -14,6 +14,9 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
 import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -199,12 +202,13 @@ function HelpCenterFAQsPageWrapper() {
     <DashboardPage
       icon={HelpCircle}
       title="Help Center FAQs"
-      description="Manage frequently asked questions for the help center"
+      description="Manage help center frequently asked questions"
       actions={
         <DashboardPageHeaderActions
           actions={[
             {
               label: 'Seed Initial Data',
+              icon: Sprout,
               onClick: () => setSeedDialogOpen(true),
               variant: 'outline',
             },
@@ -226,67 +230,55 @@ function HelpCenterFAQsPageWrapper() {
       }
     >
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total FAQs</CardTitle>
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{faqs.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <Badge variant="default" className="h-4 w-4 rounded-full p-0" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold text-green-600">{activeCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-            <Badge variant="secondary" className="h-4 w-4 rounded-full p-0" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold text-muted-foreground">{inactiveCount}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardSummary
+        summaries={[
+          {
+            title: 'Total FAQs',
+            value: faqs.length.toString(),
+            description: `${activeCount} active, ${inactiveCount} inactive`,
+          },
+          {
+            title: 'Active',
+            value: activeCount.toString(),
+            description: `${faqs.length > 0 ? ((activeCount / faqs.length) * 100).toFixed(0) : 0}% of total`,
+          },
+          {
+            title: 'Inactive',
+            value: inactiveCount.toString(),
+            description: `${faqs.length > 0 ? ((inactiveCount / faqs.length) * 100).toFixed(0) : 0}% of total`,
+          },
+        ]}
+      />
 
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search FAQs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="w-full md:w-48">
-              <Select value={filteredCategory} onValueChange={setFilteredCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {Object.entries(FAQ_CATEGORIES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <CollapsibleSection title="Filters" icon={Filter}>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search FAQs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="w-full md:w-48">
+            <Select value={filteredCategory} onValueChange={setFilteredCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {Object.entries(FAQ_CATEGORIES).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CollapsibleSection>
 
       {/* FAQ List */}
       {loading ? (
@@ -482,23 +474,14 @@ export default function HelpCenterFAQsPage() {
       >
         <div className="space-y-4">
           {/* Stats Cards Skeleton */}
-          <div className="grid gap-4 md:grid-cols-3">
-            {[...Array(3)].map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DashboardSummarySkeleton count={3} />
 
           {/* Filters Skeleton */}
           <Card>
-            <CardContent className="pt-6">
+            <CardHeader>
+              <Skeleton className="h-6 w-16" />
+            </CardHeader>
+            <CardContent>
               <div className="flex gap-4">
                 <Skeleton className="h-10 flex-1" />
                 <Skeleton className="h-10 w-48" />

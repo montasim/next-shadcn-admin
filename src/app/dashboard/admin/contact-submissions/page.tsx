@@ -14,10 +14,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Mail, MessageSquare, Search, Eye, CheckCircle, Archive, ExternalLink } from 'lucide-react'
+import { Mail, MessageSquare, Search, Eye, CheckCircle, Archive, ExternalLink, Filter } from 'lucide-react'
 import { toast } from 'sonner'
 import { ContactStatus } from '@prisma/client'
 import { TableSkeleton, FilterSectionSkeleton } from '@/components/data-table/table-skeleton'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 
 interface ContactSubmission {
   id: string
@@ -178,51 +181,7 @@ export default function ContactSubmissionsPage() {
         </div>
 
         {/* Stats Cards Skeleton */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-4 animate-pulse rounded-full bg-muted" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-7 w-16 animate-pulse rounded bg-muted mb-2" />
-              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-4 animate-pulse rounded-full bg-muted" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-7 w-16 animate-pulse rounded bg-muted mb-2" />
-              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-4 animate-pulse rounded-full bg-muted" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-7 w-16 animate-pulse rounded bg-muted mb-2" />
-              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-4 animate-pulse rounded-full bg-muted" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-7 w-16 animate-pulse rounded bg-muted mb-2" />
-              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardSummarySkeleton count={4} />
 
         {/* Filters Skeleton */}
         <FilterSectionSkeleton />
@@ -251,87 +210,65 @@ export default function ContactSubmissionsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">New</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{stats.NEW}</div>
-            <p className="text-xs text-muted-foreground">Unread messages</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Read</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{stats.READ}</div>
-            <p className="text-xs text-muted-foreground">Viewed messages</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Responded</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{stats.RESPONDED}</div>
-            <p className="text-xs text-muted-foreground">Completed replies</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold">{pagination.total}</div>
-            <p className="text-xs text-muted-foreground">All submissions</p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardSummary
+        summaries={[
+          {
+            title: 'New',
+            value: stats.NEW.toString(),
+            description: 'Unread messages',
+            icon: MessageSquare,
+          },
+          {
+            title: 'Read',
+            value: stats.READ.toString(),
+            description: 'Viewed messages',
+            icon: Eye,
+          },
+          {
+            title: 'Responded',
+            value: stats.RESPONDED.toString(),
+            description: 'Completed replies',
+            icon: CheckCircle,
+          },
+          {
+            title: 'Total',
+            value: pagination.total.toString(),
+            description: 'All submissions',
+            icon: Mail,
+          },
+        ]}
+      />
 
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, email, or message..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10"
-                />
-              </div>
+      <CollapsibleSection title="Filters" icon={Filter}>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, or message..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-10"
+              />
             </div>
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ContactStatus | 'all')}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value={ContactStatus.NEW}>New</SelectItem>
-                <SelectItem value={ContactStatus.READ}>Read</SelectItem>
-                <SelectItem value={ContactStatus.RESPONDED}>Responded</SelectItem>
-                <SelectItem value={ContactStatus.ARCHIVED}>Archived</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleSearch}>Search</Button>
           </div>
-        </CardContent>
-      </Card>
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ContactStatus | 'all')}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value={ContactStatus.NEW}>New</SelectItem>
+              <SelectItem value={ContactStatus.READ}>Read</SelectItem>
+              <SelectItem value={ContactStatus.RESPONDED}>Responded</SelectItem>
+              <SelectItem value={ContactStatus.ARCHIVED}>Archived</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleSearch}>Search</Button>
+        </div>
+      </CollapsibleSection>
 
       {/* Submissions Table */}
       <Card>

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { DashboardSummarySkeleton, FilterSectionSkeleton, TicketListSkeleton } from '@/components/data-table/table-skeleton'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { SupportTicket, TicketPriority, TicketStatus } from '@prisma/client'
 import { formatDistanceToNow } from 'date-fns'
 import { MessageSquare, Send, Clock, AlertCircle, CheckCircle2, User, LifeBuoy, Filter } from 'lucide-react'
@@ -294,31 +295,25 @@ export default function AdminSupportTicketsPage() {
 
           {/* Filters */}
           {loading ? <FilterSectionSkeleton /> : (
-          <Card className='p-4'>
-            <div className='flex items-center justify-between mb-4'>
-              <h3 className='font-semibold flex items-center gap-2'>
-                <Filter className='h-4 w-4' />
-                Filters
-              </h3>
-            </div>
-            <div className='flex items-center gap-4'>
-              <div className='flex-1'>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className='w-full md:w-48'>
-                    <SelectValue placeholder='Filter by status' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='all'>All Statuses</SelectItem>
-                    <SelectItem value={TicketStatus.OPEN}>Open</SelectItem>
-                    <SelectItem value={TicketStatus.IN_PROGRESS}>In Progress</SelectItem>
-                    <SelectItem value={TicketStatus.WAITING_FOR_USER}>Waiting for User</SelectItem>
-                    <SelectItem value={TicketStatus.RESOLVED}>Resolved</SelectItem>
-                    <SelectItem value={TicketStatus.CLOSED}>Closed</SelectItem>
-                  </SelectContent>
-                </Select>
+            <CollapsibleSection title="Filters" icon={Filter}>
+              <div className='flex items-center gap-4'>
+                <div className='flex-1'>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className='w-full md:w-48'>
+                      <SelectValue placeholder='Filter by status' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All Statuses</SelectItem>
+                      <SelectItem value={TicketStatus.OPEN}>Open</SelectItem>
+                      <SelectItem value={TicketStatus.IN_PROGRESS}>In Progress</SelectItem>
+                      <SelectItem value={TicketStatus.WAITING_FOR_USER}>Waiting for User</SelectItem>
+                      <SelectItem value={TicketStatus.RESOLVED}>Resolved</SelectItem>
+                      <SelectItem value={TicketStatus.CLOSED}>Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
-          </Card>
+            </CollapsibleSection>
           )}
 
           {/* Tickets List */}

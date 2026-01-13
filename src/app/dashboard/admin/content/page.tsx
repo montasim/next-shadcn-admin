@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Crown, HelpCircle, Plus, Trash2, Save, Pencil, GripVertical, AlertTriangle, ChevronDown, ChevronUp, FileText, ChevronDown as ExpandIcon, ChevronUp as CollapseIcon } from 'lucide-react'
+import { Crown, HelpCircle, Plus, Trash2, Save, Pencil, GripVertical, AlertTriangle, ChevronDown, ChevronUp, FileText, ChevronDown as ExpandIcon, ChevronUp as CollapseIcon, Sprout } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -331,7 +331,7 @@ function AdminContentPageWrapper() {
     <DashboardPage
       icon={FileText}
       title="Pricing Page Content"
-      description="Manage pricing tiers, features, and FAQ content for the pricing page"
+      description="Manage pricing tiers, features, and FAQ content"
       actions={
         activeTab === 'pricing' ? (
           <DashboardPageHeaderActions
@@ -344,6 +344,7 @@ function AdminContentPageWrapper() {
               },
               {
                 label: 'Seed Pricing',
+                icon: Sprout,
                 onClick: () => setPricingSeedDialogOpen(true),
                 variant: 'outline',
               },

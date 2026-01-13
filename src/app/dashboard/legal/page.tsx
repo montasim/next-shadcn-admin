@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyStateCard } from '@/components/ui/empty-state-card'
+import { DashboardPage } from '@/components/dashboard/dashboard-page'
+import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 import { LegalContentType } from '@prisma/client'
 
 interface LegalContent {
@@ -154,29 +156,41 @@ function LegalContentPageWrapper() {
   }
 
   return (
-    <div className="pb-safe-bottom">
+    <DashboardPage
+      icon={FileText}
+      title="Legal Content"
+      description="Manage privacy policy, terms of service, and other legal pages"
+      actions={
+        <DashboardPageHeaderActions
+          actions={[
+            {
+              label: 'Reset',
+              icon: Plus,
+              onClick: () => {
+                if (activeTab) {
+                  setSeedingType(activeTab as LegalContentType)
+                  setSeedDialogOpen(true)
+                }
+              },
+              variant: 'outline',
+            },
+            ...(contents[activeTab] ? [{
+              label: 'Preview',
+              icon: Eye,
+              onClick: () => activeTab && handlePreview(activeTab),
+              variant: 'outline' as const,
+            }] : []),
+          ]}
+        />
+      }
+    >
       {loading ? (
         <div className="space-y-4">
-          {/* Dynamic Header Skeleton */}
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-lg" />
-            <div className="space-y-2">
-              <Skeleton className="h-7 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-          </div>
-
-          {/* Tab List and Buttons Skeleton */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex gap-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-10 w-24" />
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-9 w-20" />
-              <Skeleton className="h-9 w-20" />
-            </div>
+          {/* Tab List Skeleton */}
+          <div className="flex items-center gap-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-10 w-24" />
+            ))}
           </div>
 
           {/* Editor and Preview Skeleton */}
@@ -210,75 +224,17 @@ function LegalContentPageWrapper() {
         />
       ) : (
         <Tabs value={activeTab} className="space-y-4">
-          {/* Dynamic Header */}
-          {activeTab && (
-            <div className="flex items-center gap-3">
-              {(() => {
-                const currentType = LEGAL_CONTENT_TYPES.find(t => t.value === activeTab)
-                const Icon = currentType?.icon
-                const content = contents[activeTab]
-
-                return (
-                  <>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      {Icon && <Icon className="h-5 w-5 text-primary" />}
-                    </div>
-                    <div>
-                      <h1 className="text-xl font-bold tracking-tight">{currentType?.label}</h1>
-                      {content ? (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Last updated: {new Date(content.updatedAt).toLocaleDateString()}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          No content yet
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )
-              })()}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-4">
-            <div className="w-full overflow-x-auto">
-              <TabsList>
-                {LEGAL_CONTENT_TYPES.map((type) => (
-                  <Link key={type.value} href={`/dashboard/legal?tab=${type.slug}`}>
-                    <TabsTrigger value={type.value} className="flex items-center gap-2">
-                      <type.icon className="h-4 w-4" />
-                      <span className="hidden sm:inline">{type.label}</span>
-                    </TabsTrigger>
-                  </Link>
-                ))}
-              </TabsList>
-            </div>
-            {activeTab && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button
-                  onClick={() => {
-                    setSeedingType(activeTab as LegalContentType)
-                    setSeedDialogOpen(true)
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Reset
-                </Button>
-                {contents[activeTab] && (
-                  <Button
-                    onClick={() => handlePreview(activeTab)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview
-                  </Button>
-                )}
-              </div>
-            )}
+          <div className="w-full overflow-x-auto">
+            <TabsList>
+              {LEGAL_CONTENT_TYPES.map((type) => (
+                <Link key={type.value} href={`/dashboard/legal?tab=${type.slug}`}>
+                  <TabsTrigger value={type.value} className="flex items-center gap-2">
+                    <type.icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{type.label}</span>
+                  </TabsTrigger>
+                </Link>
+              ))}
+            </TabsList>
           </div>
 
           {LEGAL_CONTENT_TYPES.map((type) => {
@@ -360,7 +316,7 @@ function LegalContentPageWrapper() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardPage>
   )
 }
 
@@ -368,39 +324,30 @@ function LegalContentPageWrapper() {
 export default function LegalContentPage() {
   return (
     <Suspense fallback={
-      <div className="space-y-4">
-        {/* Dynamic Header Skeleton */}
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </div>
-
-        {/* Tab List and Buttons Skeleton */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex gap-2">
+      <DashboardPage
+        icon={FileText}
+        title="Legal Content"
+        description="Manage privacy policy, terms of service, and other legal pages"
+      >
+        <div className="space-y-4">
+          {/* Tab List Skeleton */}
+          <div className="flex items-center gap-2">
             {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-10 w-24" />
             ))}
           </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-9 w-20" />
-            <Skeleton className="h-9 w-20" />
-          </div>
-        </div>
 
-        {/* Editor and Preview Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div>
-            <Skeleton className="h-32 w-full" />
-          </div>
-          <div>
-            <Skeleton className="h-64 w-full" />
+          {/* Editor and Preview Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+              <Skeleton className="h-32 w-full" />
+            </div>
+            <div>
+              <Skeleton className="h-64 w-full" />
+            </div>
           </div>
         </div>
-      </div>
+      </DashboardPage>
     }>
       <LegalContentPageWrapper />
     </Suspense>
