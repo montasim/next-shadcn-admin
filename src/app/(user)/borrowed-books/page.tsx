@@ -255,7 +255,7 @@ function ProfileLoansContent() {
                       <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold mb-2">No Borrowed Books</h3>
                       <p className="text-muted-foreground mb-4">
-                        You haven't borrowed any books yet.
+                        You haven&apos;t borrowed any books yet.
                       </p>
                       <Link href={ROUTES.books.href}>
                         <Button>Browse Books</Button>
@@ -322,7 +322,7 @@ function ProfileLoansContent() {
 
                           {loan.notes && (
                             <div className="mt-3 p-2 bg-muted/50 rounded text-sm italic">
-                              "{loan.notes}"
+                              {loan.notes}
                             </div>
                           )}
 
