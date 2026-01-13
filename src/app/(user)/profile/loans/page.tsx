@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BookOpen, Calendar, CheckCircle, Clock, AlertTriangle, Loader2, RefreshCw, HandCoins } from 'lucide-react'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
+import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
@@ -173,10 +174,16 @@ function ProfileLoansContent() {
       title="My Borrowed Books"
       description="View and manage your borrowed books"
       actions={
-        <Button onClick={fetchLoans} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <DashboardPageHeaderActions
+          actions={[
+            {
+              label: 'Refresh',
+              icon: RefreshCw,
+              onClick: fetchLoans,
+              variant: 'outline',
+            },
+          ]}
+        />
       }
     >
       {isLoading ? (
