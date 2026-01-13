@@ -10,16 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Overview } from "@/components/dashboard/overview"
-import { RecentSales } from "@/components/dashboard/recent-sales"
-import { DashboardSummary, SummaryItem } from "@/components/dashboard/dashboard-summary"
+import { DashboardSummary } from "@/components/dashboard/dashboard-summary"
 import { DashboardSummarySkeleton } from "@/components/dashboard/dashboard-summary-skeleton"
 import { HeaderContainer } from "@/components/ui/header-container"
 import { useAuth } from '@/context/auth-context'
 import {
   getAdminDashboardStats,
   getUserDashboardStats,
-  getRecentlyViewedBooks,
-  getPopularBooks,
   getAnalyticsData,
   getReportData,
   getNotificationData,
@@ -29,17 +26,15 @@ import type {
   AdminDashboardStats,
   UserDashboardStats,
   RecentActivity,
-  RecentlyViewedBook,
-  PopularBook,
   AnalyticsData,
   ReportData,
   NotificationData
 } from './actions'
-import { BookOpen, Clock, TrendingUp, Target, Award, Library, Star, Loader2, ChevronLeft, ChevronRight, Users, BookText, MessageSquare, AlertCircle, BarChart3, FileText, Bell } from 'lucide-react'
+import { BookOpen, Clock, TrendingUp, Award, Library, Star, Loader2, ChevronLeft, ChevronRight, Users, BookText, MessageSquare, AlertCircle, BarChart3, FileText, Bell } from 'lucide-react'
 import { getUserBooks } from '@/app/(user)/library/actions'
 import { Book } from '@/app/dashboard/books/data/schema'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
-import { calculateReadingTime, calculateReadingTimeHours } from '@/lib/utils/reading-time'
+import { calculateReadingTime } from '@/lib/utils/reading-time'
 import { ROUTES } from '@/lib/routes/client-routes'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -617,7 +612,7 @@ function AdminDashboard() {
             <>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight">Notifications</h2>
+                  <h2 className="text-xl font-bold tracking-tight">Notifications</h2>
                   <p className="text-muted-foreground">
                     {notificationData && `${notificationData.unread} unread notifications`}
                   </p>
