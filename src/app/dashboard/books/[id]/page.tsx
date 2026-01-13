@@ -1292,7 +1292,7 @@ export default function AdminBookDetailsPage() {
           onOpenChange={setIsEditDrawerOpen}
           currentRow={book as unknown as Book}
           onSuccess={() => {
-            mutate(`/api/admin/books/${bookId}/details`)
+            void mutate(`/api/admin/books/${bookId}/details`)
             setIsEditDrawerOpen(false)
           }}
         />
@@ -1386,10 +1386,11 @@ function AnalyticsTabSkeleton() {
           {/* Chart area skeleton */}
           <div className="space-y-3">
             <div className="flex items-end justify-between gap-2 h-48 px-2">
-              {/* Generate 12 chart bars */}
-              {[...Array(12)].map((_, i) => (
-                <Skeleton key={i} className="flex-1 rounded-t-md" style={{ height: `${40 + Math.random() * 60}%` }} />
-              ))}
+              {/* Generate 12 chart bars with deterministic heights */}
+              {[...Array(12)].map((_, i) => {
+                const height = 40 + ((i * 7) % 60)
+                return <Skeleton key={i} className="flex-1 rounded-t-md" style={{ height: `${height}%` }} />
+              })}
             </div>
             {/* X-axis labels skeleton */}
             <div className="flex justify-between px-2">
@@ -1713,7 +1714,6 @@ function LendingDataSkeleton() {
 function ChatHistoryTab({ bookId }: { bookId: string }) {
   const { data, isLoading } = useSWR(`/api/admin/books/${bookId}/chats`, (url) => fetch(url).then(r => r.json()))
   const sessions = data?.data?.sessions?.sessions || []
-  const stats = data?.data?.stats
 
   // State to track expanded users - MUST be before any early return
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set())
@@ -1843,7 +1843,7 @@ function ChatHistoryTab({ bookId }: { bookId: string }) {
                           <button
                             onClick={() => {
                               if (userId && userId !== 'unknown') {
-                                router.push(`/dashboard/users/${userId}`)
+                                void router.push(`/dashboard/users/${userId}`)
                               }
                             }}
                             className="font-medium hover:text-primary hover:underline transition-colors text-left truncate block"
