@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DashboardSummarySkeleton } from '@/components/data-table/table-skeleton'
+import { DashboardPage } from '@/components/dashboard/dashboard-page'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import {
     ShoppingBag,
     TrendingUp,
@@ -18,6 +21,7 @@ import {
     Package,
     DollarSign,
     Activity,
+    BarChart3,
 } from 'lucide-react'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/routes/client-routes'
@@ -102,21 +106,15 @@ export default function AdminMarketplacePage() {
     }
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-xl font-bold">Marketplace Overview</h1>
-                    <p className="text-muted-foreground">
-                        Monitor and manage the peer-to-peer book marketplace
-                    </p>
-                </div>
-            </div>
-
+        <DashboardPage
+            icon={ShoppingBag}
+            title="Marketplace Overview"
+            description="Monitor and manage the peer-to-peer book marketplace"
+        >
             {isLoading ? (
                 <>
-                    {/* Quick Stats Skeleton */}
-                    <DashboardSummarySkeleton count={4} />
+                    {/* All Stats Skeleton */}
+                    <DashboardSummarySkeleton count={7} />
 
                     {/* Activity Stats Skeleton */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -148,9 +146,6 @@ export default function AdminMarketplacePage() {
                         </Card>
                     </div>
 
-                    {/* Engagement Stats Skeleton */}
-                    <DashboardSummarySkeleton count={3} />
-
                     {/* Quick Links Skeleton */}
                     <Card>
                         <CardHeader>
@@ -178,85 +173,62 @@ export default function AdminMarketplacePage() {
                 </>
             ) : analytics && (
                 <>
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Active Listings
-                                </CardTitle>
-                                <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">{analytics.overview.activePosts}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {analytics.overview.totalPosts} total listings
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Items Sold
-                                </CardTitle>
-                                <Package className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">{analytics.overview.soldPosts}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {analytics.activitySummary.sales.thisWeek > 0 && (
-                                        <span className="text-green-600">
-                                            +{analytics.activitySummary.sales.thisWeek} this week
-                                        </span>
-                                    )}
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Total Value
-                                </CardTitle>
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">
-                                    ${analytics.overview.totalValue.toLocaleString()}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Across all listings
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Avg Rating
-                                </CardTitle>
-                                <Star className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">
-                                    {analytics.overview.averageRating.toFixed(1)}
-                                    <span className="text-sm text-muted-foreground">/5</span>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    {analytics.overview.totalReviews} reviews
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    {/* All Stats */}
+                    <DashboardSummary
+                        summaries={[
+                            {
+                                title: 'Active Listings',
+                                value: analytics.overview.activePosts.toString(),
+                                description: `${analytics.overview.totalPosts} total listings`,
+                                icon: ShoppingBag,
+                            },
+                            {
+                                title: 'Items Sold',
+                                value: analytics.overview.soldPosts.toString(),
+                                description: analytics.activitySummary.sales.thisWeek > 0
+                                    ? `+${analytics.activitySummary.sales.thisWeek} this week`
+                                    : 'No sales this week',
+                                icon: Package,
+                            },
+                            {
+                                title: 'Total Value',
+                                value: `$${analytics.overview.totalValue.toLocaleString()}`,
+                                description: 'Across all listings',
+                                icon: DollarSign,
+                            },
+                            {
+                                title: 'Avg Rating',
+                                value: analytics.overview.averageRating.toFixed(1),
+                                description: `${analytics.overview.totalReviews} reviews`,
+                                icon: Star,
+                            },
+                            {
+                                title: 'Total Offers',
+                                value: analytics.overview.totalOffers.toString(),
+                                description: `${analytics.overview.acceptedOffers} accepted (${analytics.overview.totalOffers > 0
+                                    ? Math.round((analytics.overview.acceptedOffers / analytics.overview.totalOffers) * 100)
+                                    : 0}%)`,
+                                icon: TrendingUp,
+                            },
+                            {
+                                title: 'Conversations',
+                                value: analytics.overview.totalConversations.toString(),
+                                description: 'Between buyers and sellers',
+                                icon: MessageSquare,
+                            },
+                            {
+                                title: 'Active Users',
+                                value: (analytics.activitySummary as any).users?.activeThisWeek?.toString() ?? '-',
+                                description: 'Active this week',
+                                icon: Users,
+                            },
+                        ]}
+                    />
 
                     {/* Activity Stats */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Listing Activity</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                        <CollapsibleSection title="Listing Activity" icon={BarChart3}>
+                            <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">Today</span>
                                     <span className="font-semibold">{analytics.activitySummary.posts.today}</span>
@@ -269,14 +241,11 @@ export default function AdminMarketplacePage() {
                                     <span className="text-sm text-muted-foreground">This Month</span>
                                     <span className="font-semibold">{analytics.activitySummary.posts.thisMonth}</span>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </CollapsibleSection>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Sales Activity</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                        <CollapsibleSection title="Sales Activity" icon={Activity}>
+                            <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">Today</span>
                                     <span className="font-semibold">{analytics.activitySummary.sales.today}</span>
@@ -289,62 +258,8 @@ export default function AdminMarketplacePage() {
                                     <span className="text-sm text-muted-foreground">This Month</span>
                                     <span className="font-semibold">{analytics.activitySummary.sales.thisMonth}</span>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Engagement Stats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Total Offers
-                                </CardTitle>
-                                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">{analytics.overview.totalOffers}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {analytics.overview.acceptedOffers} accepted (
-                                    {analytics.overview.totalOffers > 0
-                                        ? Math.round((analytics.overview.acceptedOffers / analytics.overview.totalOffers) * 100)
-                                        : 0}
-                                    %)
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Conversations
-                                </CardTitle>
-                                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">{analytics.overview.totalConversations}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    Between buyers and sellers
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground">
-                                    Active Users
-                                </CardTitle>
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-xl font-bold">
-                                    {(analytics.activitySummary as any).users?.activeThisWeek ?? '-'}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Active this week
-                                </p>
-                            </CardContent>
-                        </Card>
+                            </div>
+                        </CollapsibleSection>
                     </div>
 
                     {/* Quick Links */}
@@ -415,6 +330,6 @@ export default function AdminMarketplacePage() {
                     </Card>
                 </>
             )}
-        </div>
+        </DashboardPage>
     )
 }
