@@ -110,7 +110,7 @@ export async function POST(
       data: {
         bookId,
         userId: userSession.userId,
-        lentById: null, // Self-service borrowing
+        lentById: userSession.userId, // Self-service borrowing
         dueDate: defaultDueDate,
         notes: notes || null,
         status: 'ACTIVE'
