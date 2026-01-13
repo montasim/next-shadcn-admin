@@ -164,6 +164,15 @@ body {
     scrollbar-width: none; /* Firefox */
   }
 
+  /* Stronger scrollbar hiding - use this for stubborn scrollbars */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .faded-bottom {
     @apply after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:hidden after:h-32 after:w-full after:bg-[linear-gradient(180deg,_transparent_10%,_hsl(var(--background))_70%)] after:md:block;
   }
@@ -202,5 +211,12 @@ body {
   }
   body {
     @apply min-h-svh w-full bg-background text-foreground;
+  }
+
+  /* Hide all scrollbars for clean mobile appearance */
+  *::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
   }
 }
