@@ -27,6 +27,7 @@ import {
     Inbox,
 } from 'lucide-react'
 import { DashboardPage } from '@/components/dashboard/dashboard-page'
+import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { BookList } from './book-list'
 import { Bookshelves } from './components/bookshelves'
@@ -505,20 +506,25 @@ function LibraryPageContent() {
         title="My Library"
         description="Organize your books into custom collections and manage your uploads."
         actions={
-          <>
-            <Button onClick={() => setIsBookDrawerOpen(true)} aria-label="Upload Book">
-              <Upload className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Upload Book</span>
-            </Button>
-            <Button onClick={() => setIsShelfDrawerOpen(true)} aria-label="Create Bookshelf">
-              <Library className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Create Bookshelf</span>
-            </Button>
-            <Button onClick={() => setIsRequestDrawerOpen(true)} aria-label="Request Book">
-              <Inbox className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Request Book</span>
-            </Button>
-          </>
+          <DashboardPageHeaderActions
+            actions={[
+              {
+                label: 'Upload Book',
+                icon: Upload,
+                onClick: () => setIsBookDrawerOpen(true),
+              },
+              {
+                label: 'Create Bookshelf',
+                icon: Library,
+                onClick: () => setIsShelfDrawerOpen(true),
+              },
+              {
+                label: 'Request Book',
+                icon: Inbox,
+                onClick: () => setIsRequestDrawerOpen(true),
+              },
+            ]}
+          />
         }
       >
         {/* Dashboard Summary - Always visible at top */}
