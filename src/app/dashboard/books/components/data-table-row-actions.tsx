@@ -209,97 +209,101 @@ export function DataTableRowActions<TData>({
           </DropdownMenuShortcut>
         </DropdownMenuItem>
         <DropdownMenuItem disabled>Make a copy</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleRegenerateSummary}
-          disabled={isRegeneratingSummary}
-        >
-          {isRegeneratingSummary ? (
-            <>
-              <Loader2 className='h-4 w-4 animate-spin' />
-              Generating...
-            </>
-          ) : (
-            <>
-              Regenerate Summary
-              <DropdownMenuShortcut>
-                <IconSparkles size={16} />
-              </DropdownMenuShortcut>
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleRegenerateOverview}
-          disabled={isRegeneratingOverview}
-        >
-          {isRegeneratingOverview ? (
-            <>
-              <Loader2 className='h-4 w-4 animate-spin' />
-              Generating...
-            </>
-          ) : (
-            <>
-              Regenerate Overview
-              <DropdownMenuShortcut>
-                <IconBook size={16} />
-              </DropdownMenuShortcut>
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleRegenerateQuestions}
-          disabled={isRegeneratingQuestions}
-        >
-          {isRegeneratingQuestions ? (
-            <>
-              <Loader2 className='h-4 w-4 animate-spin' />
-              Generating...
-            </>
-          ) : (
-            <>
-              Regenerate Questions
-              <DropdownMenuShortcut>
-                <IconList size={16} />
-              </DropdownMenuShortcut>
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleRegenerateAudiobook}
-          disabled={isRegeneratingAudiobook}
-        >
-          {isRegeneratingAudiobook ? (
-            <>
-              <Loader2 className='h-4 w-4 animate-spin' />
-              Generating...
-            </>
-          ) : (
-            <>
-              Regenerate Audiobook
-              <DropdownMenuShortcut>
-                <IconVolume size={16} />
-              </DropdownMenuShortcut>
-            </>
-          )}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleRegenerateEmbeddings}
-          disabled={isRegeneratingEmbeddings}
-        >
-          {isRegeneratingEmbeddings ? (
-            <>
-              <Loader2 className='h-4 w-4 animate-spin' />
-              Regenerating...
-            </>
-          ) : (
-            <>
-              Regenerate Embeddings
-              <DropdownMenuShortcut>
-                <IconDatabase size={16} />
-              </DropdownMenuShortcut>
-            </>
-          )}
-        </DropdownMenuItem>
+        {book.type !== 'HARD_COPY' && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleRegenerateSummary}
+              disabled={isRegeneratingSummary}
+            >
+              {isRegeneratingSummary ? (
+                <>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  Regenerate Summary
+                  <DropdownMenuShortcut>
+                    <IconSparkles size={16} />
+                  </DropdownMenuShortcut>
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleRegenerateOverview}
+              disabled={isRegeneratingOverview}
+            >
+              {isRegeneratingOverview ? (
+                <>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  Regenerate Overview
+                  <DropdownMenuShortcut>
+                    <IconBook size={16} />
+                  </DropdownMenuShortcut>
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleRegenerateQuestions}
+              disabled={isRegeneratingQuestions}
+            >
+              {isRegeneratingQuestions ? (
+                <>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  Regenerate Questions
+                  <DropdownMenuShortcut>
+                    <IconList size={16} />
+                  </DropdownMenuShortcut>
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleRegenerateAudiobook}
+              disabled={isRegeneratingAudiobook}
+            >
+              {isRegeneratingAudiobook ? (
+                <>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  Regenerate Audiobook
+                  <DropdownMenuShortcut>
+                    <IconVolume size={16} />
+                  </DropdownMenuShortcut>
+                </>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleRegenerateEmbeddings}
+              disabled={isRegeneratingEmbeddings}
+            >
+              {isRegeneratingEmbeddings ? (
+                <>
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                  Regenerating...
+                </>
+              ) : (
+                <>
+                  Regenerate Embeddings
+                  <DropdownMenuShortcut>
+                    <IconDatabase size={16} />
+                  </DropdownMenuShortcut>
+                </>
+              )}
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {

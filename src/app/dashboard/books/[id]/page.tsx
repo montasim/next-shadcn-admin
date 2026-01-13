@@ -31,6 +31,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react'
 import { getProxiedImageUrl } from '@/lib/image-proxy'
 import { BookTypeBadge } from '@/components/books/book-type-badge'
@@ -52,6 +54,7 @@ import { Book } from '../data/schema'
 import {router} from "next/client";
 import { MDXViewer } from '@/components/ui/mdx-viewer'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 
 // Common styles
 const STYLES = {
@@ -578,6 +581,21 @@ export default function AdminBookDetailsPage() {
 
   const book = bookData?.data as Book | null;
 
+  // Fetch loans data for hard copy books
+  const { data: loansData } = useSWR(
+    book?.type === 'HARD_COPY' ? `/api/books/${bookId}/loans` : null,
+    fetcher
+  )
+  const loans = loansData?.data?.loans || []
+
+  // Calculate loan statistics for hard copy books
+  const loanStats = {
+    total: loans.length,
+    active: loans.filter((l: any) => l.status === 'ACTIVE').length,
+    overdue: loans.filter((l: any) => l.status === 'OVERDUE').length,
+    returned: loans.filter((l: any) => l.status === 'RETURNED').length,
+  }
+
   // Stop polling when summary is ready or failed
   useEffect(() => {
     if (book && isRegeneratingSummary) {
@@ -824,36 +842,76 @@ export default function AdminBookDetailsPage() {
                     description: 'All time views',
                     icon: Eye,
                   },
-                  {
-                    title: 'Readers',
-                    value: book.analytics?.totalReaders || 0,
-                    description: `${book.analytics?.currentlyReading || 0} currently reading`,
-                    icon: Users,
-                  },
-                  {
-                    title: 'Chat Messages',
-                    value: book.analytics?.totalChatMessages || 0,
-                    description: 'Total messages',
-                    icon: MessageSquare,
-                  },
-                  {
-                    title: 'Avg Progress',
-                    value: `${Math.round(book.analytics?.avgProgress || 0)}%`,
-                    description: 'Average reader progress',
-                    icon: TrendingUp,
-                  },
-                  {
-                    title: 'Avg Response Time',
-                    value: book.analytics?.avgResponseTime || 'N/A',
-                    description: 'Average chat response',
-                    icon: MessageSquare,
-                  },
+                  ...(book.type !== 'HARD_COPY' ? [
+                    {
+                      title: 'Readers',
+                      value: book.analytics?.totalReaders || 0,
+                      description: `${book.analytics?.currentlyReading || 0} currently reading`,
+                      icon: Users,
+                    },
+                    {
+                      title: 'Chat Messages',
+                      value: book.analytics?.totalChatMessages || 0,
+                      description: 'Total messages',
+                      icon: MessageSquare,
+                    },
+                    {
+                      title: 'Avg Progress',
+                      value: `${Math.round(book.analytics?.avgProgress || 0)}%`,
+                      description: 'Average reader progress',
+                      icon: TrendingUp,
+                    },
+                    {
+                      title: 'Avg Response Time',
+                      value: book.analytics?.avgResponseTime || 'N/A',
+                      description: 'Average chat response',
+                      icon: MessageSquare,
+                    },
+                  ] : []),
+                  ...(book.type === 'HARD_COPY' ? [
+                      {
+                          title: 'Total Loans',
+                          value: loanStats.total,
+                          description: 'All time',
+                          icon: BookOpen,
+                      },
+                      {
+                          title: 'Active Loans',
+                          value: loanStats.active,
+                          description: 'Currently borrowed',
+                          icon: Clock,
+                      },
+                      {
+                          title: 'Overdue',
+                          value: loanStats.overdue,
+                          description: 'Need attention',
+                          icon: AlertTriangle,
+                      },
+                      {
+                          title: 'Returned',
+                          value: loanStats.returned,
+                          description: 'Successfully returned',
+                          icon: CheckCircle,
+                      },
+                      {
+                          title: 'Available Copies',
+                          value: 'N/A',
+                          description: 'Not tracked',
+                          icon: Building2,
+                      },
+                  ] : []),
                 ]}
               />
             </div>
           </div>
 
-        {/* Tabs */}
+        {/* Tabs - Hide for hard copy books */}
+        {book.type === 'HARD_COPY' ? (
+          /* Hard Copy Books - Show Lending Data */
+          <div className="space-y-4">
+            <LendingDataSection bookId={bookId} book={book} />
+          </div>
+        ) : (
         <Tabs value={activeTab} className="space-y-4">
           <div className="w-full overflow-x-auto">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1097,6 +1155,7 @@ export default function AdminBookDetailsPage() {
             <ChatHistoryTab bookId={bookId} />
           </TabsContent>
         </Tabs>
+        )}
       </div>
 
       {/* Edit Question Dialog */}
@@ -1366,6 +1425,210 @@ function ReadersTabSkeleton() {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+// Lending Data Section Component
+function LendingDataSection({ bookId, book }: { bookId: string; book: Book }) {
+  const { data, isLoading } = useSWR(`/api/books/${bookId}/loans`, (url) => fetch(url).then(r => r.json()))
+  const loans = data?.data?.loans || []
+
+  if (isLoading) {
+    return <LendingDataSkeleton />
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Book Summary */}
+      {book.summary && (
+        <CollapsibleSection title="Book Summary" icon={FileText} defaultExpanded={true}>
+          <MDXViewer content={book.summary} />
+        </CollapsibleSection>
+      )}
+
+      {/* Loans List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            Lending History
+          </CardTitle>
+          <CardDescription>
+            {loans.length} loan{loans.length !== 1 ? 's' : ''} recorded
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loans.length === 0 ? (
+            <div className="text-center py-8">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+              <p className="text-sm text-muted-foreground">No loans recorded yet</p>
+              <p className="text-xs text-muted-foreground mt-1">This book has not been lent out to any users</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {loans.map((loan: any) => {
+                const isOverdue = loan.status === 'OVERDUE'
+                const isActive = loan.status === 'ACTIVE'
+                const isReturned = loan.status === 'RETURNED'
+
+                // Calculate days remaining/overdue
+                const dueDate = new Date(loan.dueDate)
+                const today = new Date()
+                const daysDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                const daysText = isReturned
+                  ? 'Returned'
+                  : isOverdue
+                  ? `${Math.abs(daysDiff)} days overdue`
+                  : daysDiff === 0
+                  ? 'Due today'
+                  : `${daysDiff} days left`
+
+                return (
+                  <div
+                    key={loan.id}
+                    className={`p-4 border rounded-lg transition-colors ${
+                      isOverdue ? 'bg-destructive/5 border-destructive/20' : 'hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        {/* Borrower Info */}
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={loan.user?.directAvatarUrl || undefined} />
+                            <AvatarFallback>
+                              {loan.user?.firstName?.[0] || loan.user?.lastName?.[0] || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {loan.user?.firstName && loan.user?.lastName
+                                ? `${loan.user.firstName} ${loan.user.lastName}`
+                                : loan.user?.username || 'Unknown User'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{loan.user?.email}</p>
+                          </div>
+                        </div>
+
+                        {/* Loan Details */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Loan Date:</span>
+                            <p className="font-medium mt-0.5">
+                              {new Date(loan.loanDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Due Date:</span>
+                            <p className="font-medium mt-0.5">
+                              {new Date(loan.dueDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          {loan.returnDate && (
+                            <div>
+                              <span className="text-muted-foreground">Return Date:</span>
+                              <p className="font-medium mt-0.5">
+                                {new Date(loan.returnDate).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-muted-foreground">Lent By:</span>
+                            <p className="font-medium mt-0.5">
+                              {loan.lentBy?.firstName && loan.lentBy?.lastName
+                                ? `${loan.lentBy.firstName} ${loan.lentBy.lastName}`
+                                : loan.lentBy?.email?.split('@')[0] || 'Admin'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {loan.notes && (
+                          <div className="text-xs">
+                            <span className="text-muted-foreground">Notes:</span>
+                            <p className="mt-0.5 italic">{loan.notes}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge
+                          variant={
+                            isOverdue
+                              ? 'destructive'
+                              : isActive
+                              ? 'default'
+                              : 'secondary'
+                          }
+                          className="capitalize"
+                        >
+                          {loan.status.toLowerCase()}
+                        </Badge>
+                        {!isReturned && (
+                          <span className={`text-xs font-medium ${isOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
+                            {daysText}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Lending Data Skeleton
+function LendingDataSkeleton() {
+  return (
+    <div className="space-y-4">
+      {/* Statistics Skeleton */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <SummaryCardSkeleton />
+        <SummaryCardSkeleton />
+        <SummaryCardSkeleton />
+        <SummaryCardSkeleton />
+        <SummaryCardSkeleton />
+      </div>
+
+      {/* Loans List Skeleton */}
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="p-4 border rounded-lg">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <Skeleton className="h-8 w-24" />
+                      <Skeleton className="h-8 w-24" />
+                      <Skeleton className="h-8 w-24" />
+                      <Skeleton className="h-8 w-24" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
