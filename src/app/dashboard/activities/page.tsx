@@ -5,6 +5,7 @@ import { DashboardPage } from '@/components/dashboard/dashboard-page'
 import { DashboardPageHeaderActions } from '@/components/dashboard/dashboard-page-header-actions'
 import { DataTable } from '@/components/data-table/data-table'
 import { TableSkeleton, DashboardSummarySkeleton, FilterSectionSkeleton } from '@/components/data-table/table-skeleton'
+import { DashboardSummary } from '@/components/dashboard/dashboard-summary'
 import { columns } from './components/columns'
 import { Activity, activitiesListSchema } from './data/schema'
 import { ActivityAction, ActivityResourceType } from '@prisma/client'
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { CalendarIcon, Filter, X, Search, Download, Activity as ActivityIcon } from 'lucide-react'
+import { CalendarIcon, Filter, X, Search, Download, Activity as ActivityIcon, ChevronDown, ChevronUp } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -37,6 +38,9 @@ export default function AdminActivitiesPage() {
   const [endDate, setEndDate] = useState<Date | undefined>()
   const [sortBy, setSortBy] = useState<'createdAt' | 'action' | 'resourceName'>('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  // Collapse states for mobile
+  const [filtersExpanded, setFiltersExpanded] = useState(false)
 
   const fetchActivities = async () => {
     setLoading(true)
@@ -77,6 +81,24 @@ export default function AdminActivitiesPage() {
   useEffect(() => {
     fetchActivities()
   }, [pagination.currentPage, sortBy, sortOrder])
+
+  // Detect mobile device for responsive collapse behavior
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768) // 768px is md breakpoint
+    }
+
+    // Initial check
+    checkMobile()
+
+    // Add event listener for resize
+    window.addEventListener('resize', checkMobile)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleApplyFilters = () => {
     setPagination({ ...pagination, currentPage: 1 })
@@ -159,8 +181,8 @@ export default function AdminActivitiesPage() {
   return (
     <DashboardPage
       icon={ActivityIcon}
-      title="Activity Logs"
-      description="Track all user and system activities across the platform"
+      title="Activities"
+      description="Track all user and system activities"
       actions={
         <>
           {activeFiltersCount > 0 && (
@@ -182,52 +204,77 @@ export default function AdminActivitiesPage() {
         </>
       }
     >
-      <div className='space-y-4'>
       {/* Stats */}
       {loading ? (
         <DashboardSummarySkeleton count={4} />
       ) : (
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Total Activities</div>
-            <div className='text-xl font-bold'>{pagination.total.toLocaleString()}</div>
-          </div>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Current Page</div>
-            <div className='text-xl font-bold'>
-              {pagination.currentPage} / {pagination.totalPages}
-            </div>
-          </div>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Success Rate</div>
-            <div className='text-xl font-bold'>
-              {activities.length > 0
+        <DashboardSummary
+          summaries={[
+            {
+              title: 'Total Activities',
+              value: pagination.total.toLocaleString(),
+              description: 'All activity records',
+            },
+            {
+              title: 'Current Page',
+              value: `${pagination.currentPage} / ${pagination.totalPages}`,
+              description: 'Navigation status',
+            },
+            {
+              title: 'Success Rate',
+              value: `${activities.length > 0
                 ? Math.round((activities.filter(a => a.success).length / activities.length) * 100)
-                : 0}%
-            </div>
-          </div>
-          <div className='rounded-lg border bg-card p-4'>
-            <div className='text-sm text-muted-foreground'>Filtered Results</div>
-            <div className='text-xl font-bold'>{activities.length}</div>
-          </div>
-        </div>
+                : 0}%`,
+              description: 'Successful operations',
+            },
+            {
+              title: 'Filtered Results',
+              value: activities.length.toString(),
+              description: 'Activities on this page',
+            },
+          ]}
+        />
       )}
 
       {/* Filters */}
       {loading ? <FilterSectionSkeleton /> : (
-      <div className='rounded-lg border bg-card p-4'>
-        <div className='flex items-center justify-between mb-4'>
+      <div className='rounded-lg border bg-card'>
+        {/* Header - always visible */}
+        <div className='flex items-center justify-between p-4'>
           <h3 className='font-semibold flex items-center gap-2'>
             <Filter className='h-4 w-4' />
             Filters
           </h3>
-          {activeFiltersCount > 0 && (
-            <Button onClick={handleClearFilters} variant='ghost' size='sm'>
-              <X className='mr-2 h-4 w-4' />
-              Clear all
+          <div className='flex items-center gap-2'>
+            {activeFiltersCount > 0 && (
+              <Button onClick={handleClearFilters} variant='ghost' size='sm'>
+                <X className='mr-2 h-4 w-4' />
+                Clear all
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFiltersExpanded(!filtersExpanded)}
+              className="h-8 w-8 p-0 md:hidden"
+            >
+              {filtersExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </Button>
-          )}
+          </div>
         </div>
+
+        {/* Content - collapsible on mobile */}
+        <div
+          className={cn(
+            'transition-all duration-300 ease-in-out overflow-hidden',
+            !isMobile || filtersExpanded ? 'block' : 'hidden'
+          )}
+        >
+          <div className='px-4 pb-4 no-scrollbar scrollbar-hide'>
 
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
           {/* Search */}
@@ -385,19 +432,18 @@ export default function AdminActivitiesPage() {
             Apply Filters
           </Button>
         </div>
+        </div>
+        </div>
       </div>
       )}
 
       {/* Table */}
-      <div>
-        {loading ? <TableSkeleton rowCount={pagination.limit} /> : (
-          <DataTable
-            data={activities as any}
-            columns={columns}
-          />
-        )}
-      </div>
-      </div>
+      {loading ? <TableSkeleton rowCount={pagination.limit} /> : (
+        <DataTable
+          data={activities as any}
+          columns={columns}
+        />
+      )}
       </DashboardPage>
   )
 }
